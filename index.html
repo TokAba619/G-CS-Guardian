@@ -63,7 +63,7 @@
     if (role) localStorage.setItem("role", role);
 
     // ✅ Redirect to dashboard (web.html)
-    window.location.href = "/G-CS-Guardian/web.html";
+    window.location.href = "web.html";
   }
 
   // ✅ Manual login with email & password
@@ -97,7 +97,7 @@
           if (data.email) localStorage.setItem("email", data.email);
           if (data.role) localStorage.setItem("role", data.role);
 
-          window.location.href = "/G-CS-Guardian/web.html"; // ✅ Go to protected page
+          window.location.href = "web.html"; // ✅ Go to protected page
         } else {
           console.warn("No access token in response.");
           document.getElementById("error").textContent = "Invalid email or password.";
@@ -113,4 +113,5 @@
 
 </body>
 </html>
+
 
