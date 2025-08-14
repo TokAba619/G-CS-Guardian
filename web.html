@@ -543,9 +543,23 @@ function formatDate(timestamp) {
 async function loadPreviousScans() {
     const tableBody = document.getElementById("previous-scan-table");
     tableBody.innerHTML = "<tr><td colspan='3'>Loading...</td></tr>";
+
+    const token = localStorage.getItem("authToken"); // Make sure your login stores this
+
+    if (!token) {
+        tableBody.innerHTML = "<tr><td colspan='3'>Please log in to view scans</td></tr>";
+        return;
+    }
+
     try {
-        const res = await fetch(API_PREVIOUS_SCANS);
+        const res = await fetch(API_PREVIOUS_SCANS, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
         if (!res.ok) throw new Error("Failed to fetch scans");
+
         const scans = await res.json();
 
         if (!scans || scans.length === 0) {
@@ -584,8 +598,15 @@ async function fetchDetailedScan() {
         return;
     }
 
+    const token = localStorage.getItem("authToken");
+
     try {
-        const res = await fetch(API_SCAN_DETAILS + encodeURIComponent(scanId));
+        const res = await fetch(API_SCAN_DETAILS.replace("{scan_id}", encodeURIComponent(scanId)), {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
         if (!res.ok) throw new Error("Scan not found");
         const data = await res.json();
 
@@ -611,6 +632,7 @@ async function fetchDetailedScan() {
 
 document.addEventListener("DOMContentLoaded", loadPreviousScans);
 </script>
+
 
     
 
@@ -908,6 +930,7 @@ document.addEventListener("DOMContentLoaded", function () {
     </body>
   
 </html>
+
 
 
 
