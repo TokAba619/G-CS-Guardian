@@ -24,7 +24,7 @@ nextBtn.addEventListener('click', () => {
   }
 });
 
-<script>
+
 document.addEventListener("DOMContentLoaded", function () {
     const resultsContainer = document.getElementById("results-container");
 
@@ -107,7 +107,3 @@ document.addEventListener("DOMContentLoaded", function () {
             resultsContainer.innerHTML = "<p style='color:red;'>Error loading results. Please try again later.</p>";
         });
 });
-</script>
-
-
-
