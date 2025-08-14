@@ -544,7 +544,7 @@ async function loadPreviousScans() {
     const tableBody = document.getElementById("previous-scan-table");
     tableBody.innerHTML = "<tr><td colspan='3'>Loading...</td></tr>";
 
-    const token = localStorage.getItem("authToken"); // Make sure your login stores this
+    const token = localStorage.getItem("access_token"); // Make sure your login stores this
 
     if (!token) {
         tableBody.innerHTML = "<tr><td colspan='3'>Please log in to view scans</td></tr>";
@@ -930,6 +930,7 @@ document.addEventListener("DOMContentLoaded", function () {
     </body>
   
 </html>
+
 
 
 
