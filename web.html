@@ -241,7 +241,7 @@
         <br><br>
 
         <!-- Important: set type="button" so form does not refresh -->
-        <button type="button" class="learn-more" id="scanButton">Upload & Scan</button>
+        <button type="button" class="learn-more" id="scanForm">Upload & Scan</button>
       </form>
     </div>
   </div>
@@ -337,7 +337,7 @@
 
 <!-- JAVASCRIPT -->
 <script>
-document.getElementById("scanButton").addEventListener("click", async function () {
+document.getElementById("scanForm").addEventListener("click", async function () {
     const ethicalMode = document.getElementById("ethicalModeToggle").checked;
     const projectId = document.getElementById("projectId").value.trim();
     const resultsContainer = document.getElementById("results-container");
@@ -907,6 +907,7 @@ document.addEventListener("DOMContentLoaded", function () {
     </body>
   
 </html>
+
 
 
 
