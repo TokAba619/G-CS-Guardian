@@ -335,44 +335,64 @@
 
 <!-- JAVASCRIPT -->
 <script>
-function startScan(event) {
+async function startScan(event) {
   event.preventDefault();
 
   const ethicalMode = document.getElementById('ethicalModeToggle').checked;
   const projectId = document.getElementById('projectId').value;
 
-  // Simulated API data (replace with your fetch later)
-  const exampleApiData = [
-    {
-      bucket_name: "example-bucket",
-      public: true,
-      risk_score: 8,
-      risk_reason: "Open access",
-      risk_reference: "https://docs.example.com",
-      sensitive_keywords_detected: 5,
-      sample_files: ["file1.txt", "file2.txt"]
-    },
-    {
-      bucket_name: "private-bucket",
-      public: false,
-      risk_score: 2,
-      risk_reason: "Restricted access",
-      risk_reference: "https://docs.example.com/restricted",
-      sensitive_keywords_detected: 0,
-      sample_files: ["confidential.txt"]
+  if (!projectId) {
+    alert("Please enter a Project ID.");
+    return;
+  }
+
+  const resultsContainer = document.getElementById('results-container');
+  resultsContainer.innerHTML = "<p>Scanning in progress...</p>";
+
+  try {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      alert("You are not logged in.");
+      return;
     }
-  ];
 
-  // Display the simulated results
-  displayResults(exampleApiData, ethicalMode);
+    // ✅ Replace with your actual API endpoint
+    const response = await fetch(
+      `https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/scan/start?projectId=${encodeURIComponent(projectId)}`,
+      {
+        method: "POST", // Change to "GET" if your backend expects GET
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ ethicalMode }) // Remove if your backend doesn't need it
+      }
+    );
 
-  // Scroll to results section
-  document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+    if (!response.ok) {
+      throw new Error(`Scan failed: ${response.status}`);
+    }
+
+    const apiData = await response.json();
+    displayResults(apiData, ethicalMode);
+
+    // ✅ Scroll to results section
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+
+  } catch (error) {
+    console.error("Error starting scan:", error);
+    resultsContainer.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
+  }
 }
 
 function displayResults(apiData, ethicalMode) {
   const resultsContainer = document.getElementById('results-container');
   resultsContainer.innerHTML = "";
+
+  if (!apiData || apiData.length === 0) {
+    resultsContainer.innerHTML = "<p>No results found.</p>";
+    return;
+  }
 
   apiData.forEach(bucket => {
     const card = document.createElement('div');
@@ -385,7 +405,7 @@ function displayResults(apiData, ethicalMode) {
       <p><strong>Risk Reason:</strong> ${bucket.risk_reason}</p>
       <p><strong>Risk Reference:</strong> <a href="${bucket.risk_reference}" target="_blank">${bucket.risk_reference}</a></p>
       <p><strong>Sensitive Keywords Detected:</strong> ${bucket.sensitive_keywords_detected}</p>
-      ${ethicalMode ? `<p><strong>Sample Files:</strong> ${bucket.sample_files.join(", ")}</p>` : ""}
+      ${ethicalMode && bucket.sample_files ? `<p><strong>Sample Files:</strong> ${bucket.sample_files.join(", ")}</p>` : ""}
     `;
 
     resultsContainer.appendChild(card);
@@ -396,7 +416,6 @@ function scrollToSection(sectionId) {
   document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
 }
 </script>
-
 
 
 <!-- MY-SCAN SECTION -->
@@ -518,8 +537,8 @@ function scrollToSection(sectionId) {
 </style>
 
 <script>
-const API_PREVIOUS_SCANS = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/scan";
-const API_SCAN_DETAILS = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/scan";
+const API_PREVIOUS_SCANS = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/my-scans/";
+const API_SCAN_DETAILS = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/my-scans/{scan_id}";
 
 // Format timestamp to readable date
 function formatDate(timestamp) {
@@ -897,4 +916,5 @@ document.addEventListener("DOMContentLoaded", function () {
     </body>
   
 </html>
+
 
