@@ -190,13 +190,13 @@
     <p class="section-content">
       Need a Quick Scan of Your Cloud Storage Bucket? I’m ready!</p>
 
-    <div class="form">
-      <form action="https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/scan" onsubmit="startScan(event)">
+  <div class="form">
+      <form onsubmit="startScan(event)">
         <label class="toggle">
-  <input type="checkbox" id="ethicalModeToggle">
-  <span class="slider"></span>
-  <span class="toggle-label">Ethical Mode (Project Owner Only)<br></span>
-</label><br>
+          <input type="checkbox" id="ethicalModeToggle">
+          <span class="slider"></span>
+          <span class="toggle-label">Ethical Mode (Project Owner Only)<br></span>
+        </label><br>
 <h1 class="form-title">Upload Google Cloud Project ID</h1><br>
 
         <div class="card1">
@@ -336,71 +336,64 @@
 <!-- JAVASCRIPT -->
 <script>
 async function startScan(event) {
-  event.preventDefault();
+  event.preventDefault(); // Stop page refresh
 
   const ethicalMode = document.getElementById('ethicalModeToggle').checked;
-  const projectId = document.getElementById('projectId').value;
+  const projectId = document.getElementById('projectId').value.trim();
+  const resultsContainer = document.getElementById('results-container');
 
   if (!projectId) {
     alert("Please enter a Project ID.");
     return;
   }
 
-  const resultsContainer = document.getElementById('results-container');
-  resultsContainer.innerHTML = "<p>Scanning in progress...</p>";
+  const token = localStorage.getItem("access_token");
+  if (!token) {
+    alert("You are not logged in.");
+    return;
+  }
+
+  resultsContainer.innerHTML = "<p>🔍 Scanning in progress...</p>";
 
   try {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      alert("You are not logged in.");
-      return;
-    }
-
-    // ✅ GET request with query parameters
     const apiUrl = `https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/scan/start?projectId=${encodeURIComponent(projectId)}&ethicalMode=${ethicalMode}`;
-
-    console.log("Sending GET request to:", apiUrl);
 
     const response = await fetch(apiUrl, {
       method: "GET",
-      headers: {
-        "Authorization": `Bearer ${token}`
-      }
+      headers: { "Authorization": `Bearer ${token}` }
     });
 
     if (!response.ok) {
-      throw new Error(`Scan failed: ${response.status}`);
+      throw new Error(`Scan failed (${response.status})`);
     }
 
     const apiData = await response.json();
-    console.log("API response:", apiData);
+    const buckets = Array.isArray(apiData) ? apiData : apiData.buckets || [];
 
-    displayResults(apiData, ethicalMode);
-
-    // ✅ Scroll to results section
+    displayResults(buckets, ethicalMode);
     document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
 
   } catch (error) {
     console.error("Error starting scan:", error);
-    resultsContainer.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
+    resultsContainer.innerHTML = `<p style="color:red;">❌ ${error.message}</p>`;
   }
 }
 
-function displayResults(apiData, ethicalMode) {
+function displayResults(buckets, ethicalMode) {
   const resultsContainer = document.getElementById('results-container');
   resultsContainer.innerHTML = "";
 
-  if (!apiData || apiData.length === 0) {
+  if (!buckets.length) {
     resultsContainer.innerHTML = "<p>No results found.</p>";
     return;
   }
 
-  apiData.forEach(bucket => {
+  buckets.forEach(bucket => {
     const card = document.createElement('div');
     card.classList.add('result-card');
 
     card.innerHTML = `
-      <h3>${bucket.bucket_name}</h3>
+      <h3>${bucket.bucket_name || 'Unknown Bucket'}</h3>
       <p><strong>Public:</strong> ${bucket.public}</p>
       <p><strong>Risk Score:</strong> ${bucket.risk_score}</p>
       <p><strong>Risk Reason:</strong> ${bucket.risk_reason}</p>
@@ -408,7 +401,6 @@ function displayResults(apiData, ethicalMode) {
       <p><strong>Sensitive Keywords Detected:</strong> ${bucket.sensitive_keywords_detected}</p>
       ${ethicalMode && bucket.sample_files ? `<p><strong>Sample Files:</strong> ${bucket.sample_files.join(", ")}</p>` : ""}
     `;
-
     resultsContainer.appendChild(card);
   });
 }
@@ -418,6 +410,210 @@ function scrollToSection(sectionId) {
 }
 </script>
 
+
+    
+<!-- MY-SCAN SECTION -->
+<section class="content-section myscan" id="myscan">
+    <!-- Floating background elements -->
+    <div class="floating-elements">
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+    </div>
+
+    <div class="container">
+        <h2 class="section-title">My-Scan</h2>
+        <p class="section-content">
+            My-Scan enables you to access and review the results of past scans, removing the need to perform a new scan on the same bucket project.
+        </p>
+
+        <!-- Feature 1: Previous Scan -->
+        <div class="myscan-feature">
+            <h3>Previous Scan</h3>
+            <p>View a list of all previous scans with their timestamps, Scan IDs, and Project IDs.</p>
+            <table class="scan-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Scan ID</th>
+                        <th>Project ID</th>
+                    </tr>
+                </thead>
+                <tbody id="previous-scan-table">
+                    <tr><td colspan="3">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <hr class="myscan-divider">
+
+        <!-- Feature 2: Detailed Scan Results -->
+        <div class="myscan-feature">
+            <h3>Detailed Scan Results</h3>
+            <p>Enter a Scan ID to retrieve detailed scan information.</p>
+            <div class="detailed-scan-form">
+                <input type="text" id="scanIdInput" placeholder="Enter Scan ID" aria-label="Enter Scan ID">
+                <button onclick="fetchDetailedScan()" aria-label="Fetch scan details">Enter</button>
+            </div>
+            <div id="detailed-scan-results" class="results-container"></div>
+        </div>
+    </div>
+</section>
+
+<style>
+.myscan-feature { margin-top: 2rem; }
+.scan-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #111;
+    color: #eee;
+    margin-top: 1rem;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.scan-table th, .scan-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: left;
+}
+.scan-table th { background-color: #0ff; color: #111; }
+.scan-table tr:hover { background: rgba(255, 255, 255, 0.05); }
+.scan-id {
+    cursor: pointer;
+    color: #0ff;
+    text-decoration: underline;
+}
+.scan-id:hover {
+    color: #00cccc;
+}
+.myscan-divider {
+    margin: 2rem 0;
+    border: none;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.2);
+}
+.detailed-scan-form {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+.detailed-scan-form input {
+    flex: 1;
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: none;
+}
+.detailed-scan-form button {
+    background: #0ff;
+    color: #111;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.detailed-scan-form button:hover { background: #00cccc; }
+.results-container {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.result-card {
+    background: #111;
+    padding: 1rem;
+    border-radius: 8px;
+    color: #eee;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+.result-card h4 { margin-bottom: 0.5rem; color: #0ff; }
+</style>
+
+<script>
+const API_PREVIOUS_SCANS = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/my-scans/";
+const API_SCAN_DETAILS = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/my-scans/{scan_id}";
+
+// Format timestamp to readable date
+function formatDate(timestamp) {
+    const date = new Date(timestamp);
+    return isNaN(date.getTime()) ? "N/A" : date.toLocaleString();
+}
+
+// Load previous scans
+async function loadPreviousScans() {
+    const tableBody = document.getElementById("previous-scan-table");
+    tableBody.innerHTML = "<tr><td colspan='3'>Loading...</td></tr>";
+    try {
+        const res = await fetch(API_PREVIOUS_SCANS);
+        if (!res.ok) throw new Error("Failed to fetch scans");
+        const scans = await res.json();
+
+        if (!scans || scans.length === 0) {
+            tableBody.innerHTML = "<tr><td colspan='3'>No scans found</td></tr>";
+            return;
+        }
+
+        tableBody.innerHTML = "";
+        scans.forEach(scan => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${formatDate(scan.timestamp)}</td>
+                <td class="scan-id" aria-label="Click to view details">${scan.scanId || "N/A"}</td>
+                <td>${scan.projectId || "N/A"}</td>
+            `;
+            row.querySelector(".scan-id").addEventListener("click", () => {
+                document.getElementById("scanIdInput").value = scan.scanId;
+                fetchDetailedScan();
+            });
+            tableBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error(error);
+        tableBody.innerHTML = "<tr><td colspan='3'>Error loading scans</td></tr>";
+    }
+}
+
+// Fetch detailed scan results
+async function fetchDetailedScan() {
+    const scanId = document.getElementById("scanIdInput").value.trim();
+    const resultsContainer = document.getElementById("detailed-scan-results");
+    resultsContainer.innerHTML = "<p>Loading...</p>";
+
+    if (!scanId) {
+        resultsContainer.innerHTML = "<p>Please enter a Scan ID.</p>";
+        return;
+    }
+
+    try {
+        const res = await fetch(API_SCAN_DETAILS + encodeURIComponent(scanId));
+        if (!res.ok) throw new Error("Scan not found");
+        const data = await res.json();
+
+        resultsContainer.innerHTML = `
+            <div class="result-card">
+                <h4>${data.bucket_name || "Unknown Bucket"}</h4>
+                <p><strong>Public:</strong> ${data.public ?? "N/A"}</p>
+                <p><strong>Risk Score:</strong> ${data.risk_score ?? "N/A"}</p>
+                <p><strong>Risk Reason:</strong> ${data.risk_reason ?? "N/A"}</p>
+                <p><strong>Risk Reference:</strong> ${
+                    data.risk_reference
+                        ? `<a href="${data.risk_reference}" target="_blank">${data.risk_reference}</a>`
+                        : "N/A"
+                }</p>
+                <p><strong>Sensitive Keywords Detected:</strong> ${data.sensitive_keywords_detected ?? "None"}</p>
+            </div>
+        `;
+    } catch (error) {
+        console.error(error);
+        resultsContainer.innerHTML = "<p>Error loading scan details.</p>";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", loadPreviousScans);
+</script>
+
+    
 
 <!-- HISTORY SECTION -->
 <section class="content-section history" id="history">
@@ -713,6 +909,7 @@ document.addEventListener("DOMContentLoaded", function () {
     </body>
   
 </html>
+
 
 
 
