@@ -335,79 +335,41 @@
 
 <!-- JAVASCRIPT -->
 <script>
-async function startScan(event) {
-  event.preventDefault(); // Stop page refresh
+document.getElementById("scanForm").addEventListener("submit", async function (event) {
+    event.preventDefault(); // prevent form from reloading page
 
-  const ethicalMode = document.getElementById('ethicalModeToggle').checked;
-  const projectId = document.getElementById('projectId').value.trim();
-  const resultsContainer = document.getElementById('results-container');
+    const resultsContainer = document.getElementById("results-container");
+    const projectId = document.getElementById("projectId").value.trim();
 
-  if (!projectId) {
-    alert("Please enter a Project ID.");
-    return;
-  }
-
-  const token = localStorage.getItem("access_token");
-  if (!token) {
-    alert("You are not logged in.");
-    return;
-  }
-
-  resultsContainer.innerHTML = "<p>🔍 Scanning in progress...</p>";
-
-  try {
-    const apiUrl = `https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/scan/start?projectId=${encodeURIComponent(projectId)}&ethicalMode=${ethicalMode}`;
-
-    const response = await fetch(apiUrl, {
-      method: "GET",
-      headers: { "Authorization": `Bearer ${token}` }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Scan failed (${response.status})`);
+    if (!projectId) {
+        resultsContainer.innerHTML = "<p style='color:red;'>Please enter a project ID.</p>";
+        return;
     }
 
-    const apiData = await response.json();
-    const buckets = Array.isArray(apiData) ? apiData : apiData.buckets || [];
+    resultsContainer.innerHTML = "<p>🔍 Scanning... Please wait.</p>";
 
-    displayResults(buckets, ethicalMode);
-    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+    try {
+        // Change this to your backend API endpoint
+        const apiUrl = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/scan";
 
-  } catch (error) {
-    console.error("Error starting scan:", error);
-    resultsContainer.innerHTML = `<p style="color:red;">❌ ${error.message}</p>`;
-  }
-}
+        const response = await fetch(apiUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ projectId })
+        });
 
-function displayResults(buckets, ethicalMode) {
-  const resultsContainer = document.getElementById('results-container');
-  resultsContainer.innerHTML = "";
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
 
-  if (!buckets.length) {
-    resultsContainer.innerHTML = "<p>No results found.</p>";
-    return;
-  }
-
-  buckets.forEach(bucket => {
-    const card = document.createElement('div');
-    card.classList.add('result-card');
-
-    card.innerHTML = `
-      <h3>${bucket.bucket_name || 'Unknown Bucket'}</h3>
-      <p><strong>Public:</strong> ${bucket.public}</p>
-      <p><strong>Risk Score:</strong> ${bucket.risk_score}</p>
-      <p><strong>Risk Reason:</strong> ${bucket.risk_reason}</p>
-      <p><strong>Risk Reference:</strong> <a href="${bucket.risk_reference}" target="_blank">${bucket.risk_reference}</a></p>
-      <p><strong>Sensitive Keywords Detected:</strong> ${bucket.sensitive_keywords_detected}</p>
-      ${ethicalMode && bucket.sample_files ? `<p><strong>Sample Files:</strong> ${bucket.sample_files.join(", ")}</p>` : ""}
-    `;
-    resultsContainer.appendChild(card);
-  });
-}
-
-function scrollToSection(sectionId) {
-  document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
-}
+        const data = await response.json();
+        resultsContainer.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+    } catch (error) {
+        resultsContainer.innerHTML = `<p style='color:red;'>❌ Failed to scan: ${error.message}</p>`;
+    }
+});
 </script>
 
 
@@ -909,6 +871,7 @@ document.addEventListener("DOMContentLoaded", function () {
     </body>
   
 </html>
+
 
 
 
