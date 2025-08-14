@@ -24,16 +24,32 @@ nextBtn.addEventListener('click', () => {
   }
 });
 
+<script>
 document.addEventListener("DOMContentLoaded", function () {
     const resultsContainer = document.getElementById("results-container");
 
-    // Replace this with your real backend API link
-    const apiUrl = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/scan";
+    // Get saved values
+    const token = localStorage.getItem("access_token");
+    const projectId = localStorage.getItem("projectId"); // Or fetch from input/form
+    const ethicalMode = localStorage.getItem("ethicalMode") === "true"; // Save when set
+
+    if (!token) {
+        resultsContainer.innerHTML = "<p style='color:red;'>You are not logged in.</p>";
+        return;
+    }
+
+    if (!projectId) {
+        resultsContainer.innerHTML = "<p style='color:red;'>No Project ID found. Please start a scan first.</p>";
+        return;
+    }
+
+    // ✅ API URL with query params
+    const apiUrl = `https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/scan?projectId=${encodeURIComponent(projectId)}&ethicalMode=${ethicalMode}`;
 
     // Show loading message
     resultsContainer.innerHTML = "<p>Loading results...</p>";
 
-    // Helper function to safely escape HTML
+    // Escape HTML to prevent XSS
     function escapeHTML(str) {
         return String(str)
             .replace(/&/g, "&amp;")
@@ -43,7 +59,12 @@ document.addEventListener("DOMContentLoaded", function () {
             .replace(/'/g, "&#039;");
     }
 
-    fetch(apiUrl)
+    fetch(apiUrl, {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    })
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
@@ -86,4 +107,7 @@ document.addEventListener("DOMContentLoaded", function () {
             resultsContainer.innerHTML = "<p style='color:red;'>Error loading results. Please try again later.</p>";
         });
 });
+</script>
+
+
 
