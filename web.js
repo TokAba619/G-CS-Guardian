@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const resultsContainer = document.getElementById("results-container");
 
     // Replace this with your real backend API link
-    const apiUrl = "https://your-backend-api.com/scan-results";
+    const apiUrl = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/scan";
 
     // Show loading message
     resultsContainer.innerHTML = "<p>Loading results...</p>";
@@ -86,3 +86,4 @@ document.addEventListener("DOMContentLoaded", function () {
             resultsContainer.innerHTML = "<p style='color:red;'>Error loading results. Please try again later.</p>";
         });
 });
+
