@@ -357,7 +357,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            const apiUrl = `https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/scan/start?projectId=${encodeURIComponent(projectId)}&ethicalMode=${ethicalMode}`;
+            const apiUrl = `https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/scan?project_id=${encodeURIComponent(projectId)}&ethical_mode=${ethicalMode}`;
             
             const response = await fetch(apiUrl, {
                 method: "GET",
@@ -908,6 +908,7 @@ document.addEventListener("DOMContentLoaded", function () {
     </body>
   
 </html>
+
 
 
 
