@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>G-CS Guardian Website</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="web.css">
+  <style>
+    /* ===== RESULTS (scan + my-scan) ===== */
+    .results-container {
+      margin-top: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .result-card {
+      background: #111;
+      padding: 1rem;
+      border-radius: 8px;
+      color: #eee;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+    .result-card h3, .result-card h4 { color: #0ff; margin-bottom: 0.5rem; }
+
+    /* ===== Toggle ===== */
+    .toggle { display: flex; align-items: center; gap: 10px; }
+    .toggle input { display: none; }
+    .slider {
+      width: 40px; height: 20px; background: #ccc; border-radius: 20px; position: relative; cursor: pointer;
+    }
+    .slider::before {
+      content: ""; position: absolute; width: 16px; height: 16px; background: white; border-radius: 50%;
+      top: 2px; left: 2px; transition: 0.3s;
+    }
+    .toggle input:checked + .slider::before { transform: translateX(20px); }
+    .toggle input:checked + .slider { background: #0ff; }
+    .toggle-label { color: white; }
+
+    /* ===== My-Scan ===== */
+    .myscan-feature { margin-top: 2rem; }
+    .scan-table {
+      width: 100%; border-collapse: collapse; background: #111; color: #eee; margin-top: 1rem;
+      border-radius: 8px; overflow: hidden;
+    }
+    .scan-table th, .scan-table td {
+      padding: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left;
+    }
+    .scan-table th { background-color: #0ff; color: #111; }
+    .scan-table tr:hover { background: rgba(255,255,255,0.05); }
+    .scan-id { cursor: pointer; color: #0ff; text-decoration: underline; }
+    .scan-id:hover { color: #00cccc; }
+    .myscan-divider { margin: 2rem 0; border: none; height: 1px; background: rgba(255,255,255,0.2); }
+    .detailed-scan-form { display: flex; gap: 0.5rem; margin-top: 1rem; }
+    .detailed-scan-form input { flex: 1; padding: 0.5rem; border-radius: 4px; border: none; }
+    .detailed-scan-form button {
+      background: #0ff; color: #111; padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer;
+    }
+    .detailed-scan-form button:hover { background: #00cccc; }
+
+    /* ===== HISTORY ===== */
+    .history .table-container { overflow-x: auto; margin-top: 20px; }
+    .history table {
+      width: 100%; border-collapse: collapse; background-color: #1e1e2f; color: white;
+      border-radius: 8px; overflow: hidden;
+    }
+    .history th, .history td { padding: 12px 15px; border-bottom: 1px solid #333; text-align: left; }
+    .history th { background-color: #0ff; color: #000; font-weight: bold; }
+    .history tr:nth-child(even) { background-color: #2a2a3d; }
+    .history tr:hover { background-color: #33334d; transition: 0.2s; }
+  </style>
+</head>
+
+<body>
+
+  <video autoplay muted loop playsinline id="bg-video">
+    <source src="vid11.mp4" type="video/mp4">
+    Your browser does not support HTML5 video.
+  </video>
+
+  <nav class="navbar" id="navbar">
+    <a href="#homepage" class="navbar-brand">G-CS Guardian</a>
+    <div class="hamburger-menu" id="hamburgerMenu">
+      <i class="fas fa-bars"></i>
+    </div>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#homepage" onclick="closeMenu()">Home</a></li>
+      <li><a href="#demo" onclick="closeMenu()">Demo</a></li>
+      <li><a href="#scanner" onclick="closeMenu()">Scanner</a></li>
+      <li><a href="#results" onclick="closeMenu()">Results</a></li>
+      <li><a href="#myscan" onclick="closeMenu()">My-Scan</a></li>
+      <li><a href="#history" onclick="closeMenu()">History</a></li>
+      <li><a href="#aboutus" onclick="closeMenu()">About Us</a></li>
+    </ul>
+  </nav>
+
+  <!-- HOMEPAGE SECTION -->
+  <section class="homepage-section" id="homepage">
+    <!-- [unchanged hero/slider content from your file goes here] -->
+    <div class="slider-container">
+      <div class="slider-wrapper">
+        <div class="slider-track" id="sliderTrack">
+          <!-- Slide 1 -->
+          <div class="slide active">
+            <div class="image-border"><img src="paper1.png" alt="Google Cloud"></div>
+            <div class="slide-content">
+              <h1 class="slide-title">What is Google Cloud?</h1>
+              <p class="slide-description">Google Cloud is a service by Google that lets people and businesses use powerful computers over
+              the internet to store files, run websites, build apps, and keep data safe, without needing to buy or manage their own hardware.</p>
+            </div>
+          </div>
+          <!-- Slide 2 -->
+          <div class="slide">
+            <div class="image-border"><img src="paper10.png" alt="Storage Bucket"></div>
+            <div class="slide-content">
+              <h1 class="slide-title">What is Storage Bucket?</h1>
+              <p class="slide-description">
+                A Google Cloud Storage bucket is a container used to store and organize files like images,
+                documents, and backups on the Google Cloud Platform. It's scalable, secure, and accessible online.
+              </p>
+              <button class="explore-btn" onclick="scrollToSection('news')">Explore More</button>
+            </div>
+          </div>
+          <!-- Slide 3 -->
+          <div class="slide">
+            <div class="image-border"><img src="paper9.png" alt="Our Tools"></div>
+            <div class="slide-content">
+              <button class="explore-btn" onclick="scrollToSection('scanner')">Try our Tool</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="nav-button prev" onclick="prevSlide()" aria-label="Previous Slide">‹</button>
+      <button class="nav-button next" onclick="nextSlide()" aria-label="Next Slide">›</button>
+      <div class="slide-indicators" id="indicators"></div>
+      <div class="scroll-down" onclick="scrollToSection('news')" aria-label="Scroll to next section">
+        <i class="fas fa-chevron-down"></i>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEMO SECTION (unchanged) -->
+  <section class="content-section demo" id="demo">
+    <div class="container">
+      <h2 class="section-title">Watch the Demo</h2>
+      <p class="section-content">See how our tool scans your Google Cloud Storage buckets...</p>
+      <div class="video-wrapper">
+        <video controls>
+          <source src="vid3.mp4" type="video/mp4">
+        </video>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCAN SECTION -->
+  <section class="content-section scan" id="scanner">
+    <div class="floating-elements">
+      <div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div>
+    </div>
+
+    <div class="container">
+      <h2 class="section-title">Welcome to G-CS Guardian Scanner</h2>
+      <p class="section-content">Need a Quick Scan of Your Cloud Storage Bucket? I’m ready!</p>
+
+      <div class="form">
+        <form id="scanForm">
+          <label class="toggle">
+            <input type="checkbox" id="ethicalModeToggle">
+            <span class="slider"></span>
+            <span class="toggle-label">Ethical Mode (Project Owner Only)</span>
+          </label>
+          <h1 class="form-title">Upload Google Cloud Project ID</h1>
+          <div class="card1">
+            <div class="terminal">
+              <div class="terminal-header">
+                <span class="terminal-title">
+                  <svg class="terminal-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 17l6-6-6-6M12 19h8"></path>
+                  </svg>
+                  Terminal
+                </span>
+              </div>
+              <div class="terminal-body">
+                <div class="command-line">
+                  <span class="prompt">Project ID:</span>
+                  <div class="input-wrapper">
+                    <input type="text" class="input-field" id="projectId" placeholder="E.g.: g-cs-guardian" required/>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <br/>
+          <button id="learn-more" type="button" class="learn-more">Upload & Scan</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="scroll-down" onclick="scrollToSection('results')" aria-label="Scroll to next section">
+      <i class="fas fa-chevron-down"></i>
+    </div>
+  </section>
+
+  <!-- RESULTS SECTION -->
+  <section class="content-section results" id="results">
+    <div class="container">
+      <h2 class="section-title">Your Scan is Complete!</h2>
+      <p class="section-content">This report provides detailed insights into the configuration status of your scanned Google Cloud Storage buckets.</p>
+      <div id="results-container" class="results-container"></div>
+    </div>
+  </section>
+
+  <!-- MY-SCAN SECTION -->
+  <section class="content-section myscan" id="myscan">
+    <div class="floating-elements">
+      <div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div>
+    </div>
+
+    <div class="container">
+      <h2 class="section-title">My-Scan</h2>
+      <p class="section-content">My-Scan lets you review past scans without rescanning the same project.</p>
+
+      <!-- Feature 1: Previous Scan -->
+      <div class="myscan-feature">
+        <h3>Previous Scans</h3>
+        <p>View all your previous scans with timestamps and IDs.</p>
+        <table class="scan-table">
+          <thead>
+            <tr><th>Timestamp</th><th>Scan ID</th><th>Project ID</th></tr>
+          </thead>
+          <tbody id="previous-scan-table">
+            <tr><td colspan="3">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <hr class="myscan-divider">
+
+      <!-- Feature 2: Detailed Scan Results -->
+      <div class="myscan-feature">
+        <h3>Detailed Scan Results</h3>
+        <p>Enter a Scan ID to retrieve detailed scan information.</p>
+        <div class="detailed-scan-form">
+          <input type="text" id="scanIdInput" placeholder="Enter Scan ID" aria-label="Enter Scan ID">
+          <button onclick="fetchDetailedScan()" aria-label="Fetch scan details">Enter</button>
+        </div>
+        <div id="detailed-scan-results" class="results-container"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HISTORY SECTION -->
+  <section class="content-section history" id="history">
+    <div class="floating-elements">
+      <div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div>
+    </div>
+    <div class="container">
+      <h2 class="section-title">History</h2>
+      <p class="section-content">This section is only visible to the project owner.</p>
+      <div class="table-container">
+        <table id="historyTable">
+          <thead>
+            <tr><th>Scan ID</th><th>Project ID</th><th>User Email</th><th>Timestamp</th><th>Result Summary</th></tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="5" style="text-align:center;">Loading history...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT US SECTION (unchanged) -->
+  <section class="content-section aboutus" id="aboutus">
+    <!-- [your team cards content as-is] -->
+    <div class="faq-content">
+      <h2 class="section-title">Meet the Minds Behind It All</h2>
+      <p class="section-content">Back-End Brains & Front-End Flair</p>
+      <div class="team-slider">
+        <!-- Team cards as in your original -->
+        <div class="team-card"><div class="card-inner"><div class="card-front" style="background-image:url('siramir.jpg');background-size:cover;"><div class="overlay"><h3>Supervisor</h3><p>Sir Amir Hakeem Bin Sahrir</p></div></div><div class="card-back"><p>"Forever Sensei and Mentor"</p></div></div></div>
+        <div class="team-card"><div class="card-inner"><div class="card-front" style="background-image:url('aqil.jpg');background-size:cover;"><div class="overlay"><h3>Group Leader</h3><p>Muhammad Aqil Darwisy Bin Nor Azli</p></div></div><div class="card-back"><p>"Failure Is Just a Temporary Syntax Error"</p></div></div></div>
+        <div class="team-card"><div class="card-inner"><div class="card-front" style="background-image:url('ilhan.jpg');background-size:cover;"><div class="overlay"><h3>Group Member</h3><p>Ilhan Munsieff Bin Abdullah</p></div></div><div class="card-back"><p>"The best defense against cyber threats is a well-educated mind"</p></div></div></div>
+        <div class="team-card"><div class="card-inner"><div class="card-front" style="background-image:url('jib.jpg');background-size:cover;"><div class="overlay"><h3>Group Member</h3><p>Jibril Ruhul Amin Bin Mohd Nor Ariffin</p></div></div><div class="card-back"><p>"In a world full of threats, be the shield"</p></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== SCRIPTS ====== -->
+  <script>
+    // ====== Simple helpers ======
+    function scrollToSection(id) {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }
+    function formatDate(timestamp) {
+      const date = new Date(timestamp);
+      return isNaN(date.getTime()) ? "N/A" : date.toLocaleString();
+    }
+    function getToken() {
+      return localStorage.getItem("access_token"); // unified token key
+    }
+
+    // ====== Auth guard: redirect if no token ======
+    (function authGuard() {
+      const token = getToken();
+      if (!token) {
+        // Adjust path to your login page
+        window.location.href = "/G-CS-Guardian/signup.html";
+      }
+    })();
+
+    // ====== Display scan results (expects array) ======
+    function displayResults(bucketsArray, ethicalMode) {
+      const resultsContainer = document.getElementById('results-container');
+      resultsContainer.innerHTML = "";
+
+      if (!Array.isArray(bucketsArray) || bucketsArray.length === 0) {
+        resultsContainer.innerHTML = "<p>No results found.</p>";
+        return;
+      }
+
+      bucketsArray.forEach(bucket => {
+        const card = document.createElement('div');
+        card.classList.add('result-card');
+        card.innerHTML = `
+          <h3>${bucket.bucket_name}</h3>
+          <p><strong>Public:</strong> ${bucket.public}</p>
+          <p><strong>Risk Score:</strong> ${bucket.risk_score}</p>
+          <p><strong>Risk Reason:</strong> ${bucket.risk_reason}</p>
+          <p><strong>Risk Reference:</strong> ${
+            bucket.risk_reference
+              ? (Array.isArray(bucket.risk_reference)
+                  ? bucket.risk_reference.map(x => `<a href="${x}" target="_blank" rel="noopener">Link</a>`).join(", ")
+                  : `<a href="${bucket.risk_reference}" target="_blank" rel="noopener">Link</a>`)
+              : "N/A"
+          }</p>
+          <p><strong>Sensitive Keywords Detected:</strong> ${
+            Array.isArray(bucket.sensitive_keywords_detected)
+              ? bucket.sensitive_keywords_detected.join(", ")
+              : (bucket.sensitive_keywords_detected ?? "None")
+          }</p>
+          ${ethicalMode && bucket.sample_files ? `<p><strong>Sample Files:</strong> ${
+            Array.isArray(bucket.sample_files) ? bucket.sample_files.join(", ") : bucket.sample_files
+          }</p>` : ""}
+        `;
+        resultsContainer.appendChild(card);
+      });
+    }
+
+    // ====== Scanner: call /scan and render ======
+    document.addEventListener("DOMContentLoaded", function () {
+      document.getElementById("learn-more").addEventListener("click", async function () {
+        const ethicalMode = document.getElementById("ethicalModeToggle").checked;
+        const projectId = document.getElementById("projectId").value.trim();
+        const resultsContainer = document.getElementById("results-container");
+
+        if (!projectId) { alert("Please enter a Project ID."); return; }
+
+        resultsContainer.innerHTML = "<p>🔍 Scanning in progress...</p>";
+
+        try {
+          const token = getToken();
+          if (!token) { alert("You are not logged in."); return; }
+
+          const apiUrl = `https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/scan?project_id=${encodeURIComponent(projectId)}&ethical_mode=${ethicalMode}`;
+
+          const response = await fetch(apiUrl, {
+            method: "GET",
+            headers: { "Authorization": `Bearer ${token}` }
+          });
+
+          if (!response.ok) {
+            let msg = `Scan failed: ${response.status}`;
+            try {
+              const err = await response.json();
+              if (err && err.detail) msg = Array.isArray(err.detail) ? err.detail.map(d => d.msg).join(", ") : err.detail;
+            } catch {}
+            throw new Error(msg);
+          }
+
+          const apiData = await response.json();
+          const { scan_id, project_role, buckets } = apiData;
+
+          // Show summary + buckets
+          resultsContainer.innerHTML = `
+            <div class="result-card">
+              <h3>Scan Summary</h3>
+              <p><strong>Scan ID:</strong> ${scan_id}</p>
+              <p><strong>Detected Role:</strong> ${project_role || "N/A"}</p>
+              <p><strong>Bucket Count:</strong> ${Array.isArray(buckets) ? buckets.length : 0}</p>
+            </div>
+          `;
+          displayResults(buckets, ethicalMode);
+
+          document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        } catch (error) {
+          resultsContainer.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
+        }
+      });
+    });
+
+    // ====== My-Scan APIs ======
+    const API_PREVIOUS_SCANS = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/my-scans/";
+    const API_SCAN_DETAILS = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/my-scans/{scan_id}";
+
+    async function loadPreviousScans() {
+      const tableBody = document.getElementById("previous-scan-table");
+      tableBody.innerHTML = "<tr><td colspan='3'>Loading...</td></tr>";
+
+      const token = getToken();
+      if (!token) {
+        tableBody.innerHTML = "<tr><td colspan='3'>Please log in to view scans</td></tr>";
+        return;
+      }
+
+      try {
+        const res = await fetch(API_PREVIOUS_SCANS, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (!res.ok) throw new Error(`Failed to fetch scans (${res.status})`);
+        const data = await res.json();
+        const scans = Array.isArray(data?.my_scans) ? data.my_scans : [];
+
+        if (scans.length === 0) {
+          tableBody.innerHTML = "<tr><td colspan='3'>No scans found</td></tr>";
+          return;
+        }
+
+        tableBody.innerHTML = "";
+        scans.forEach(scan => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${formatDate(scan.timestamp)}</td>
+            <td class="scan-id" aria-label="Click to view details">${scan.scan_id || "N/A"}</td>
+            <td>${scan.project_id || "N/A"}</td>
+          `;
+          row.querySelector(".scan-id").addEventListener("click", () => {
+            document.getElementById("scanIdInput").value = scan.scan_id;
+            fetchDetailedScan();
+          });
+          tableBody.appendChild(row);
+        });
+      } catch (error) {
+        console.error(error);
+        tableBody.innerHTML = `<tr><td colspan='3'>Error: ${error.message}</td></tr>`;
+      }
+    }
+
+    async function fetchDetailedScan() {
+      const scanId = document.getElementById("scanIdInput").value.trim();
+      const resultsContainer = document.getElementById("detailed-scan-results");
+      resultsContainer.innerHTML = "<p>Loading...</p>";
+
+      if (!scanId) { resultsContainer.innerHTML = "<p>Please enter a Scan ID.</p>"; return; }
+
+      const token = getToken();
+      try {
+        const res = await fetch(API_SCAN_DETAILS.replace("{scan_id}", encodeURIComponent(scanId)), {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (!res.ok) {
+          let msg = `Scan not found (${res.status})`;
+          try {
+            const err = await res.json();
+            if (err && err.detail) msg = Array.isArray(err.detail) ? err.detail.map(d => d.msg).join(", ") : err.detail;
+          } catch {}
+          throw new Error(msg);
+        }
+
+        const data = await res.json();
+        const buckets = Array.isArray(data?.buckets) ? data.buckets : [];
+
+        // Header card
+        resultsContainer.innerHTML = `
+          <div class="result-card">
+            <h4>Scan ${data.scan_id}</h4>
+            <p><strong>Project:</strong> ${data.project_id || "N/A"}</p>
+            <p><strong>Time:</strong> ${formatDate(data.timestamp)}</p>
+            <p><strong>Role:</strong> ${data.project_role || "N/A"} | <strong>Ethical Mode:</strong> ${data.ethical_mode ? "On" : "Off"}</p>
+            <p><strong>Bucket Count:</strong> ${buckets.length}</p>
+          </div>
+        `;
+
+        if (buckets.length === 0) {
+          resultsContainer.insertAdjacentHTML("beforeend", "<p>No bucket results stored for this scan.</p>");
+          return;
+        }
+
+        // Render each bucket
+        buckets.forEach(b => {
+          resultsContainer.insertAdjacentHTML(
+            "beforeend",
+            `<div class="result-card">
+              <h4>${b.bucket_name || "Unknown Bucket"}</h4>
+              <p><strong>Public:</strong> ${b.public ?? "N/A"}</p>
+              <p><strong>Risk Score:</strong> ${b.risk_score ?? "N/A"}</p>
+              <p><strong>Risk Reason:</strong> ${b.risk_reason ?? "N/A"}</p>
+              <p><strong>Risk Reference:</strong> ${
+                b.risk_reference
+                  ? (Array.isArray(b.risk_reference)
+                      ? b.risk_reference.map(x => `<a href="${x}" target="_blank" rel="noopener">Link</a>`).join(", ")
+                      : `<a href="${b.risk_reference}" target="_blank" rel="noopener">Link</a>`)
+                  : "N/A"
+              }</p>
+              <p><strong>Sensitive Keywords Detected:</strong> ${
+                Array.isArray(b.sensitive_keywords_detected)
+                  ? b.sensitive_keywords_detected.join(", ")
+                  : (b.sensitive_keywords_detected ?? "None")
+              }</p>
+              ${b.sample_files ? `<p><strong>Sample Files:</strong> ${
+                Array.isArray(b.sample_files) ? b.sample_files.join(", ") : b.sample_files
+              }</p>` : ""}
+            </div>`
+          );
+        });
+      } catch (error) {
+        console.error(error);
+        resultsContainer.innerHTML = `<p>Error: ${error.message}</p>`;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadPreviousScans);
+
+    // ====== History fetch (with Authorization) ======
+    document.addEventListener("DOMContentLoaded", function () {
+      const historyTableBody = document.querySelector("#historyTable tbody");
+      const apiURL = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/history";
+      const token = getToken();
+
+      fetch(apiURL, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      })
+      .then(r => r.ok ? r.json() : Promise.reject(new Error(`Failed (${r.status})`)))
+      .then(data => {
+        historyTableBody.innerHTML = "";
+        if (!Array.isArray(data) || data.length === 0) {
+          historyTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No history found</td></tr>`;
+          return;
+        }
+        data.forEach(item => {
+          historyTableBody.innerHTML += `
+            <tr>
+              <td>${item.scan_id}</td>
+              <td>${item.project_id}</td>
+              <td>${item.user_email}</td>
+              <td>${formatDate(item.timestamp)}</td>
+              <td>${item.result_summary}</td>
+            </tr>
+          `;
+        });
+      })
+      .catch(error => {
+        console.error("Error fetching history:", error);
+        historyTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Error loading history</td></tr>`;
+      });
+    });
+
+    // ====== Optional: show stored email/role if you have elements with these IDs ======
+    document.addEventListener("DOMContentLoaded", () => {
+      const emailElement = document.getElementById("user-email");
+      const roleElement = document.getElementById("user-role");
+      const userEmail = localStorage.getItem("email");
+      const userRole = localStorage.getItem("role");
+      if (emailElement) emailElement.textContent = userEmail || "Unknown";
+      if (roleElement) roleElement.textContent = userRole || "Unknown";
+    });
+  </script>
+
+  <!-- Your existing JS if needed -->
+  <script src="web.js"></script>
+</body>
+</html>
