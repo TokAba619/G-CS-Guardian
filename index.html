@@ -4,6 +4,26 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <!-- Token catcher: if backend sends ?token=... to the root, save & go to web.html -->
+    <script>
+      (function handleOAuthToken() {
+        const qp = new URLSearchParams(location.search);
+        const token = qp.get("token");
+        if (token) {
+          localStorage.setItem("access_token", token);
+          const email = qp.get("email");
+          const role = qp.get("role");
+          if (email) localStorage.setItem("email", email);
+          if (role) localStorage.setItem("role", role);
+
+          // Clean the URL so token isn't left in history
+          history.replaceState({}, "", "index.html");
+          // Head to the app page
+          location.replace("web.html");
+        }
+      })();
+    </script>
+
     <!-- Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
