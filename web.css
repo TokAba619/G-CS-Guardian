@@ -99,6 +99,8 @@
             font-size: 2rem;
             color: white;
             cursor: pointer;
+        }
+
 /* Homepage Section */
 .homepage-section {
     height: 100vh;
@@ -361,6 +363,16 @@
     40% { transform: translateY(-20px) translateX(-50%); }
     60% { transform: translateY(-10px) translateX(-50%); }
 }
+
+/* Content Sections */
+.content-section {
+    min-height: 100vh;
+    padding: 100px 0;
+    position: relative;
+    overflow: hidden;
+    color: white;
+}
+
 
  /* SECTION BACKGROUNDS */
        .scanner {
@@ -1542,6 +1554,4 @@ button.learn-more:active::before {
 
 .toggle-label {
   font-size: 1rem;
-
 }
-
