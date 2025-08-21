@@ -84,7 +84,6 @@
       <i class="fas fa-bars"></i>
     </div>
     <ul class="nav-links" id="navLinks">
-      <li><a href="#homepage" onclick="closeMenu()">Home</a></li>
       <li><a href="#demo" onclick="closeMenu()">Demo</a></li>
       <li><a href="#scanner" onclick="closeMenu()">Scanner</a></li>
       <li><a href="#results" onclick="closeMenu()">Results</a></li>
@@ -93,51 +92,6 @@
       <li><a href="#aboutus" onclick="closeMenu()">About Us</a></li>
     </ul>
   </nav>
-
-  <!-- HOMEPAGE SECTION -->
-  <section class="homepage-section" id="homepage">
-    <!-- [unchanged hero/slider content from your file goes here] -->
-    <div class="slider-container">
-      <div class="slider-wrapper">
-        <div class="slider-track" id="sliderTrack">
-          <!-- Slide 1 -->
-          <div class="slide active">
-            <div class="image-border"><img src="paper1.png" alt="Google Cloud"></div>
-            <div class="slide-content">
-              <h1 class="slide-title">What is Google Cloud?</h1>
-              <p class="slide-description">Google Cloud is a service by Google that lets people and businesses use powerful computers over
-              the internet to store files, run websites, build apps, and keep data safe, without needing to buy or manage their own hardware.</p>
-            </div>
-          </div>
-          <!-- Slide 2 -->
-          <div class="slide">
-            <div class="image-border"><img src="paper10.png" alt="Storage Bucket"></div>
-            <div class="slide-content">
-              <h1 class="slide-title">What is Storage Bucket?</h1>
-              <p class="slide-description">
-                A Google Cloud Storage bucket is a container used to store and organize files like images,
-                documents, and backups on the Google Cloud Platform. It's scalable, secure, and accessible online.
-              </p>
-              <button class="explore-btn" onclick="scrollToSection('news')">Explore More</button>
-            </div>
-          </div>
-          <!-- Slide 3 -->
-          <div class="slide">
-            <div class="image-border"><img src="paper9.png" alt="Our Tools"></div>
-            <div class="slide-content">
-              <button class="explore-btn" onclick="scrollToSection('scanner')">Try our Tool</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <button class="nav-button prev" onclick="prevSlide()" aria-label="Previous Slide">‹</button>
-      <button class="nav-button next" onclick="nextSlide()" aria-label="Next Slide">›</button>
-      <div class="slide-indicators" id="indicators"></div>
-      <div class="scroll-down" onclick="scrollToSection('news')" aria-label="Scroll to next section">
-        <i class="fas fa-chevron-down"></i>
-      </div>
-    </div>
-  </section>
 
   <!-- DEMO SECTION (unchanged) -->
   <section class="content-section demo" id="demo">
@@ -576,4 +530,5 @@
   <!-- Your existing JS if needed -->
   <script src="web.js"></script>
 </body>
+
 </html>
