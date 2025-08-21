@@ -8,44 +8,23 @@
   <link rel="stylesheet" href="web.css">
   <style>
     /* ===== RESULTS (scan + my-scan) ===== */
-    .results-container {
-      margin-top: 2rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    .result-card {
-      background: #111;
-      padding: 1rem;
-      border-radius: 8px;
-      color: #eee;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-    }
+    .results-container { margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem; }
+    .result-card { background: #111; padding: 1rem; border-radius: 8px; color: #eee; box-shadow: 0 0 10px rgba(0,0,0,0.3); }
     .result-card h3, .result-card h4 { color: #0ff; margin-bottom: 0.5rem; }
 
     /* ===== Toggle ===== */
     .toggle { display: flex; align-items: center; gap: 10px; }
     .toggle input { display: none; }
-    .slider {
-      width: 40px; height: 20px; background: #ccc; border-radius: 20px; position: relative; cursor: pointer;
-    }
-    .slider::before {
-      content: ""; position: absolute; width: 16px; height: 16px; background: white; border-radius: 50%;
-      top: 2px; left: 2px; transition: 0.3s;
-    }
+    .slider { width: 40px; height: 20px; background: #ccc; border-radius: 20px; position: relative; cursor: pointer; }
+    .slider::before { content: ""; position: absolute; width: 16px; height: 16px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: 0.3s; }
     .toggle input:checked + .slider::before { transform: translateX(20px); }
     .toggle input:checked + .slider { background: #0ff; }
     .toggle-label { color: white; }
 
     /* ===== My-Scan ===== */
     .myscan-feature { margin-top: 2rem; }
-    .scan-table {
-      width: 100%; border-collapse: collapse; background: #111; color: #eee; margin-top: 1rem;
-      border-radius: 8px; overflow: hidden;
-    }
-    .scan-table th, .scan-table td {
-      padding: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left;
-    }
+    .scan-table { width: 100%; border-collapse: collapse; background: #111; color: #eee; margin-top: 1rem; border-radius: 8px; overflow: hidden; }
+    .scan-table th, .scan-table td { padding: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; }
     .scan-table th { background-color: #0ff; color: #111; }
     .scan-table tr:hover { background: rgba(255,255,255,0.05); }
     .scan-id { cursor: pointer; color: #0ff; text-decoration: underline; }
@@ -53,17 +32,12 @@
     .myscan-divider { margin: 2rem 0; border: none; height: 1px; background: rgba(255,255,255,0.2); }
     .detailed-scan-form { display: flex; gap: 0.5rem; margin-top: 1rem; }
     .detailed-scan-form input { flex: 1; padding: 0.5rem; border-radius: 4px; border: none; }
-    .detailed-scan-form button {
-      background: #0ff; color: #111; padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer;
-    }
+    .detailed-scan-form button { background: #0ff; color: #111; padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; }
     .detailed-scan-form button:hover { background: #00cccc; }
 
     /* ===== HISTORY ===== */
     .history .table-container { overflow-x: auto; margin-top: 20px; }
-    .history table {
-      width: 100%; border-collapse: collapse; background-color: #1e1e2f; color: white;
-      border-radius: 8px; overflow: hidden;
-    }
+    .history table { width: 100%; border-collapse: collapse; background-color: #1e1e2f; color: white; border-radius: 8px; overflow: hidden; }
     .history th, .history td { padding: 12px 15px; border-bottom: 1px solid #333; text-align: left; }
     .history th { background-color: #0ff; color: #000; font-weight: bold; }
     .history tr:nth-child(even) { background-color: #2a2a3d; }
@@ -79,11 +53,12 @@
   </video>
 
   <nav class="navbar" id="navbar">
-    <a href="#homepage" class="navbar-brand">G-CS Guardian</a>
-    <div class="hamburger-menu" id="hamburgerMenu">
+    <!-- FIX: point to an existing section -->
+    <a href="#demo" class="navbar-brand">G-CS Guardian</a>
+    <div class="hamburger-menu" id="hamburgerMenu" aria-label="Open menu" role="button" tabindex="0">
       <i class="fas fa-bars"></i>
     </div>
-    <ul class="nav-links" id="navLinks">
+    <ul class="nav-links" id="navLinks" aria-label="Primary">
       <li><a href="#demo" onclick="closeMenu()">Demo</a></li>
       <li><a href="#scanner" onclick="closeMenu()">Scanner</a></li>
       <li><a href="#results" onclick="closeMenu()">Results</a></li>
@@ -93,7 +68,7 @@
     </ul>
   </nav>
 
-  <!-- DEMO SECTION (unchanged) -->
+  <!-- DEMO SECTION -->
   <section class="content-section demo" id="demo">
     <div class="container">
       <h2 class="section-title">Watch the Demo</h2>
@@ -203,7 +178,7 @@
     </div>
   </section>
 
-  <!-- HISTORY SECTION -->
+  <!-- HISTORY SECTION (owner only) -->
   <section class="content-section history" id="history">
     <div class="floating-elements">
       <div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div>
@@ -224,14 +199,12 @@
     </div>
   </section>
 
-  <!-- ABOUT US SECTION (unchanged) -->
+  <!-- ABOUT US SECTION -->
   <section class="content-section aboutus" id="aboutus">
-    <!-- [your team cards content as-is] -->
     <div class="faq-content">
       <h2 class="section-title">Meet the Minds Behind It All</h2>
       <p class="section-content">Back-End Brains & Front-End Flair</p>
       <div class="team-slider">
-        <!-- Team cards as in your original -->
         <div class="team-card"><div class="card-inner"><div class="card-front" style="background-image:url('siramir.jpg');background-size:cover;"><div class="overlay"><h3>Supervisor</h3><p>Sir Amir Hakeem Bin Sahrir</p></div></div><div class="card-back"><p>"Forever Sensei and Mentor"</p></div></div></div>
         <div class="team-card"><div class="card-inner"><div class="card-front" style="background-image:url('aqil.jpg');background-size:cover;"><div class="overlay"><h3>Group Leader</h3><p>Muhammad Aqil Darwisy Bin Nor Azli</p></div></div><div class="card-back"><p>"Failure Is Just a Temporary Syntax Error"</p></div></div></div>
         <div class="team-card"><div class="card-inner"><div class="card-front" style="background-image:url('ilhan.jpg');background-size:cover;"><div class="overlay"><h3>Group Member</h3><p>Ilhan Munsieff Bin Abdullah</p></div></div><div class="card-back"><p>"The best defense against cyber threats is a well-educated mind"</p></div></div></div>
@@ -240,7 +213,7 @@
     </div>
   </section>
 
-  <!-- ====== SCRIPTS ====== -->
+  <!-- SCRIPTS (inline bootstrapping) -->
   <script>
     // ====== Simple helpers ======
     function scrollToSection(id) {
@@ -255,12 +228,37 @@
       return localStorage.getItem("access_token"); // unified token key
     }
 
+    // ====== Mobile nav: add missing handlers ======
+    const navLinks = document.getElementById("navLinks");
+    const hamburgerMenu = document.getElementById("hamburgerMenu");
+    function closeMenu() { navLinks?.classList.remove("open"); } // called by anchors
+    hamburgerMenu?.addEventListener("click", () => navLinks?.classList.toggle("open"));
+    hamburgerMenu?.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") navLinks?.classList.toggle("open"); });
+
     // ====== Auth guard: redirect if no token ======
     (function authGuard() {
       const token = getToken();
       if (!token) {
-        // Adjust path to your login page
-        window.location.href = "/G-CS-Guardian/signup.html";
+        // FIX: relative path works on GitHub Pages subpath
+        window.location.href = "signup.html";
+      }
+    })();
+
+    // ====== Role-gated UI (ethical mode & history visibility) ======
+    (function roleGate() {
+      const userRole = (localStorage.getItem("role") || "").toLowerCase();
+      const ethicalToggle = document.getElementById("ethicalModeToggle");
+      const historySection = document.getElementById("history");
+
+      if (ethicalToggle && userRole !== "project_owner") {
+        ethicalToggle.checked = false;
+        ethicalToggle.disabled = true; // FIX: disable for non-owners
+        ethicalToggle.title = "Only project owners can enable Ethical Mode";
+      }
+
+      // Hide History section if not owner
+      if (historySection && userRole !== "project_owner") {
+        historySection.style.display = "none";
       }
     })();
 
@@ -277,26 +275,26 @@
       bucketsArray.forEach(bucket => {
         const card = document.createElement('div');
         card.classList.add('result-card');
+        const refs = bucket.risk_reference
+          ? (Array.isArray(bucket.risk_reference)
+              ? bucket.risk_reference.map(x => `<a href="${x}" target="_blank" rel="noopener">Link</a>`).join(", ")
+              : `<a href="${bucket.risk_reference}" target="_blank" rel="noopener">Link</a>`)
+          : "N/A";
+        const sens = Array.isArray(bucket.sensitive_keywords_detected)
+          ? bucket.sensitive_keywords_detected.join(", ")
+          : (bucket.sensitive_keywords_detected ?? "None");
+        const samples = ethicalMode && bucket.sample_files
+          ? `<p><strong>Sample Files:</strong> ${Array.isArray(bucket.sample_files) ? bucket.sample_files.join(", ") : bucket.sample_files}</p>`
+          : "";
+
         card.innerHTML = `
           <h3>${bucket.bucket_name}</h3>
           <p><strong>Public:</strong> ${bucket.public}</p>
           <p><strong>Risk Score:</strong> ${bucket.risk_score}</p>
           <p><strong>Risk Reason:</strong> ${bucket.risk_reason}</p>
-          <p><strong>Risk Reference:</strong> ${
-            bucket.risk_reference
-              ? (Array.isArray(bucket.risk_reference)
-                  ? bucket.risk_reference.map(x => `<a href="${x}" target="_blank" rel="noopener">Link</a>`).join(", ")
-                  : `<a href="${bucket.risk_reference}" target="_blank" rel="noopener">Link</a>`)
-              : "N/A"
-          }</p>
-          <p><strong>Sensitive Keywords Detected:</strong> ${
-            Array.isArray(bucket.sensitive_keywords_detected)
-              ? bucket.sensitive_keywords_detected.join(", ")
-              : (bucket.sensitive_keywords_detected ?? "None")
-          }</p>
-          ${ethicalMode && bucket.sample_files ? `<p><strong>Sample Files:</strong> ${
-            Array.isArray(bucket.sample_files) ? bucket.sample_files.join(", ") : bucket.sample_files
-          }</p>` : ""}
+          <p><strong>Risk Reference:</strong> ${refs}</p>
+          <p><strong>Sensitive Keywords Detected:</strong> ${sens}</p>
+          ${samples}
         `;
         resultsContainer.appendChild(card);
       });
@@ -478,11 +476,18 @@
 
     document.addEventListener("DOMContentLoaded", loadPreviousScans);
 
-    // ====== History fetch (with Authorization) ======
+    // ====== History fetch (owner only) ======
     document.addEventListener("DOMContentLoaded", function () {
+      const userRole = (localStorage.getItem("role") || "").toLowerCase();
+      if (userRole !== "project_owner") return; // FIX: don't call if not owner
+
       const historyTableBody = document.querySelector("#historyTable tbody");
       const apiURL = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/history";
       const token = getToken();
+      if (!token) {
+        historyTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Please log in to view history</td></tr>`;
+        return;
+      }
 
       fetch(apiURL, {
         method: "GET",
@@ -516,7 +521,7 @@
       });
     });
 
-    // ====== Optional: show stored email/role if you have elements with these IDs ======
+    // ====== Optional: show stored email/role if such elements exist ======
     document.addEventListener("DOMContentLoaded", () => {
       const emailElement = document.getElementById("user-email");
       const roleElement = document.getElementById("user-role");
