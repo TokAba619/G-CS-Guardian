@@ -21,6 +21,28 @@
     .toggle input:checked + .slider { background: #0ff; }
     .toggle-label { color: white; }
 
+    /* ===== Dashboard table (used for Results + Detailed Scan) ===== */
+    .table-tools { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
+    .table-tools input[type="text"]{ padding:.5rem .6rem; border:none; border-radius:6px; background:#1a1a1a; color:#eee; }
+    .table-tools .chip { background:#1a1a1a; color:#ccc; padding:.35rem .6rem; border-radius:999px; font-size:.85rem; }
+    .dashboard-table { width: 100%; border-collapse: collapse; background: #111; color: #eee; margin-top: .75rem; border-radius: 10px; overflow: hidden; }
+    .dashboard-table th, .dashboard-table td { padding: 0.8rem 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left; vertical-align: top; }
+    .dashboard-table th { background-color: #0ff; color: #111; position: relative; user-select:none; cursor:pointer; }
+    .dashboard-table th .sort-ind { position:absolute; right:.6rem; opacity:.7; }
+    .dashboard-table tr:hover { background: rgba(255,255,255,0.05); }
+
+    /* Badges */
+    .badge { display:inline-block; padding:.25rem .5rem; border-radius:999px; font-size:.8rem; }
+    .badge-public { background:#2a3; color:#eaffee; }
+    .badge-private { background:#444; color:#ddd; }
+    .risk-low { background:#204d2a; color:#afffbf; }
+    .risk-medium { background:#4d3a20; color:#ffd7a6; }
+    .risk-high { background:#5a2525; color:#ffb8b8; }
+    .risk-critical { background:#6b1a1a; color:#ffe2e2; }
+
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .nowrap { white-space: nowrap; }
+
     /* ===== My-Scan ===== */
     .myscan-feature { margin-top: 2rem; }
     .scan-table { width: 100%; border-collapse: collapse; background: #111; color: #eee; margin-top: 1rem; border-radius: 8px; overflow: hidden; }
@@ -135,7 +157,30 @@
     <div class="container">
       <h2 class="section-title">Your Scan is Complete!</h2>
       <p class="section-content">This report provides detailed insights into the configuration status of your scanned Google Cloud Storage buckets.</p>
-      <div id="results-container" class="results-container"></div>
+
+      <!-- scan summary goes here -->
+      <div id="results-summary" class="results-container"></div>
+
+      <!-- tools + table -->
+      <div class="table-tools" id="results-tools" style="display:none;">
+        <input type="text" id="results-filter" placeholder="Filter buckets (name, reason, keyword)..." aria-label="Filter buckets">
+        <span class="chip" id="results-count">0 buckets</span>
+      </div>
+      <table class="dashboard-table" id="results-table" style="display:none;">
+        <thead>
+          <tr>
+            <th data-key="bucket_name">Bucket<span class="sort-ind">↕</span></th>
+            <th data-key="public" class="nowrap">Public<span class="sort-ind">↕</span></th>
+            <th data-key="risk_score" class="nowrap">Risk Score<span class="sort-ind">↕</span></th>
+            <th data-key="risk_level" class="nowrap">Risk Level<span class="sort-ind">↕</span></th>
+            <th data-key="risk_reason">Risk Reason<span class="sort-ind">↕</span></th>
+            <th data-key="sensitive_keywords_detected">Sensitive Keywords<span class="sort-ind">↕</span></th>
+            <th data-key="risk_reference">References<span class="sort-ind">↕</span></th>
+            <th data-key="sample_files" class="sample-col" style="display:none;">Sample Files<span class="sort-ind">↕</span></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
   </section>
 
@@ -173,7 +218,30 @@
           <input type="text" id="scanIdInput" placeholder="Enter Scan ID" aria-label="Enter Scan ID">
           <button onclick="fetchDetailedScan()" aria-label="Fetch scan details">Enter</button>
         </div>
-        <div id="detailed-scan-results" class="results-container"></div>
+
+        <!-- summary -->
+        <div id="detailed-scan-results" class="results-container" style="margin-top:1rem;"></div>
+
+        <!-- tools + table -->
+        <div class="table-tools" id="detailed-tools" style="display:none;">
+          <input type="text" id="detailed-filter" placeholder="Filter buckets (name, reason, keyword)..." aria-label="Filter buckets">
+          <span class="chip" id="detailed-count">0 buckets</span>
+        </div>
+        <table class="dashboard-table" id="detailed-table" style="display:none;">
+          <thead>
+            <tr>
+              <th data-key="bucket_name">Bucket<span class="sort-ind">↕</span></th>
+              <th data-key="public" class="nowrap">Public<span class="sort-ind">↕</span></th>
+              <th data-key="risk_score" class="nowrap">Risk Score<span class="sort-ind">↕</span></th>
+              <th data-key="risk_level" class="nowrap">Risk Level<span class="sort-ind">↕</span></th>
+              <th data-key="risk_reason">Risk Reason<span class="sort-ind">↕</span></th>
+              <th data-key="sensitive_keywords_detected">Sensitive Keywords<span class="sort-ind">↕</span></th>
+              <th data-key="risk_reference">References<span class="sort-ind">↕</span></th>
+              <th data-key="sample_files" class="sample-col" style="display:none;">Sample Files<span class="sort-ind">↕</span></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </div>
     </div>
   </section>
@@ -224,27 +292,39 @@
       const date = new Date(timestamp);
       return isNaN(date.getTime()) ? "N/A" : date.toLocaleString();
     }
-    function getToken() {
-      return localStorage.getItem("access_token"); // unified token key
+    function getToken() { return localStorage.getItem("access_token"); }
+
+    // risk helpers
+    function riskLevelFromScore(score) {
+      const s = Number(score ?? 0);
+      if (s >= 80) return "Critical";
+      if (s >= 60) return "High";
+      if (s >= 40) return "Medium";
+      return "Low";
+    }
+    function riskClass(level) {
+      switch ((level || "").toLowerCase()) {
+        case "critical": return "risk-critical";
+        case "high": return "risk-high";
+        case "medium": return "risk-medium";
+        default: return "risk-low";
+      }
     }
 
-    // ====== Mobile nav: add missing handlers ======
+    // ====== Mobile nav ======
     const navLinks = document.getElementById("navLinks");
     const hamburgerMenu = document.getElementById("hamburgerMenu");
-    function closeMenu() { navLinks?.classList.remove("open"); } // called by anchors
+    function closeMenu() { navLinks?.classList.remove("open"); }
     hamburgerMenu?.addEventListener("click", () => navLinks?.classList.toggle("open"));
     hamburgerMenu?.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") navLinks?.classList.toggle("open"); });
 
-    // ====== Auth guard: redirect if no token ======
+    // ====== Auth guard ======
     (function authGuard() {
       const token = getToken();
-      if (!token) {
-        // FIX: relative path works on GitHub Pages subpath
-        window.location.href = "signup.html";
-      }
+      if (!token) window.location.href = "signup.html";
     })();
 
-    // ====== Role-gated UI (ethical mode & history visibility) ======
+    // ====== Role-gated UI ======
     (function roleGate() {
       const userRole = (localStorage.getItem("role") || "").toLowerCase();
       const ethicalToggle = document.getElementById("ethicalModeToggle");
@@ -252,102 +332,210 @@
 
       if (ethicalToggle && userRole !== "project_owner") {
         ethicalToggle.checked = false;
-        ethicalToggle.disabled = true; // FIX: disable for non-owners
+        ethicalToggle.disabled = true;
         ethicalToggle.title = "Only project owners can enable Ethical Mode";
       }
-
-      // Hide History section if not owner
       if (historySection && userRole !== "project_owner") {
         historySection.style.display = "none";
       }
     })();
 
-    // ====== Display scan results (expects array) ======
-    function displayResults(bucketsArray, ethicalMode) {
-      const resultsContainer = document.getElementById('results-container');
-      resultsContainer.innerHTML = "";
+    // ====== Generic table renderer (reusable) ======
+    function renderResultsTable(options) {
+      const {
+        buckets, ethicalMode,
+        tableEl, toolsEl, countEl, filterInput,
+        defaultSortKey = "risk_score", defaultSortDir = "desc"
+      } = options;
 
-      if (!Array.isArray(bucketsArray) || bucketsArray.length === 0) {
-        resultsContainer.innerHTML = "<p>No results found.</p>";
-        return;
+      // toggle sample files column
+      tableEl.querySelectorAll(".sample-col").forEach(th => th.style.display = ethicalMode ? "" : "none");
+
+      // internal state
+      let rows = Array.isArray(buckets) ? [...buckets] : [];
+      let sortKey = defaultSortKey;
+      let sortDir = defaultSortDir; // 'asc' | 'desc'
+
+      const tbody = tableEl.querySelector("tbody");
+      const thead = tableEl.querySelector("thead");
+
+      function normalizedText(v) {
+        if (v == null) return "";
+        return String(v).toLowerCase();
       }
 
-      bucketsArray.forEach(bucket => {
-        const card = document.createElement('div');
-        card.classList.add('result-card');
-        const refs = bucket.risk_reference
-          ? (Array.isArray(bucket.risk_reference)
-              ? bucket.risk_reference.map(x => `<a href="${x}" target="_blank" rel="noopener">Link</a>`).join(", ")
-              : `<a href="${bucket.risk_reference}" target="_blank" rel="noopener">Link</a>`)
-          : "N/A";
-        const sens = Array.isArray(bucket.sensitive_keywords_detected)
-          ? bucket.sensitive_keywords_detected.join(", ")
-          : (bucket.sensitive_keywords_detected ?? "None");
-        const samples = ethicalMode && bucket.sample_files
-          ? `<p><strong>Sample Files:</strong> ${Array.isArray(bucket.sample_files) ? bucket.sample_files.join(", ") : bucket.sample_files}</p>`
-          : "";
+      function applyFilter() {
+        const q = normalizedText(filterInput?.value || "");
+        return rows.filter(b => {
+          const name = normalizedText(b.bucket_name);
+          const reason = normalizedText(b.risk_reason);
+          const kws = Array.isArray(b.sensitive_keywords_detected)
+            ? normalizedText(b.sensitive_keywords_detected.join(","))
+            : normalizedText(b.sensitive_keywords_detected);
 
-        card.innerHTML = `
-          <h3>${bucket.bucket_name}</h3>
-          <p><strong>Public:</strong> ${bucket.public}</p>
-          <p><strong>Risk Score:</strong> ${bucket.risk_score}</p>
-          <p><strong>Risk Reason:</strong> ${bucket.risk_reason}</p>
-          <p><strong>Risk Reference:</strong> ${refs}</p>
-          <p><strong>Sensitive Keywords Detected:</strong> ${sens}</p>
-          ${samples}
-        `;
-        resultsContainer.appendChild(card);
+          return !q || name.includes(q) || reason.includes(q) || kws.includes(q);
+        });
+      }
+
+      function sortData(arr) {
+        const dir = sortDir === "asc" ? 1 : -1;
+        return arr.sort((a, b) => {
+          const va = (sortKey === "risk_level") ? riskLevelFromScore(a.risk_score) : a[sortKey];
+          const vb = (sortKey === "risk_level") ? riskLevelFromScore(b.risk_score) : b[sortKey];
+
+          if (sortKey === "risk_score") {
+            return (Number(va||0) - Number(vb||0)) * dir;
+          }
+          if (sortKey === "public") {
+            return ((va === true ? 1 : 0) - (vb === true ? 1 : 0)) * dir;
+          }
+          const sa = String(va ?? "").toLowerCase();
+          const sb = String(vb ?? "").toLowerCase();
+          if (sa < sb) return -1 * dir;
+          if (sa > sb) return 1 * dir;
+          return 0;
+        });
+      }
+
+      function linkifyRefs(refs) {
+        if (!refs) return "N/A";
+        const arr = Array.isArray(refs) ? refs : [refs];
+        return arr.map((u, i) => `<a href="${u}" target="_blank" rel="noopener">Ref ${i+1}</a>`).join(", ");
+      }
+
+      function render() {
+        const filtered = sortData(applyFilter());
+        tbody.innerHTML = "";
+        filtered.forEach(b => {
+          const level = riskLevelFromScore(b.risk_score);
+          const sens = Array.isArray(b.sensitive_keywords_detected)
+            ? b.sensitive_keywords_detected.join(", ")
+            : (b.sensitive_keywords_detected ?? "None");
+          const samples = ethicalMode && b.sample_files
+            ? (Array.isArray(b.sample_files) ? b.sample_files.join(", ") : b.sample_files)
+            : "";
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td class="mono">${b.bucket_name ?? "Unknown"}</td>
+            <td class="nowrap">
+              ${b.public ? '<span class="badge badge-public">Public</span>' : '<span class="badge badge-private">Private</span>'}
+            </td>
+            <td class="nowrap mono">${b.risk_score ?? "0"}</td>
+            <td class="nowrap"><span class="badge ${riskClass(level)}">${level}</span></td>
+            <td>${b.risk_reason ?? "N/A"}</td>
+            <td>${sens}</td>
+            <td>${linkifyRefs(b.risk_reference)}</td>
+            <td class="sample-col" style="${ethicalMode ? "" : "display:none;"}">${samples || ""}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+        if (toolsEl) toolsEl.style.display = "flex";
+        if (tableEl) tableEl.style.display = "table";
+        if (countEl) countEl.textContent = `${filtered.length} bucket${filtered.length===1?"":"s"}`;
+        updateHeaderIndicators();
+      }
+
+      function updateHeaderIndicators() {
+        thead.querySelectorAll("th").forEach(th => {
+          const ind = th.querySelector(".sort-ind");
+          if (!ind) return;
+          const key = th.getAttribute("data-key");
+          if (key === sortKey) {
+            ind.textContent = sortDir === "asc" ? "↑" : "↓";
+          } else {
+            ind.textContent = "↕";
+          }
+        });
+      }
+
+      // events
+      thead.querySelectorAll("th[data-key]").forEach(th => {
+        th.addEventListener("click", () => {
+          const key = th.getAttribute("data-key");
+          if (key === sortKey) {
+            sortDir = (sortDir === "asc") ? "desc" : "asc";
+          } else {
+            sortKey = key;
+            sortDir = (key === "risk_score") ? "desc" : "asc";
+          }
+          render();
+        });
       });
+      filterInput?.addEventListener("input", () => render());
+
+      // initial render (risk score high → low)
+      render();
     }
 
-    // ====== Scanner: call /scan and render ======
+    // ====== RESULTS (live scan) ======
+    async function runScan(projectId, ethicalMode) {
+      const token = getToken();
+      const resultsSummary = document.getElementById("results-summary");
+      const resultsTools = document.getElementById("results-tools");
+      const resultsTable = document.getElementById("results-table");
+      const resultsFilter = document.getElementById("results-filter");
+      const resultsCount = document.getElementById("results-count");
+
+      resultsSummary.innerHTML = `<p>🔍 Scanning in progress...</p>`;
+      resultsTools.style.display = "none";
+      resultsTable.style.display = "none";
+
+      const apiUrl = `https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/scan?project_id=${encodeURIComponent(projectId)}&ethical_mode=${ethicalMode}`;
+
+      const response = await fetch(apiUrl, {
+        method: "GET",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        let msg = `Scan failed: ${response.status}`;
+        try {
+          const err = await response.json();
+          if (err && err.detail) msg = Array.isArray(err.detail) ? err.detail.map(d => d.msg).join(", ") : err.detail;
+        } catch {}
+        throw new Error(msg);
+      }
+
+      const apiData = await response.json();
+      const { scan_id, project_role, buckets } = apiData;
+
+      resultsSummary.innerHTML = `
+        <div class="result-card">
+          <h3>Scan Summary</h3>
+          <p><strong>Scan ID:</strong> ${scan_id}</p>
+          <p><strong>Detected Role:</strong> ${project_role || "N/A"}</p>
+          <p><strong>Bucket Count:</strong> ${Array.isArray(buckets) ? buckets.length : 0}</p>
+        </div>
+      `;
+
+      renderResultsTable({
+        buckets: Array.isArray(buckets) ? buckets : [],
+        ethicalMode,
+        tableEl: resultsTable,
+        toolsEl: resultsTools,
+        countEl: resultsCount,
+        filterInput: resultsFilter,
+        defaultSortKey: "risk_score",
+        defaultSortDir: "desc"
+      });
+
+      document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ====== Scanner button ======
     document.addEventListener("DOMContentLoaded", function () {
       document.getElementById("learn-more").addEventListener("click", async function () {
         const ethicalMode = document.getElementById("ethicalModeToggle").checked;
         const projectId = document.getElementById("projectId").value.trim();
-        const resultsContainer = document.getElementById("results-container");
-
         if (!projectId) { alert("Please enter a Project ID."); return; }
-
-        resultsContainer.innerHTML = "<p>🔍 Scanning in progress...</p>";
 
         try {
           const token = getToken();
           if (!token) { alert("You are not logged in."); return; }
-
-          const apiUrl = `https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/scan?project_id=${encodeURIComponent(projectId)}&ethical_mode=${ethicalMode}`;
-
-          const response = await fetch(apiUrl, {
-            method: "GET",
-            headers: { "Authorization": `Bearer ${token}` }
-          });
-
-          if (!response.ok) {
-            let msg = `Scan failed: ${response.status}`;
-            try {
-              const err = await response.json();
-              if (err && err.detail) msg = Array.isArray(err.detail) ? err.detail.map(d => d.msg).join(", ") : err.detail;
-            } catch {}
-            throw new Error(msg);
-          }
-
-          const apiData = await response.json();
-          const { scan_id, project_role, buckets } = apiData;
-
-          // Show summary + buckets
-          resultsContainer.innerHTML = `
-            <div class="result-card">
-              <h3>Scan Summary</h3>
-              <p><strong>Scan ID:</strong> ${scan_id}</p>
-              <p><strong>Detected Role:</strong> ${project_role || "N/A"}</p>
-              <p><strong>Bucket Count:</strong> ${Array.isArray(buckets) ? buckets.length : 0}</p>
-            </div>
-          `;
-          displayResults(buckets, ethicalMode);
-
-          document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+          await runScan(projectId, ethicalMode);
         } catch (error) {
-          resultsContainer.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
+          document.getElementById("results-summary").innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
         }
       });
     });
@@ -403,7 +591,14 @@
     async function fetchDetailedScan() {
       const scanId = document.getElementById("scanIdInput").value.trim();
       const resultsContainer = document.getElementById("detailed-scan-results");
+      const tableEl = document.getElementById("detailed-table");
+      const toolsEl = document.getElementById("detailed-tools");
+      const filterEl = document.getElementById("detailed-filter");
+      const countEl = document.getElementById("detailed-count");
+
       resultsContainer.innerHTML = "<p>Loading...</p>";
+      toolsEl.style.display = "none";
+      tableEl.style.display = "none";
 
       if (!scanId) { resultsContainer.innerHTML = "<p>Please enter a Scan ID.</p>"; return; }
 
@@ -424,14 +619,15 @@
 
         const data = await res.json();
         const buckets = Array.isArray(data?.buckets) ? data.buckets : [];
+        const ethicalMode = Boolean(data?.ethical_mode);
 
-        // Header card
+        // Header summary
         resultsContainer.innerHTML = `
           <div class="result-card">
             <h4>Scan ${data.scan_id}</h4>
             <p><strong>Project:</strong> ${data.project_id || "N/A"}</p>
             <p><strong>Time:</strong> ${formatDate(data.timestamp)}</p>
-            <p><strong>Role:</strong> ${data.project_role || "N/A"} | <strong>Ethical Mode:</strong> ${data.ethical_mode ? "On" : "Off"}</p>
+            <p><strong>Role:</strong> ${data.project_role || "N/A"} | <strong>Ethical Mode:</strong> ${ethicalMode ? "On" : "Off"}</p>
             <p><strong>Bucket Count:</strong> ${buckets.length}</p>
           </div>
         `;
@@ -441,36 +637,19 @@
           return;
         }
 
-        // Render each bucket
-        buckets.forEach(b => {
-          resultsContainer.insertAdjacentHTML(
-            "beforeend",
-            `<div class="result-card">
-              <h4>${b.bucket_name || "Unknown Bucket"}</h4>
-              <p><strong>Public:</strong> ${b.public ?? "N/A"}</p>
-              <p><strong>Risk Score:</strong> ${b.risk_score ?? "N/A"}</p>
-              <p><strong>Risk Reason:</strong> ${b.risk_reason ?? "N/A"}</p>
-              <p><strong>Risk Reference:</strong> ${
-                b.risk_reference
-                  ? (Array.isArray(b.risk_reference)
-                      ? b.risk_reference.map(x => `<a href="${x}" target="_blank" rel="noopener">Link</a>`).join(", ")
-                      : `<a href="${b.risk_reference}" target="_blank" rel="noopener">Link</a>`)
-                  : "N/A"
-              }</p>
-              <p><strong>Sensitive Keywords Detected:</strong> ${
-                Array.isArray(b.sensitive_keywords_detected)
-                  ? b.sensitive_keywords_detected.join(", ")
-                  : (b.sensitive_keywords_detected ?? "None")
-              }</p>
-              ${b.sample_files ? `<p><strong>Sample Files:</strong> ${
-                Array.isArray(b.sample_files) ? b.sample_files.join(", ") : b.sample_files
-              }</p>` : ""}
-            </div>`
-          );
+        renderResultsTable({
+          buckets,
+          ethicalMode,
+          tableEl,
+          toolsEl,
+          countEl,
+          filterInput: filterEl,
+          defaultSortKey: "risk_score",
+          defaultSortDir: "desc"
         });
       } catch (error) {
         console.error(error);
-        resultsContainer.innerHTML = `<p>Error: ${error.message}</p>`;
+        resultsContainer.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
       }
     }
 
@@ -479,7 +658,7 @@
     // ====== History fetch (owner only) ======
     document.addEventListener("DOMContentLoaded", function () {
       const userRole = (localStorage.getItem("role") || "").toLowerCase();
-      if (userRole !== "project_owner") return; // FIX: don't call if not owner
+      if (userRole !== "project_owner") return;
 
       const historyTableBody = document.querySelector("#historyTable tbody");
       const apiURL = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/history";
