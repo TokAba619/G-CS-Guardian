@@ -1,12 +1,13 @@
-/* ========= G‑CS Guardian — Web UI Scripts (clean version) =========
+/* ========= G‑CS Guardian — Web UI Scripts (refined) =========
    Features:
-   - Navbar "scrolled" state
-   - Smooth anchor navigation
-   - Mobile hamburger menu (uses .open)
-   - Hero slider: indicators, autoplay, swipe
+   - Navbar "scrolled" state (rAF-throttled)
+   - Smooth in-page anchor navigation
+   - Scroll-spy: highlight active nav link
+   - Mobile hamburger menu (.open) + Esc/Click-outside to close
    - IntersectionObserver reveal animations
-   - Team slider buttons
-   ------------------------------------------------------------------ */
+   - Optional hero slider (indicators, autoplay, swipe) if present
+   - Team slider: horizontal scroll + optional prev/next buttons
+   ------------------------------------------------------------ */
 
 (function () {
   // ===== Helpers =====
@@ -15,21 +16,62 @@
 
   const smoothScrollTo = (id) => {
     const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: "smooth" });
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+  window.scrollToSection = smoothScrollTo; // used by inline onclick
 
-  // Expose for inline onclick="closeMenu()" in HTML
-  window.scrollToSection = smoothScrollTo;
-
-  // ===== Navbar: scrolled state =====
+  // ===== Navbar: scrolled state (throttled) =====
   const navbar = document.getElementById("navbar");
-  const onScroll = () => {
+  let ticking = false;
+  const updateScrolled = () => {
     if (!navbar) return;
-    if (window.scrollY > 50) navbar.classList.add("scrolled");
-    else navbar.classList.remove("scrolled");
+    navbar.classList.toggle("scrolled", window.scrollY > 50);
   };
-  window.addEventListener("scroll", onScroll);
-  window.addEventListener("load", onScroll);
+  const onScroll = () => {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        updateScrolled();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("load", updateScrolled);
+
+  // ===== Mobile menu =====
+  const hamburgerMenu = document.getElementById("hamburgerMenu");
+  const navLinks = document.getElementById("navLinks");
+
+  function closeMenu() {
+    if (!navLinks) return;
+    navLinks.classList.remove("open");
+    navLinks.classList.remove("active"); // back-compat
+  }
+  function toggleMenu() {
+    if (!navLinks) return;
+    navLinks.classList.toggle("open");
+  }
+  window.closeMenu = closeMenu; // used by inline anchors
+
+  if (hamburgerMenu && navLinks) {
+    hamburgerMenu.addEventListener("click", toggleMenu);
+    hamburgerMenu.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") toggleMenu();
+    });
+
+    // Close on ESC
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeMenu();
+    });
+
+    // Click-outside to close
+    document.addEventListener("click", (e) => {
+      if (!navLinks.classList.contains("open")) return;
+      const clickedInsideMenu = navLinks.contains(e.target) || hamburgerMenu.contains(e.target);
+      if (!clickedInsideMenu) closeMenu();
+    });
+  }
 
   // ===== Smooth anchor links (only same-page hashes) =====
   qsa('a[href^="#"]').forEach((a) => {
@@ -39,39 +81,11 @@
       if (!id) return;
       e.preventDefault();
       smoothScrollTo(id);
-      // Also close mobile menu if open
-      if (navLinks && navLinks.classList.contains("open")) {
-        navLinks.classList.remove("open");
-      }
+      closeMenu();
     });
   });
 
-  // ===== Hamburger menu =====
-  const hamburgerMenu = document.getElementById("hamburgerMenu");
-  const navLinks = document.getElementById("navLinks");
-
-  function closeMenu() {
-    if (navLinks && navLinks.classList.contains("open")) {
-      navLinks.classList.remove("open");
-    }
-    // Back-compat with old .active class if present
-    if (navLinks && navLinks.classList.contains("active")) {
-      navLinks.classList.remove("active");
-    }
-  }
-  window.closeMenu = closeMenu;
-
-  if (hamburgerMenu && navLinks) {
-    hamburgerMenu.addEventListener("click", () => {
-      navLinks.classList.toggle("open");
-    });
-    hamburgerMenu.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") navLinks.classList.toggle("open");
-    });
-  }
-
   // ===== Intersection reveal animations =====
-  // Reveal common elements when they enter the viewport
   const revealTargets = qsa(
     ".container, .card, .experience-item, .gallery-item, .faq-item, .contact-form, .contact-info"
   );
@@ -90,28 +104,31 @@
     revealTargets.forEach((el) => io.observe(el));
   }
 
-  // Optionally toggle .active on .slide when it’s ~centered (for title/subtitle animations)
-  const slideEls = qsa(".slide");
-  if (slideEls.length) {
-    const slideIO = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.target.parentElement) {
-            entry.target.classList.add("active");
-          } else {
-            entry.target.classList.remove("active");
-          }
-        });
-      },
-      { root: null, rootMargin: "0px", threshold: 0.5 }
-    );
-    slideEls.forEach((s) => slideIO.observe(s));
-  }
+  // ===== Scroll-Spy (active nav link while scrolling) =====
+  const sections = qsa("section[id]");
+  const navAnchors = qsa(".nav-links a[href^='#']");
+  const anchorFor = (id) => navAnchors.find(a => a.getAttribute("href") === `#${id}`);
+
+  const spyIO = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        const id = entry.target.id;
+        const a = anchorFor(id);
+        if (!a) return;
+        if (entry.isIntersecting) {
+          navAnchors.forEach(x => x.classList.remove("active"));
+          a.classList.add("active");
+        }
+      });
+    },
+    { root: null, threshold: 0.6 }
+  );
+  sections.forEach(sec => spyIO.observe(sec));
 
   // ===== Hero slider (if present) =====
   const sliderTrack = document.getElementById("sliderTrack");
   const indicatorsContainer = document.getElementById("indicators");
-  const sliderContainer = document.querySelector(".slider-container");
+  const sliderContainer = qs(".slider-container");
   let currentIndex = 0;
   let autoPlayTimer = null;
 
@@ -170,7 +187,7 @@
 
   function startAutoplay() {
     stopAutoplay();
-    autoPlayTimer = setInterval(nextSlide, 7000); // 7s
+    autoPlayTimer = setInterval(nextSlide, 7000);
   }
   function stopAutoplay() {
     if (autoPlayTimer) clearInterval(autoPlayTimer);
@@ -181,84 +198,93 @@
     startAutoplay();
   }
 
-  // Init slider if markup exists
   if (sliderTrack) {
     createIndicators();
     goToSlide(0);
     startAutoplay();
 
-    // Pause on hover (desktop)
     if (sliderContainer) {
+      // Pause on hover (desktop)
       sliderContainer.addEventListener("mouseenter", stopAutoplay);
       sliderContainer.addEventListener("mouseleave", startAutoplay);
-    }
 
-    // Touch swipe (mobile)
-    if (sliderContainer) {
-      let touchStartX = 0;
-      let touchStartY = 0;
+      // Touch swipe (mobile)
+      let touchStartX = 0, touchStartY = 0;
+      sliderContainer.addEventListener("touchstart", (e) => {
+        const t = e.touches?.[0];
+        if (!t) return;
+        touchStartX = t.clientX; touchStartY = t.clientY;
+        stopAutoplay();
+      }, { passive: true });
 
-      sliderContainer.addEventListener(
-        "touchstart",
-        (e) => {
-          const t = e.touches?.[0];
-          if (!t) return;
-          touchStartX = t.clientX;
-          touchStartY = t.clientY;
-          stopAutoplay();
-        },
-        { passive: true }
-      );
-
-      sliderContainer.addEventListener(
-        "touchend",
-        (e) => {
-          const t = e.changedTouches?.[0];
-          if (!t) {
-            startAutoplay();
-            return;
-          }
-          const dx = touchStartX - t.clientX;
-          const dy = touchStartY - t.clientY;
-
-          if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 30) {
-            // horizontal swipe
-            if (dx > 0) nextSlide();
-            else prevSlide();
-          }
-          startAutoplay();
-        },
-        { passive: true }
-      );
+      sliderContainer.addEventListener("touchend", (e) => {
+        const t = e.changedTouches?.[0];
+        if (!t) { startAutoplay(); return; }
+        const dx = touchStartX - t.clientX;
+        const dy = touchStartY - t.clientY;
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 30) {
+          dx > 0 ? nextSlide() : prevSlide();
+        }
+        startAutoplay();
+      }, { passive: true });
     }
   }
 
-  // ===== Team slider (buttons .team-prev / .team-next) =====
+  // ===== Team slider (works with your .team-slider of .team-card) =====
+  // Supports: horizontal wheel/drag scroll; optional buttons .team-prev / .team-next
   const teamSlider = qs(".team-slider");
-  const members = qsa(".team-member");
-  const prevBtn = qs(".team-prev");
-  const nextBtn = qs(".team-next");
-  let currentTeamSlide = 0;
+  const teamCards  = qsa(".team-slider .team-card");
+  const teamPrev   = qs(".team-prev");
+  const teamNext   = qs(".team-next");
 
-  function updateTeamSlider() {
-    if (!teamSlider || !members.length) return;
-    const offset = -currentTeamSlide * 100;
-    teamSlider.style.transform = `translateX(${offset}%)`;
-  }
+  if (teamSlider && teamCards.length) {
+    // Make it scrollable by drag (mouse & touch)
+    let isDown = false;
+    let startX = 0;
+    let scrollLeftStart = 0;
 
-  if (prevBtn && nextBtn && teamSlider && members.length) {
-    prevBtn.addEventListener("click", () => {
-      if (currentTeamSlide > 0) {
-        currentTeamSlide--;
-        updateTeamSlider();
+    const startDrag = (pageX) => {
+      isDown = true;
+      startX = pageX - teamSlider.offsetLeft;
+      scrollLeftStart = teamSlider.scrollLeft;
+      teamSlider.classList.add("dragging");
+    };
+    const moveDrag = (pageX) => {
+      if (!isDown) return;
+      const x = pageX - teamSlider.offsetLeft;
+      const walk = (x - startX) * 1; // sensitivity
+      teamSlider.scrollLeft = scrollLeftStart - walk;
+    };
+    const endDrag = () => { isDown = false; teamSlider.classList.remove("dragging"); };
+
+    teamSlider.addEventListener("mousedown", (e) => startDrag(e.pageX));
+    teamSlider.addEventListener("mousemove", (e) => moveDrag(e.pageX));
+    teamSlider.addEventListener("mouseleave", endDrag);
+    teamSlider.addEventListener("mouseup", endDrag);
+
+    teamSlider.addEventListener("touchstart", (e) => {
+      const t = e.touches?.[0]; if (!t) return;
+      startDrag(t.pageX);
+    }, { passive: true });
+    teamSlider.addEventListener("touchmove", (e) => {
+      const t = e.touches?.[0]; if (!t) return;
+      moveDrag(t.pageX);
+    }, { passive: true });
+    teamSlider.addEventListener("touchend", endDrag);
+
+    // Optional wheel horizontal scroll (Shift+wheel or trackpad)
+    teamSlider.addEventListener("wheel", (e) => {
+      if (Math.abs(e.deltaX) < Math.abs(e.deltaY)) {
+        teamSlider.scrollLeft += e.deltaY;
+        e.preventDefault();
       }
-    });
-    nextBtn.addEventListener("click", () => {
-      if (currentTeamSlide < members.length - 1) {
-        currentTeamSlide++;
-        updateTeamSlider();
-      }
-    });
-    updateTeamSlider();
+    }, { passive: false });
+
+    // Optional buttons (if you add them in HTML)
+    const scrollAmount = () => Math.min(teamSlider.clientWidth * 0.9, 600);
+    const scrollByAmount = (dir = 1) => teamSlider.scrollBy({ left: dir * scrollAmount(), behavior: "smooth" });
+
+    teamPrev?.addEventListener("click", () => scrollByAmount(-1));
+    teamNext?.addEventListener("click", () => scrollByAmount(1));
   }
 })();
