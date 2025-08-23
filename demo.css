@@ -215,6 +215,11 @@ header .container .content .extra-nav button:hover .icon {
   text-transform: uppercase;
   font-family: var(--aud);
   animation: textGlow 2s linear forwards;
+  text-shadow: 
+    -1px -1px 0 black,  
+     1px -1px 0 black,  
+    -1px  1px 0 black,  
+     1px  1px 0 black;
 }
 
 .hero .container .content .text p {
@@ -269,7 +274,7 @@ header .container .content .extra-nav button:hover .icon {
 
 @keyframes textGlow {
   to {
-    text-shadow: 0 0 1px #fff, 0 0 3px #fff, 0 0 6px #fff;
+   text-shadow: 0 0 1px #ff0000, 0 0 3px #ff0000, 0 0 6px #ff0000;
   }
 }
 
@@ -995,4 +1000,5 @@ header .container .content .extra-nav button:hover .icon {
     position: relative;
     overflow: hidden;
     color: white;
+
 }
