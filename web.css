@@ -271,8 +271,8 @@ button.learn-more:active::before { box-shadow: 0 0 0 2px #b18597, 0 0 #ffe3e2; t
 
 /* Badges */
 .badge { display:inline-block; padding:.25rem .5rem; border-radius:999px; font-size:.8rem; line-height:1; }
-.badge-public { background:#2a3; color:#eaffee; }
-.badge-private { background:#444; color:#ddd; }
+.badge-public { background:rgb(255, 0, 0); color:#eaffee; }
+.badge-private { background:#3cff00; color:#ddd; }
 
 .risk-low { background:#204d2a; color:#afffbf; }
 .risk-medium { background:#4d3a20; color:#ffd7a6; }
@@ -365,3 +365,4 @@ button.learn-more:active::before { box-shadow: 0 0 0 2px #b18597, 0 0 #ffe3e2; t
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
