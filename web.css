@@ -1,11 +1,23 @@
-/* ===== Background video ===== */
+/* ===============================
+   GLOBAL / BACKGROUND
+==================================*/
+
+/* Brightness is now controlled by a variable for easy tuning */
+:root {
+  --bg-brightness: 100%;
+  --cyan: #0ff;
+  --bg-dark: #0b0b0b;
+  --card-bg: #111;
+  --muted-border: rgba(255,255,255,0.1);
+}
+
 #bg-video {
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
   object-fit: cover;
   z-index: -1;
-  filter: brightness(100%);
+  filter: brightness(var(--bg-brightness));
 }
 
 /* Reset */
@@ -15,27 +27,29 @@ body {
   font-family: 'Arial', sans-serif;
   line-height: 1.6;
   overflow-x: hidden;
-  background-color: #0b0b0b; /* better fallback behind video */
+  background-color: var(--bg-dark); /* fallback behind video */
   color: #fff;
-  padding-top: 70px; /* FIX: avoid content hidden under fixed navbar */
+  padding-top: 70px; /* avoid content hidden under fixed navbar */
 }
 
-/* ===== Navbar ===== */
+/* ===============================
+   NAVBAR
+==================================*/
 .navbar {
   position: fixed; top: 0; left: 0;
   width: 100%;
   background: rgba(0,0,0,0.7);
   backdrop-filter: blur(10px);
-  z-index: 1000; /* FIX: ensure above all content */
+  z-index: 1000;
   padding: 15px 30px;
   display: flex; justify-content: space-between; align-items: center;
   box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  transition: background 0.3s ease;
+  transition: background 0.3s ease, box-shadow .3s ease;
 }
 .navbar.scrolled { background: rgba(0,0,0,0.9); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
 
 .navbar-brand {
-  color: #0ff; font-size: 1.8rem; font-weight: bold; text-decoration: none; letter-spacing: 1px;
+  color: var(--cyan); font-size: 1.8rem; font-weight: bold; text-decoration: none; letter-spacing: 1px;
   text-shadow: 1px 1px 3px #000;
 }
 
@@ -45,14 +59,16 @@ body {
   transition: color 0.3s ease;
 }
 .nav-links a::after {
-  content: ''; position: absolute; width: 0; height: 2px; background: #0ff; left: 0; bottom: 0; transition: width 0.3s ease;
+  content: ''; position: absolute; width: 0; height: 2px; background: var(--cyan); left: 0; bottom: 0; transition: width 0.3s ease;
 }
 .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
-.nav-links a:hover { color: #0ff; }
+.nav-links a:hover { color: var(--cyan); }
 
 .hamburger-menu { display: none; font-size: 2rem; color: white; cursor: pointer; }
 
-/* ===== Sections ===== */
+/* ===============================
+   SECTIONS / CONTAINERS
+==================================*/
 .content-section {
   min-height: 100vh;
   padding: 100px 0;
@@ -61,19 +77,20 @@ body {
   color: white;
 }
 
-.scanner {
+/* FIX: class name to match HTML (.scan instead of .scanner) */
+.scan {
   position: relative; overflow: hidden; color: white;
   text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
   z-index: 1;
 }
-.scanner .content { position: relative; z-index: 2; padding: 100px 20px; }
+.scan .content { position: relative; z-index: 2; padding: 100px 20px; }
 
 .form { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-top: 20px; }
 .form input { padding: 10px; font-size: 1rem; margin-bottom: 10px; }
 
 /* FAQ / Team shared */
 .faq { position: relative; overflow: hidden; }
-.bg-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; filter: brightness(100%); }
+.bg-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; filter: brightness(var(--bg-brightness)); }
 .faq-content { position: relative; z-index: 1; padding: 60px 20px; color: white; text-align: center; }
 .section-title { font-size: 3.5rem; text-align: center; margin-bottom: 3rem; font-weight: bold; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
 .section-content { font-size: 1.3rem; line-height: 2; text-align: center; max-width: 800px; margin: 0 auto 4rem; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
@@ -127,15 +144,18 @@ body {
 .input-field { background-color: transparent; border: none; color: #00c0ff; font-family: inherit; font-size: 14px; outline: none; width: 100%; padding-right: 10px; }
 .input-field::placeholder { color: rgba(255,255,255,0.5); }
 
-/* ===== DEMO section ===== */
+/* ===============================
+   DEMO
+==================================*/
 .demo { color: #fff; padding: 80px 20px; text-align: center; }
 .demo .section-title { font-size: 2.8rem; font-weight: bold; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; color: #ffffff; }
 .demo .section-content { font-size: 1.2rem; max-width: 800px; margin: 0 auto 40px; color: #d1d1d1; }
 .video-wrapper { max-width: 900px; margin: 0 auto; border: 5px solid #000; border-radius: 12px; overflow: hidden; box-shadow: 0 0 40px rgba(0,0,0,0.4); }
 .video-wrapper video { width: 100%; height: auto; display: block; background: #000; }
 
-/* ===== Terminal Loader (SCOPED to avoid conflicts) ===== */
-/* FIX: previously these generic selectors overwrote .terminal-header/title above */
+/* ===============================
+   TERMINAL LOADER (scoped)
+==================================*/
 .terminal-loader { border: 0.1em solid #333; background-color: #1a1a1a; color: #0f0; font-family: "Courier New", Courier, monospace; font-size: 1em; padding: 1.5em 1em; width: 25em; box-shadow: 0 4px 8px rgba(0,0,0,0.2); border-radius: 4px; position: relative; overflow: hidden; box-sizing: border-box; }
 .terminal-loader .terminal-header { position: absolute; top: 0; left: 0; right: 0; height: 1.5em; background-color: #333; border-top-left-radius: 4px; border-top-right-radius: 4px; padding: 0 0.4em; box-sizing: border-box; }
 .terminal-loader .terminal-controls { float: right; }
@@ -150,7 +170,9 @@ body {
 .center-container { display: flex; justify-content: center; align-items: center; height: 100vh; }
 .terminal-loader { transform: translateY(-400px); }
 
-/* Buttons */
+/* ===============================
+   BUTTONS / TOGGLE
+==================================*/
 button { position: relative; display: inline-block; cursor: pointer; outline: none; border: 0; vertical-align: middle; text-decoration: none; font-family: inherit; font-size: 15px; }
 button.learn-more {
   font-weight: 600; color: #382b22; text-transform: uppercase; padding: 1.25em 2em; background: #fff0f0; border: 2px solid #b18597; border-radius: 0.75em;
@@ -175,12 +197,18 @@ button.learn-more:active::before { box-shadow: 0 0 0 2px #b18597, 0 0 #ffe3e2; t
 .toggle input:checked + .slider::before { transform: translateX(24px); }
 .toggle-label { font-size: 1rem; }
 
-/* ===== Results (moved from inline for consistency) ===== */
+/* ===============================
+   RESULTS & CARDS
+==================================*/
 .results-container { margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem; }
-.result-card { background: #111; padding: 1rem; border-radius: 8px; color: #eee; box-shadow: 0 0 10px rgba(0,0,0,0.3); }
-.result-card h3, .result-card h4 { color: #0ff; margin-bottom: 0.5rem; }
+.result-card {
+  background: var(--card-bg);
+  padding: 1rem; border-radius: 8px; color: #eee;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+.result-card h3, .result-card h4 { color: var(--cyan); margin-bottom: 0.5rem; }
 
-/* ===== Floating shapes ===== */
+/* Floating shapes */
 .floating-elements { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
 .floating-element { position: absolute; background: rgba(255,255,255,0.05); border-radius: 50%; animation: float 8s ease-in-out infinite alternate; backdrop-filter: blur(3px); }
 .floating-element:nth-child(1){ width:80px; height:80px; top:15%; left:10%; animation-delay:0s; animation-duration:10s;}
@@ -194,13 +222,81 @@ button.learn-more:active::before { box-shadow: 0 0 0 2px #b18597, 0 0 #ffe3e2; t
   100% { transform: translateY(0) translateX(0) rotate(180deg) scale(1); opacity:0.7; }
 }
 
-/* ===== Results table (if used anywhere) ===== */
+/* ===============================
+   DASHBOARD TABLE (NEW)
+   Used in: #results-table and #detailed-table
+==================================*/
+.table-tools { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; margin-top:.75rem; }
+.table-tools input[type="text"]{
+  padding:.5rem .6rem; border:none; border-radius:6px; background:#1a1a1a; color:#eee;
+}
+.table-tools .chip {
+  background:#1a1a1a; color:#ccc; padding:.35rem .6rem; border-radius:999px; font-size:.85rem;
+}
+
+/* Wrapper to allow horizontal scroll on small screens */
+.dashboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card-bg);
+  color: #eee;
+  margin-top: .75rem;
+  border-radius: 10px;
+  overflow: hidden;
+  display: table;
+}
+.dashboard-table th, .dashboard-table td {
+  padding: 0.8rem 0.9rem;
+  border-bottom: 1px solid var(--muted-border);
+  text-align: left;
+  vertical-align: top;
+}
+.dashboard-table thead th {
+  background-color: var(--cyan);
+  color: #111;
+  position: sticky; /* keep header visible on long tables */
+  top: 0;
+  z-index: 2;
+  user-select: none;
+  cursor: pointer;
+}
+.dashboard-table tr:hover { background: rgba(255,255,255,0.05); }
+
+/* Sort indicator */
+.dashboard-table th .sort-ind { float:right; opacity:.7; }
+
+/* Utility classes for table cells */
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+.nowrap { white-space: nowrap; }
+
+/* Badges */
+.badge { display:inline-block; padding:.25rem .5rem; border-radius:999px; font-size:.8rem; line-height:1; }
+.badge-public { background:#2a3; color:#eaffee; }
+.badge-private { background:#444; color:#ddd; }
+
+.risk-low { background:#204d2a; color:#afffbf; }
+.risk-medium { background:#4d3a20; color:#ffd7a6; }
+.risk-high { background:#5a2525; color:#ffb8b8; }
+.risk-critical { background:#6b1a1a; color:#ffe2e2; }
+
+/* Make tables scrollable on small screens */
+@media (max-width: 900px) {
+  .dashboard-table { display: block; overflow-x: auto; }
+  .dashboard-table table { width: 900px; } /* ensure min width when scrolled */
+}
+
+/* ===============================
+   (Legacy) RESULTS-TABLE (if used elsewhere)
+   Keeping in case other pages still reference it
+==================================*/
 .results-table { width: 100%; max-width: 900px; margin: 0 auto; border-collapse: collapse; box-shadow: 0 0 20px rgba(0,0,0,0.1); background: white; color: #000; }
 .results-table th, .results-table td { padding: 12px 15px; border: 1px solid #ddd; }
 .results-table th { background-color: #203a43; color: white; text-transform: uppercase; }
 .results-table tr:nth-child(even){ background-color:#f2f2f2; }
 
-/* ===== FAQ ===== */
+/* ===============================
+   FAQ
+==================================*/
 .faq-item {
   background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);
   border-radius: 15px; margin-bottom: 20px; padding: 25px 30px;
@@ -219,7 +315,19 @@ button.learn-more:active::before { box-shadow: 0 0 0 2px #b18597, 0 0 #ffe3e2; t
 }
 .faq-item.active p { max-height: 200px; opacity: 1; padding-top: 10px; }
 
-/* ===== Mobile ===== */
+/* ===============================
+   HISTORY TABLE (kept as-is)
+==================================*/
+.history .table-container { overflow-x: auto; margin-top: 20px; }
+.history table { width: 100%; border-collapse: collapse; background-color: #1e1e2f; color: white; border-radius: 8px; overflow: hidden; }
+.history th, .history td { padding: 12px 15px; border-bottom: 1px solid #333; text-align: left; }
+.history th { background-color: var(--cyan); color: #000; font-weight: bold; }
+.history tr:nth-child(even) { background-color: #2a2a3d; }
+.history tr:hover { background-color: #33334d; transition: 0.2s; }
+
+/* ===============================
+   MOBILE
+==================================*/
 @media (max-width: 768px) {
   .navbar { padding: 15px 20px; }
   .hamburger-menu { display: block; }
@@ -228,7 +336,7 @@ button.learn-more:active::before { box-shadow: 0 0 0 2px #b18597, 0 0 #ffe3e2; t
     background: rgba(0,0,0,0.95); box-shadow: 0 8px 16px rgba(0,0,0,0.5); padding: 20px 0; z-index: 999;
     transition: transform 0.3s ease-in-out, max-height 0.3s ease-in-out; transform: translateY(-100%); max-height: 0; overflow: hidden;
   }
-  /* FIX: support both .open (used by JS) and .active (old) */
+  /* support both .open (new) and .active (old) */
   .nav-links.open,
   .nav-links.active {
     display: flex;
@@ -249,4 +357,11 @@ button.learn-more:active::before { box-shadow: 0 0 0 2px #b18597, 0 0 #ffe3e2; t
 @media (max-width: 480px) {
   .section-title { font-size: 1.8rem; }
   .card, .faq-item { padding: 20px; }
+}
+
+/* ===============================
+   ACCESSIBILITY / PREFERENCES
+==================================*/
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
 }
