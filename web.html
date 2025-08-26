@@ -370,26 +370,51 @@
       return s || "regular";
     }
 
-    // ====== Role-gated UI (toggle + history) ======
+    /* ============================================================
+       ETHICAL TOGGLE LOGIC — ONLY THIS PART CHANGED
+       - Toggle is enabled ONLY if:
+         (a) user is Owner/Creator, AND
+         (b) Project ID field is non-empty.
+       - If Project ID becomes empty, toggle auto-turns OFF and disables.
+       - Titles reflect why it’s disabled.
+    ============================================================ */
     (function roleGate() {
       const rawRole = localStorage.getItem("role");
       const role = normalizeRole(rawRole);
 
       const ethicalToggle = document.getElementById("ethicalModeToggle");
       const historySection = document.getElementById("history");
+      const projectInput  = document.getElementById("projectId");
 
       const isOwner = role === "project_owner" || role === "creator";
-      if (ethicalToggle) {
-        ethicalToggle.checked = false; // start OFF by default
-        ethicalToggle.disabled = !isOwner;
-        ethicalToggle.title = isOwner
-          ? "Ethical Mode is available"
-          : "Only project owners can enable Ethical Mode";
+
+      function updateEthicalToggleState() {
+        const hasProjectId = !!(projectInput && projectInput.value.trim());
+        const canUse = isOwner && hasProjectId;
+
+        if (ethicalToggle) {
+          if (!canUse) {
+            ethicalToggle.checked = false;     // force OFF when not allowed
+          }
+          ethicalToggle.disabled = !canUse;
+          ethicalToggle.title = isOwner
+            ? (hasProjectId ? "Ethical Mode is available" : "Enter a Project ID to enable Ethical Mode")
+            : "Only project owners can enable Ethical Mode";
+        }
       }
+
+      // initial state
+      updateEthicalToggleState();
+
+      // respond to typing/changes in Project ID
+      projectInput?.addEventListener("input", updateEthicalToggleState);
+
+      // hide History for non-owners (unchanged)
       if (historySection && !isOwner) {
         historySection.style.display = "none";
       }
     })();
+    /* ========================= END CHANGE ========================= */
 
     // ====== Generic table renderer (reusable) ======
     function renderResultsTable(options) {
@@ -767,5 +792,3 @@
   <script src="web.js"></script>
 </body>
 </html>
-
-
