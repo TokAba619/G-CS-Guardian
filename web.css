@@ -97,11 +97,6 @@ body {
 
 .team-slider { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
 
-/* Contact bg (kept) */
-.contact {
-  background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('paper4.jpg');
-  background-size: cover; background-position: center; background-attachment: fixed;
-}
 
 /* Containers & cards */
 .container {
@@ -189,12 +184,26 @@ button.learn-more:active { background: #ffe9e9; transform: translate(0, 0.75em);
 button.learn-more:active::before { box-shadow: 0 0 0 2px #b18597, 0 0 #ffe3e2; transform: translate3d(0, 0, -1em); }
 
 /* Toggle switch */
-.toggle { display: flex; align-items: center; gap: 10px; cursor: pointer; color: white; }
-.toggle input { display: none; }
-.slider { position: relative; width: 50px; height: 26px; background-color: #ccc; border-radius: 50px; transition: background-color 0.3s ease; }
-.slider::before { content: ""; position: absolute; width: 22px; height: 22px; left: 2px; top: 2px; background-color: white; border-radius: 50%; transition: transform 0.3s ease; }
+/* IMPORTANT: keep input focusable (for label click & accessibility) */
+.toggle { display: flex; align-items: center; gap: 10px; cursor: pointer; color: white; position: relative; }
+.toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 1px; height: 1px;
+  overflow: hidden;
+}
+.slider {
+  position: relative; width: 50px; height: 26px;
+  background-color: #ccc; border-radius: 50px; transition: background-color 0.3s ease;
+}
+.slider::before {
+  content: ""; position: absolute; width: 22px; height: 22px; left: 2px; top: 2px;
+  background-color: white; border-radius: 50%; transition: transform 0.3s ease;
+}
 .toggle input:checked + .slider { background-color: #4caf50; }
 .toggle input:checked + .slider::before { transform: translateX(24px); }
+.toggle input:disabled + .slider { background:#666; cursor:not-allowed; }
+.toggle input:disabled ~ .toggle-label { opacity:.6; cursor:not-allowed; }
 .toggle-label { font-size: 1rem; }
 
 /* ===============================
