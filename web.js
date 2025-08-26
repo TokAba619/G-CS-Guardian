@@ -1,4 +1,4 @@
-/* ========= G‑CS Guardian — Web UI Scripts (refined) =========
+/* ========= G-CS Guardian — Web UI Scripts (refined) =========
    Features:
    - Navbar "scrolled" state (rAF-throttled)
    - Smooth in-page anchor navigation
@@ -74,6 +74,11 @@
   }
 
   // ===== Smooth anchor links (only same-page hashes) =====
+  const navAnchors = qsa(".nav-links a[href^='#']");
+  const setActiveNav = (id) => {
+    navAnchors.forEach(a => a.classList.toggle("active", a.getAttribute("href") === `#${id}`));
+  };
+
   qsa('a[href^="#"]').forEach((a) => {
     a.addEventListener("click", (e) => {
       const href = a.getAttribute("href");
@@ -81,6 +86,7 @@
       if (!id) return;
       e.preventDefault();
       smoothScrollTo(id);
+      setActiveNav(id); // ensure immediate highlight on click
       closeMenu();
     });
   });
@@ -106,7 +112,6 @@
 
   // ===== Scroll-Spy (active nav link while scrolling) =====
   const sections = qsa("section[id]");
-  const navAnchors = qsa(".nav-links a[href^='#']");
   const anchorFor = (id) => navAnchors.find(a => a.getAttribute("href") === `#${id}`);
 
   const spyIO = new IntersectionObserver(
