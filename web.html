@@ -14,11 +14,13 @@
 
     /* ===== Toggle ===== */
     .toggle { display: flex; align-items: center; gap: 10px; }
-    .toggle input { display: none; }
+    /* Keep input focusable but invisible for better click support */
+    .toggle input { position:absolute; opacity:0; width:0; height:0; }
     .slider { width: 40px; height: 20px; background: #ccc; border-radius: 20px; position: relative; cursor: pointer; }
     .slider::before { content: ""; position: absolute; width: 16px; height: 16px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: 0.3s; }
     .toggle input:checked + .slider::before { transform: translateX(20px); }
     .toggle input:checked + .slider { background: #0ff; }
+    .toggle input:disabled + .slider { background:#666; cursor:not-allowed; }
     .toggle-label { color: white; }
 
     /* ===== Dashboard table (used for Results + Detailed Scan) ===== */
@@ -75,7 +77,6 @@
   </video>
 
   <nav class="navbar" id="navbar">
-    <!-- FIX: point to an existing section -->
     <a href="#demo" class="navbar-brand">G-CS Guardian</a>
     <div class="hamburger-menu" id="hamburgerMenu" aria-label="Open menu" role="button" tabindex="0">
       <i class="fas fa-bars"></i>
@@ -115,8 +116,8 @@
 
       <div class="form">
         <form id="scanForm">
-          <label class="toggle">
-            <input type="checkbox" id="ethicalModeToggle">
+          <label class="toggle" id="ethicalModeLabel">
+            <input type="checkbox" id="ethicalModeToggle" aria-label="Ethical Mode (Project Owner Only)">
             <span class="slider"></span>
             <span class="toggle-label">Ethical Mode (Project Owner Only)</span>
           </label>
@@ -230,13 +231,13 @@
         <table class="dashboard-table" id="detailed-table" style="display:none;">
           <thead>
             <tr>
-              <th data-key="bucket_name">Bucket<span class="sort-ind">↕</span></th>
-              <th data-key="public" class="nowrap">Public<span class="sort-ind">↕</span></th>
+              <th data-key="bucket_name">Bucket Name<span class="sort-ind">↕</span></th>
+              <th data-key="public" class="nowrap">Bucket Status<span class="sort-ind">↕</span></th>
+              <th data-key="exposure_reason" class="nowrap">Exposure Reason<span class="sort-ind">↕</span></th>
               <th data-key="risk_score" class="nowrap">Risk Score<span class="sort-ind">↕</span></th>
-              <th data-key="risk_level" class="nowrap">Risk Level<span class="sort-ind">↕</span></th>
               <th data-key="risk_reason">Risk Reason<span class="sort-ind">↕</span></th>
               <th data-key="sensitive_keywords_detected">Sensitive Keywords<span class="sort-ind">↕</span></th>
-              <th data-key="risk_reference">References<span class="sort-ind">↕</span></th>
+              <th data-key="risk_reference">Risk Score References<span class="sort-ind">↕</span></th>
               <th data-key="sample_files" class="sample-col" style="display:none;">Sample Files<span class="sort-ind">↕</span></th>
             </tr>
           </thead>
@@ -263,20 +264,6 @@
             <tr><td colspan="5" style="text-align:center;">Loading history...</td></tr>
           </tbody>
         </table>
-      </div>
-    </div>
-  </section>
-
-  <!-- ABOUT US SECTION -->
-  <section class="content-section aboutus" id="aboutus">
-    <div class="faq-content">
-      <h2 class="section-title">Meet the Minds Behind It All</h2>
-      <p class="section-content">Back-End Brains & Front-End Flair</p>
-      <div class="team-slider">
-        <div class="team-card"><div class="card-inner"><div class="card-front" style="background-image:url('siramir.jpg');background-size:cover;"><div class="overlay"><h3>Supervisor</h3><p>Sir Amir Hakeem Bin Sahrir</p></div></div><div class="card-back"><p>"Forever Sensei and Mentor"</p></div></div></div>
-        <div class="team-card"><div class="card-inner"><div class="card-front" style="background-image:url('aqil.jpg');background-size:cover;"><div class="overlay"><h3>Group Leader</h3><p>Muhammad Aqil Darwisy Bin Nor Azli</p></div></div><div class="card-back"><p>"Failure Is Just a Temporary Syntax Error"</p></div></div></div>
-        <div class="team-card"><div class="card-inner"><div class="card-front" style="background-image:url('ilhan.jpg');background-size:cover;"><div class="overlay"><h3>Group Member</h3><p>Ilhan Munsieff Bin Abdullah</p></div></div><div class="card-back"><p>"The best defense against cyber threats is a well-educated mind"</p></div></div></div>
-        <div class="team-card"><div class="card-inner"><div class="card-front" style="background-image:url('jib.jpg');background-size:cover;"><div class="overlay"><h3>Group Member</h3><p>Jibril Ruhul Amin Bin Mohd Nor Ariffin</p></div></div><div class="card-back"><p>"In a world full of threats, be the shield"</p></div></div></div>
       </div>
     </div>
   </section>
@@ -324,18 +311,32 @@
       if (!token) window.location.href = "signup.html";
     })();
 
-    // ====== Role-gated UI ======
+    // Normalize possible role strings coming from backend/UI storage
+    function normalizeRole(r) {
+      const s = String(r || "").trim().toLowerCase();
+      if (["project_owner", "project owner", "owner"].includes(s)) return "project_owner";
+      if (["creator"].includes(s)) return "creator";
+      if (["regular", "user"].includes(s)) return "regular";
+      return s || "regular";
+    }
+
+    // ====== Role-gated UI (toggle + history) ======
     (function roleGate() {
-      const userRole = (localStorage.getItem("role") || "").toLowerCase();
+      const rawRole = localStorage.getItem("role");
+      const role = normalizeRole(rawRole);
+
       const ethicalToggle = document.getElementById("ethicalModeToggle");
       const historySection = document.getElementById("history");
 
-      if (ethicalToggle && userRole !== "project_owner") {
-        ethicalToggle.checked = false;
-        ethicalToggle.disabled = true;
-        ethicalToggle.title = "Only project owners can enable Ethical Mode";
+      const isOwner = role === "project_owner" || role === "creator";
+      if (ethicalToggle) {
+        ethicalToggle.checked = false; // start OFF by default
+        ethicalToggle.disabled = !isOwner;
+        ethicalToggle.title = isOwner
+          ? "Ethical Mode is available"
+          : "Only project owners can enable Ethical Mode";
       }
-      if (historySection && userRole !== "project_owner") {
+      if (historySection && !isOwner) {
         historySection.style.display = "none";
       }
     })();
@@ -657,8 +658,9 @@
 
     // ====== History fetch (owner only) ======
     document.addEventListener("DOMContentLoaded", function () {
-      const userRole = (localStorage.getItem("role") || "").toLowerCase();
-      if (userRole !== "project_owner") return;
+      const role = normalizeRole(localStorage.getItem("role"));
+      const isOwner = role === "project_owner" || role === "creator";
+      if (!isOwner) return;
 
       const historyTableBody = document.querySelector("#historyTable tbody");
       const apiURL = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/history";
