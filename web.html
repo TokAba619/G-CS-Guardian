@@ -370,37 +370,51 @@
       return s || "regular";
     }
 
-    /* ============================================================
-   ETHICAL TOGGLE LOGIC — FIXED
-   - Enables toggle only if:
-     (a) user is Owner/Creator, AND
-     (b) Project ID field is non-empty.
-   - Falls back to alternate role keys in localStorage.
-   - Updates on input & change (covers autofill).
+   /* ============================================================
+   ETHICAL TOGGLE LOGIC — FINAL
+   Enables toggle only when:
+   - Project ID field has a value, AND
+   - JWT role is Owner/Creator (read from access_token)
 ============================================================ */
 (function roleGate() {
   // --- helpers ---
+  function parseJwt(token) {
+    try {
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
+      );
+      return JSON.parse(jsonPayload);
+    } catch {
+      return null;
+    }
+  }
+  function getToken() {
+    return localStorage.getItem("access_token");
+  }
   function normalizeRole(r) {
     const s = String(r || "").trim().toLowerCase();
     if (["project_owner", "project owner", "owner"].includes(s)) return "project_owner";
     if (["creator"].includes(s)) return "creator";
-    if (["regular", "user"].includes(s)) return "regular";
+    if (["regular", "user", "viewer"].includes(s)) return "regular";
     return s || "regular";
   }
 
-  // Try multiple keys in case role was stored differently
-  const rawRole =
-    localStorage.getItem("role") ||
-    localStorage.getItem("user_role") ||
-    localStorage.getItem("userRole") ||
-    "";
-
-  const role = normalizeRole(rawRole);
-
+  // DOM
   const ethicalToggle  = document.getElementById("ethicalModeToggle");
   const historySection = document.getElementById("history");
   const projectInput   = document.getElementById("projectId");
 
+  // Read role from JWT (fallbacks included)
+  const token   = getToken();
+  const payload = token ? parseJwt(token) : null;
+  const tokenRole =
+    payload?.role || payload?.user_role || payload?.permissions?.role || "";
+  const role = normalizeRole(tokenRole);
   const isOwner = role === "project_owner" || role === "creator";
 
   function updateEthicalToggleState() {
@@ -408,36 +422,29 @@
     const canUse = isOwner && hasProjectId;
 
     if (ethicalToggle) {
-      // force OFF when not allowed
-      if (!canUse) ethicalToggle.checked = false;
-
+      if (!canUse) ethicalToggle.checked = false; // force OFF when not allowed
       ethicalToggle.disabled = !canUse;
       ethicalToggle.title = !isOwner
         ? "Only project owners can enable Ethical Mode"
         : (!hasProjectId
             ? "Enter a Project ID to enable Ethical Mode"
             : "Ethical Mode is available");
-
-      // Debug (remove later if you want)
-      console.log("[Ethical Toggle] role:", role,
-                  "| isOwner:", isOwner,
-                  "| hasProjectId:", hasProjectId,
-                  "| canUse:", canUse);
     }
+
+    // Debug (optional): open DevTools > Console to see why it's disabled
+    console.log("[Ethical Toggle]",
+      { roleFromJWT: tokenRole || "(none)", normalizedRole: role, isOwner, hasProjectId, canUse });
   }
 
-  // Initial state (covers pre-filled value)
+  // Initial state and listeners
   updateEthicalToggleState();
-
-  // Respond to typing/changes (covers autofill & paste)
   projectInput?.addEventListener("input",  updateEthicalToggleState);
   projectInput?.addEventListener("change", updateEthicalToggleState);
 
-  // Hide History for non-owners (unchanged)
-  if (historySection && !isOwner) {
-    historySection.style.display = "none";
-  }
+  // Keep history hidden for non-owners (same behavior)
+  if (historySection && !isOwner) historySection.style.display = "none";
 })();
+    
     /* ========================= END CHANGE ========================= */
 
     // ====== Generic table renderer (reusable) ======
@@ -816,4 +823,5 @@
   <script src="web.js"></script>
 </body>
 </html>
+
 
