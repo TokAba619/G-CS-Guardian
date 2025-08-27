@@ -117,9 +117,9 @@
       <div class="form">
         <form id="scanForm">
           <label class="toggle" id="ethicalModeLabel">
-            <input type="checkbox" id="ethicalModeToggle" aria-label="Ethical Mode (Project Owner Only)">
+            <input type="checkbox" id="ethicalModeToggle" aria-label="Ethical Mode">
             <span class="slider"></span>
-            <span class="toggle-label">Ethical Mode (Project Owner Only)</span>
+            <span class="toggle-label">Ethical Mode</span>
           </label>
           <h1 class="form-title">Upload Google Cloud Project ID</h1>
           <div class="card1">
@@ -329,7 +329,7 @@
     }
     function getToken() { return localStorage.getItem("access_token"); }
 
-    // risk helpers
+    // risk helpers (kept for future use)
     function riskLevelFromScore(score) {
       const s = Number(score ?? 0);
       if (s >= 80) return "Critical";
@@ -368,82 +368,35 @@
       return s || "regular";
     }
 
-   /* ============================================================
-   ETHICAL TOGGLE LOGIC — FINAL
-   Enables toggle only when:
-   - Project ID field has a value, AND
-   - JWT role is Owner/Creator (read from access_token)
-============================================================ */
-(function roleGate() {
-  // --- helpers ---
-  function parseJwt(token) {
-    try {
-      const base64Url = token.split(".")[1];
-      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split("")
-          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-          .join("")
-      );
-      return JSON.parse(jsonPayload);
-    } catch {
-      return null;
-    }
-  }
-  function getToken() {
-    return localStorage.getItem("access_token");
-  }
-  function normalizeRole(r) {
-    const s = String(r || "").trim().toLowerCase();
-    if (["project_owner", "project owner", "owner"].includes(s)) return "project_owner";
-    if (["creator"].includes(s)) return "creator";
-    if (["regular", "user", "viewer"].includes(s)) return "regular";
-    return s || "regular";
-  }
+    /* ============================================================
+       ETHICAL TOGGLE — ANY LOGGED-IN USER
+       Enabled when Project ID is non-empty (no owner restriction)
+    ============================================================ */
+    (function ethicalToggleOnlyNeedsProjectId() {
+      const ethicalToggle = document.getElementById("ethicalModeToggle");
+      const projectInput  = document.getElementById("projectId");
 
-  // DOM
-  const ethicalToggle  = document.getElementById("ethicalModeToggle");
-  const historySection = document.getElementById("history");
-  const projectInput   = document.getElementById("projectId");
+      function update() {
+        const hasProjectId = !!projectInput?.value.trim();
+        if (!hasProjectId) ethicalToggle.checked = false;
+        ethicalToggle.disabled = !hasProjectId;
+        ethicalToggle.title = hasProjectId
+          ? "Ethical Mode is available"
+          : "Enter a Project ID to enable Ethical Mode";
+      }
 
-  // Read role from JWT (fallbacks included)
-  const token   = getToken();
-  const payload = token ? parseJwt(token) : null;
-  const tokenRole =
-    payload?.role || payload?.user_role || payload?.permissions?.role || "";
-  const role = normalizeRole(tokenRole);
-  const isOwner = role === "project_owner" || role === "creator";
+      update(); // initial (covers autofill)
+      projectInput?.addEventListener("input",  update);
+      projectInput?.addEventListener("change", update);
+    })();
 
-  function updateEthicalToggleState() {
-    const hasProjectId = !!(projectInput && projectInput.value.trim());
-    const canUse = isOwner && hasProjectId;
-
-    if (ethicalToggle) {
-      if (!canUse) ethicalToggle.checked = false; // force OFF when not allowed
-      ethicalToggle.disabled = !canUse;
-      ethicalToggle.title = !isOwner
-        ? "Only project owners can enable Ethical Mode"
-        : (!hasProjectId
-            ? "Enter a Project ID to enable Ethical Mode"
-            : "Ethical Mode is available");
-    }
-
-    // Debug (optional): open DevTools > Console to see why it's disabled
-    console.log("[Ethical Toggle]",
-      { roleFromJWT: tokenRole || "(none)", normalizedRole: role, isOwner, hasProjectId, canUse });
-  }
-
-  // Initial state and listeners
-  updateEthicalToggleState();
-  projectInput?.addEventListener("input",  updateEthicalToggleState);
-  projectInput?.addEventListener("change", updateEthicalToggleState);
-
-  // Keep history hidden for non-owners (same behavior)
-  if (historySection && !isOwner) historySection.style.display = "none";
-})();
-    
-    /* ========================= END CHANGE ========================= */
+    // Keep History section hidden for non-owners (visual gate only)
+    (function historyGate() {
+      const role = normalizeRole(localStorage.getItem("role"));
+      const isOwner = role === "project_owner" || role === "creator";
+      const historySection = document.getElementById("history");
+      if (historySection && !isOwner) historySection.style.display = "none";
+    })();
 
     // ====== Generic table renderer (reusable) ======
     function renderResultsTable(options) {
@@ -474,19 +427,20 @@
         return rows.filter(b => {
           const name = normalizedText(b.bucket_name);
           const reason = normalizedText(b.risk_reason);
+          const exposure = normalizedText(b.exposure_reason);
           const kws = Array.isArray(b.sensitive_keywords_detected)
             ? normalizedText(b.sensitive_keywords_detected.join(","))
             : normalizedText(b.sensitive_keywords_detected);
 
-          return !q || name.includes(q) || reason.includes(q) || kws.includes(q);
+          return !q || name.includes(q) || reason.includes(q) || exposure.includes(q) || kws.includes(q);
         });
       }
 
       function sortData(arr) {
         const dir = sortDir === "asc" ? 1 : -1;
         return arr.sort((a, b) => {
-          const va = (sortKey === "risk_level") ? riskLevelFromScore(a.risk_score) : a[sortKey];
-          const vb = (sortKey === "risk_level") ? riskLevelFromScore(b.risk_score) : b[sortKey];
+          const va = a[sortKey];
+          const vb = b[sortKey];
 
           if (sortKey === "risk_score") {
             return (Number(va||0) - Number(vb||0)) * dir;
@@ -502,17 +456,10 @@
         });
       }
 
-      function linkifyRefs(refs) {
-        if (!refs) return "N/A";
-        const arr = Array.isArray(refs) ? refs : [refs];
-        return arr.map((u, i) => `<a href="${u}" target="_blank" rel="noopener">Ref ${i+1}</a>`).join(", ");
-      }
-
       function render() {
         const filtered = sortData(applyFilter());
         tbody.innerHTML = "";
         filtered.forEach(b => {
-          const level = riskLevelFromScore(b.risk_score);
           const sens = Array.isArray(b.sensitive_keywords_detected)
             ? b.sensitive_keywords_detected.join(", ")
             : (b.sensitive_keywords_detected ?? "None");
@@ -527,10 +474,9 @@
               ${b.public ? '<span class="badge badge-public">Public</span>' : '<span class="badge badge-private">Private</span>'}
             </td>
             <td class="nowrap mono">${b.risk_score ?? "0"}</td>
-            <td class="nowrap"><span class="badge ${riskClass(level)}">${level}</span></td>
+            <td>${b.exposure_reason ?? "N/A"}</td>
             <td>${b.risk_reason ?? "N/A"}</td>
             <td>${sens}</td>
-            <td>${linkifyRefs(b.risk_reference)}</td>
             <td class="sample-col" style="${ethicalMode ? "" : "display:none;"}">${samples || ""}</td>
           `;
           tbody.appendChild(tr);
