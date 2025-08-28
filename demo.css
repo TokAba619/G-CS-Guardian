@@ -106,12 +106,28 @@ header .container .content .logo {
 
 header .container .content .logo img {
   width: 175px;
+  height: auto;
 }
 
 header .container .content .logo a {
   font: bold 1.2rem "Audiowide", sans-serif;
+  font-size: 35px;
   text-decoration: none;
-  color: var(--white);
+  color: var(--black);
+  text-shadow:
+        -1px -1px 0 #ffffff,  
+         1px -1px 0 #ffffff,
+        -1px  1px 0 #ffffff,
+         1px  1px 0 #ffffff;
+}
+
+header:hover .content .logo a {
+  color: #00e1ff;   /* highlight on hover */
+  text-shadow:
+        -1px -1px 0 #000,  
+         1px -1px 0 #000,
+        -1px  1px 0 #000,
+         1px  1px 0 #000;
 }
 
 header .container .content .extra-nav {
