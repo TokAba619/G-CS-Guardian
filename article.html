@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G-CS Guardian Article</title>
+  <link rel="stylesheet" href="article.css" />
+  <link rel="icon" type="image/x-icon" href="./img/favicon.ico" />
+  <meta name="color-scheme" content="dark light" />
+</head>
+<body>
+
+  <!-- Hero banner (keeps your logo as-is) -->
+<section id="hero" class="page-hero" aria-label="Article intro">
+  <canvas class="hero-net" aria-hidden="true"></canvas>
+  <div class="hero-inner">
+    <h1>What Is Cloud Misconfiguration?</h1>
+    <p>Article About Cloud Misconfiguration.</p>
+    <p class="sub">Make sure you know and BE AWARE !!</p>
+  </div>
+</section>
+
+<a href="#hero" class="to-top" aria-label="Back to top">
+  <i data-feather="chevron-up" aria-hidden="true"></i>
+</a>
+
+
+  <!-- Header -->
+  <header data-aos="fade-down" data-aos-delay="200">
+    <div class="container">
+      <div class="content">
+        <div class="logo">
+          <img src="paper9.png" alt="G-CS Guardian logo" />
+          <a href="index.html">G-CS Guardian</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Background video -->
+  <video autoplay muted loop playsinline class="bg-video">
+    <source src="article.mp4" type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+
+  <!-- Main content -->
+  <main class="timeline">
+
+    <!-- Section 1: Text left, Image right -->
+    <section class="two-col">
+      <div class="col text">
+        <div class="textbox">
+          <h2>The Hidden Danger of Cloud Misconfigurations</h2>
+          <p>
+            Most data leaks don’t come from elite hackers breaking in but they come from
+            doors accidentally left wide open. According to the
+            <a href="https://owasp.org/www-project-cloud-native-application-security-top-10/" target="_blank" rel="noopener">
+            OWASP Top 10</a>, <strong>Security Misconfiguration</strong> is one of the
+            biggest threats facing organizations today.
+          </p>
+
+          <h3>Why Misconfigurations Are a Big Problem</h3>
+          <ul>
+            <li>Cloud buckets left <strong>publicly open</strong>.</li>
+            <li>Default accounts or passwords not changed.</li>
+            <li>Unnecessary features or services enabled.</li>
+            <li>Outdated software with known vulnerabilities.</li>
+          </ul>
+
+          <p>
+            These aren’t sophisticated attacks, they’re <strong>simple human mistakes</strong>
+            that attackers actively search for. One wrong setting can expose millions of records.
+          </p>
+
+          <h3>Real-World Data Leaks</h3>
+          <ul>
+            <li><strong>Verizon (2017):</strong> Millions of customer records exposed.</li>
+            <li><strong>Accenture (2017):</strong> Internal keys and passwords leaked.</li>
+            <li><strong>Facebook (2019):</strong> Hundreds of millions of user accounts exposed.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col media">
+        <img src="1.png" alt="Proof image for misconfigurations" loading="lazy" />
+      </div>
+    </section>
+
+    <!-- Section 2: Image left, Text right -->
+    <section class="two-col reverse">
+      <div class="col text">
+        <div class="textbox">
+          <h2>OWASP on Security Misconfiguration</h2>
+          <p>
+            According to the
+            <a href="https://owasp.org/www-project-top-ten/2017/A6_2017-Security_Misconfiguration#" target="_blank" rel="noopener">
+              OWASP Top 10 (A6)</a>, security misconfiguration is one of the most
+            <strong>frequent and serious risks</strong> in cloud and web applications.
+          </p>
+
+          <h3>Common Causes</h3>
+          <ul>
+            <li>Using insecure <strong>default settings</strong>.</li>
+            <li>Enabling unnecessary features (ports, services, accounts).</li>
+            <li>Leaving cloud storage buckets public.</li>
+            <li>Running outdated or unpatched software.</li>
+          </ul>
+
+          <h3>The Impact</h3>
+          <p>
+            Attackers exploit these misconfigurations to <strong>steal data,
+            take over accounts, or even gain full system access</strong>.
+          </p>
+
+          <h3>How to Prevent It</h3>
+          <ul>
+            <li>Harden and review all configurations.</li>
+            <li>Disable features you don’t need.</li>
+            <li>Change default accounts &amp; passwords.</li>
+            <li>Apply patches and updates quickly.</li>
+            <li>Use automated tools to check for misconfigurations.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col media">
+        <img src="2.png" alt="OWASP highlights" loading="lazy" />
+      </div>
+    </section>
+
+    <!-- Section 3: Text left, Image right -->
+    <section class="two-col">
+      <div class="col text">
+        <div class="textbox">
+          <h2>Mobile Apps: Security Misconfiguration (OWASP M8)</h2>
+          <p>
+            In mobile, misconfigurations come from <strong>unsafe default settings, weak
+            platform controls, or sloppy build settings</strong>. These mistakes often
+            expose data or let other apps poke into your app’s components.
+            Source: <a href="https://owasp.org/www-project-mobile-top-10/2023-risks/m8-security-misconfiguration" target="_blank" rel="noopener">
+            OWASP Mobile Top 10 (2023) – M8</a>.
+          </p>
+
+          <h3>Common Mobile Misconfigurations</h3>
+          <ul>
+            <li><strong>Debuggable builds</strong> shipped to production.</li>
+            <li><strong>Exported Activities/Services/Receivers</strong> without proper permissions.</li>
+            <li><strong>Cleartext traffic</strong> allowed (no HTTPS enforcement).</li>
+            <li>Weak or missing <strong>TLS config</strong> / no cert pinning where appropriate.</li>
+            <li><strong>Over-permissive Android Manifest</strong> or iOS entitlements.</li>
+            <li><strong>Backups enabled</strong> (Android) exposing app data to device backups.</li>
+            <li>Sensitive data in <strong>logs</strong>, crash reports, or analytics.</li>
+            <li>Insecure <strong>WebView</strong> settings (JS enabled without controls, file access, etc.).</li>
+          </ul>
+
+          <h3>What Can Go Wrong</h3>
+          <ul>
+            <li>Data leakage (credentials, tokens, PII).</li>
+            <li>Other apps <strong>invoke exported components</strong> to bypass flows.</li>
+            <li>MITM risk from <strong>cleartext/weak TLS</strong>.</li>
+            <li>App takeover paths via debug interfaces or dev menus.</li>
+          </ul>
+
+          <h3>How to Prevent M8</h3>
+          <ul>
+            <li>Ship <strong>release builds only</strong> (no <code>android:debuggable=true</code>).</li>
+            <li><strong>Lock down exported components</strong> (require permissions, signature protection).</li>
+            <li>Enforce HTTPS via <strong>Network Security Config</strong> (Android) / ATS (iOS).</li>
+            <li>Harden TLS; use <strong>certificate pinning</strong> where appropriate.</li>
+            <li>Apply <strong>least-privilege</strong> in Manifest/entitlements; disable backups.</li>
+            <li>Scrub <strong>logs</strong> and crash reports; avoid sensitive data.</li>
+            <li>Secure <strong>WebView</strong> (disable file access, limit JS interfaces).</li>
+            <li>Automate checks in CI with <strong>MASVS/MSTG</strong> and tools (e.g., MobSF, lint, static analysis).</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col media">
+        <img src="3.png" alt="Mobile security overview" loading="lazy" />
+      </div>
+    </section>
+
+    <!-- Section 4: Image left, Text right -->
+    <section class="two-col reverse">
+      <div class="col text">
+        <div class="textbox">
+          <h2>API Misconfiguration (OWASP API8)</h2>
+          <p>
+            In APIs, misconfiguration is everywhere from <strong>verbose error messages</strong>
+            to <strong>open cloud storage</strong> to <strong>poorly set security headers</strong>.
+            OWASP ranks this as <strong>API8: Security Misconfiguration</strong> in their
+            <a href="https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/" target="_blank" rel="noopener">
+              API Security Top 10 (2023)</a>.
+          </p>
+
+          <h3>Common API Misconfigurations</h3>
+          <ul>
+            <li>Detailed <strong>error messages</strong> revealing stack traces or internal info.</li>
+            <li><strong>CORS policies</strong> too permissive (e.g., <code>*</code> origins allowed).</li>
+            <li><strong>Unnecessary HTTP methods</strong> (like PUT/DELETE) left enabled.</li>
+            <li>Missing or weak <strong>security headers</strong> (HSTS, CSP, etc.).</li>
+            <li>Default configurations on API gateways, servers, or storage.</li>
+            <li>Exposing <strong>unpatched admin consoles</strong> or cloud dashboards.</li>
+          </ul>
+
+          <h3>The Impact</h3>
+          <p>
+            A single misconfiguration can let attackers <strong>steal data, bypass access
+            controls, or escalate privileges</strong>. APIs are especially at risk because
+            they are internet-facing and often forgotten once deployed.
+          </p>
+
+          <h3>How to Prevent API8</h3>
+          <ul>
+            <li>Apply <strong>secure defaults</strong> in servers, frameworks, and API gateways.</li>
+            <li>Remove unused features and <strong>disable unnecessary HTTP methods</strong>.</li>
+            <li>Enforce strong <strong>CORS policies</strong> (no wildcards in production).</li>
+            <li>Harden and monitor <strong>admin panels</strong>; restrict access by IP/VPN.</li>
+            <li>Use automated tools to scan for <strong>misconfigured headers &amp; services</strong>.</li>
+            <li>Keep API infrastructure patched and up to date.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col media">
+        <img src="4.png" alt="API security diagram" loading="lazy" />
+      </div>
+    </section>
+
+    <!-- Section 5: Text left, Image right -->
+    <section class="two-col">
+      <div class="col text">
+        <div class="textbox">
+          <h2>OWASP Top 10 (2021) – A05: Security Misconfiguration</h2>
+          <p>
+            In the <a href="https://owasp.org/Top10/A05_2021-Security_Misconfiguration/" target="_blank" rel="noopener">
+            OWASP Top 10 (2021)</a>, Security Misconfiguration moved up in rank showing
+            how widespread and damaging it remains.
+          </p>
+
+          <h3>Why It’s a Big Issue</h3>
+          <p>
+            Many systems are insecure <strong>by default</strong>, and administrators
+            fail to harden them before going live. Add cloud complexity, containers,
+            APIs, and microservices, and misconfiguration risks multiply.
+          </p>
+
+          <h3>Examples</h3>
+          <ul>
+            <li>Default accounts and passwords still enabled.</li>
+            <li>Verbose error messages showing stack traces.</li>
+            <li>Open cloud storage buckets.</li>
+            <li>Unnecessary ports and services exposed.</li>
+            <li>Not applying security headers (HSTS, CSP, etc.).</li>
+          </ul>
+
+          <h3>Prevention</h3>
+          <ul>
+            <li>Apply <strong>secure hardening guides</strong> for servers and frameworks.</li>
+            <li>Automate configuration checks across environments.</li>
+            <li>Implement <strong>least privilege</strong> for services and users.</li>
+            <li>Use <strong>IaC security scanners</strong> to catch misconfigs early.</li>
+            <li>Continuously review and update settings after deployment.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col media">
+        <img src="5.png" alt="OWASP 2021 overview" loading="lazy" />
+      </div>
+    </section>
+
+    <!-- Section 6: Image left, Text right -->
+    <section class="two-col reverse">
+      <div class="col text">
+        <div class="textbox">
+          <h2>The Bigger Picture: Misconfiguration Everywhere</h2>
+          <p>
+            Whether it’s <strong>web apps, APIs, mobile, or cloud</strong>, OWASP consistently
+            ranks <strong>Security Misconfiguration</strong> as a top risk across its projects.
+            The evidence is clear: misconfiguration is not a niche problem, it is a
+            <strong>global challenge</strong>.
+          </p>
+
+          <h3>Key Takeaway</h3>
+          <p>
+            Misconfigurations are <em>avoidable</em>. They’re not advanced zero-day exploits —
+            they are human mistakes. And because they are so common, attackers know
+            they are low-hanging fruit.
+          </p>
+
+          <h3>Next Steps</h3>
+          <ul>
+            <li>Adopt a culture of <strong>“secure by default”</strong>.</li>
+            <li>Automate misconfiguration detection in your pipelines.</li>
+            <li>Regularly train teams on hardening and review practices.</li>
+            <li>Stay updated with OWASP guidance across web, mobile, API, and cloud.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col media">
+        <img src="6.png" alt="Security awareness illustration" loading="lazy" />
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Scroll-reveal (respects reduced motion) -->
+  <script>
+  (function () {
+    const rows = document.querySelectorAll('.two-col');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { rows.forEach(r => r.classList.add('in-view')); return; }
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in-view');
+          io.unobserve(e.target); // animate once
+        }
+      });
+    }, { rootMargin: '0px 0px -10% 0px', threshold: 0.15 });
+
+    rows.forEach(r => io.observe(r));
+  })();
+  </script>
+
+<!-- Feather Icons -->
+<script src="https://unpkg.com/feather-icons"></script>
+
+<script>
+  // Replace <i data-feather> with SVGs
+  feather.replace();
+
+  // Show/hide the back-to-top button after scrolling a bit
+  (function () {
+    const btn = document.querySelector('.to-top');
+    if (!btn) return;
+
+    const THRESHOLD = 300; // px scrolled
+    const onScroll = () => {
+      if (window.scrollY > THRESHOLD) btn.classList.add('show');
+      else btn.classList.remove('show');
+    };
+
+    // initial + listeners
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  })();
+</script>
+
+</body>
+</html>

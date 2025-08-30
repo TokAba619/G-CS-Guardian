@@ -1,0 +1,297 @@
+/* =========================
+   THEME
+   ========================= */
+:root{
+  --accent:#00e1ff;
+  --accent-2:#7feaff;
+  --card:rgba(0,0,0,.78);
+  --ring:rgba(255,255,255,.08);
+  --text:#e9f4f6;
+  --radius:12px;
+}
+
+/* =========================
+   Reset / Base
+   ========================= */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  color:#eee;
+}
+
+/* =========================
+   Background video
+   ========================= */
+.bg-video{
+  position:fixed;inset:0;width:100%;height:100%;
+  object-fit:cover;z-index:-1;background:#000;filter:brightness(.45);
+}
+
+/* =========================
+   Header
+   ========================= */
+header{position:relative;z-index:2}
+header .container{max-width:1200px;margin:0 auto;padding:12px 16px}
+header .content .logo{display:flex;align-items:center;gap:12px;padding:12px 0}
+header .content .logo img{width:100px;height:auto;position:relative;z-index:10}
+header .content .logo a{
+  font:700 35px/1 "Audiowide",sans-serif;color:#fff;text-decoration:none;
+  text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000
+}
+header:hover .content .logo a{color:var(--accent)}
+
+/* =========================
+   Page wrapper
+   ========================= */
+.timeline{position:relative;max-width:1200px;margin:100px auto 80px;padding:0 16px}
+
+/* =========================
+   Two-column sections
+   ========================= */
+.two-col{
+  display:flex;gap:2rem;align-items:flex-start;margin:2.2rem 0;
+  opacity:0;transform:translateY(28px) scale(.985);
+  will-change:transform,opacity;
+}
+.two-col.in-view{
+  opacity:1;transform:none;
+  transition:transform .6s cubic-bezier(.2,.8,.2,1),opacity .6s ease;
+}
+.two-col.reverse{flex-direction:row-reverse}
+.two-col .col{flex:1 1 0;min-width:0}
+
+/* Media column */
+.two-col .col.media{
+  position:relative;display:flex;align-items:center;justify-content:center;perspective:1000px;
+}
+.two-col .col.media img{
+  display:block;max-width:100%;height:auto;border-radius:var(--radius);
+  box-shadow:0 0 12px rgba(0,0,0,.4);transform:translateZ(0);
+  transition:transform .35s ease, box-shadow .35s ease, filter .35s ease;
+  border:1px solid var(--ring);
+}
+/* classy image sheen */
+.two-col .col.media::after{
+  content:"";position:absolute;inset:0;border-radius:var(--radius);
+  background:linear-gradient(110deg,transparent 20%,rgba(255,255,255,.35) 50%,transparent 80%);
+  transform:translateX(-120%);pointer-events:none;transition:transform .8s ease;
+}
+.two-col .col.media:hover img{transform:translateY(-2px) scale(1.015);box-shadow:0 14px 32px rgba(0,0,0,.5)}
+.two-col .col.media:hover::after{transform:translateX(120%)}
+
+/* Text card (glassy + gradient ring on hover) */
+.textbox{
+  position:relative;background:var(--card);color:#eee;border-radius:var(--radius);
+  padding:24px 26px;border:1px solid var(--ring);
+  box-shadow:0 10px 24px rgba(0,0,0,.35);backdrop-filter:blur(4px);
+  line-height:1.65;font-size:15px;transition:transform .25s ease, box-shadow .25s ease;
+}
+.textbox:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(0,0,0,.55)}
+/* gradient border ring */
+.textbox::before{
+  content:"";position:absolute;inset:0;padding:1px;border-radius:inherit;
+  background:linear-gradient(135deg,rgba(0,225,255,.5),rgba(255,255,255,.12) 40%,rgba(0,225,255,.35));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.6;
+}
+.textbox:hover::before{opacity:1}
+
+.textbox h2{
+  font-weight:800;font-size:22px;margin-bottom:14px;
+  background:linear-gradient(90deg,var(--accent),var(--accent-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.textbox h3{margin:16px 0 10px;font-size:18px;font-weight:700;color:var(--accent-2)}
+.textbox p{margin-bottom:12px;color:var(--text)}
+.textbox a{color:#baf6ff;text-decoration:underline;text-underline-offset:2px}
+.textbox ul{margin:10px 0 16px 20px;padding-left:14px}
+.textbox li{margin-bottom:6px}
+.textbox li::marker{color:var(--accent)}
+
+/* =========================
+   Timeline chrome (center line + animated dots + connectors)
+   ========================= */
+.timeline::before{
+  content:"";position:absolute;top:0;bottom:0;left:50%;width:4px;transform:translateX(-50%);
+  background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(0,225,255,.6) 50%,rgba(255,255,255,.12));
+  background-size:100% 300%;animation:lineFlow 8s linear infinite;pointer-events:none;
+}
+@keyframes lineFlow{from{background-position:0 0}to{background-position:0 300%}}
+
+.two-col{position:relative}
+.two-col::before{
+  content:"";position:absolute;top:24px;left:50%;transform:translateX(-50%);
+  width:14px;height:14px;border-radius:50%;background:var(--accent);
+  box-shadow:0 0 0 4px rgba(0,225,255,.18),0 0 12px rgba(0,225,255,.35);
+  animation:pulse 4s ease-in-out infinite;
+}
+@keyframes pulse{
+  0%,100%{box-shadow:0 0 0 4px rgba(0,225,255,.15),0 0 8px rgba(0,225,255,.25)}
+  50%{box-shadow:0 0 0 8px rgba(0,225,255,.05),0 0 18px rgba(0,225,255,.45)}
+}
+
+/* connector from text card to center line */
+.two-col .col.text{position:relative;--connector:42px;--arrow:7px}
+.two-col .col.text::after{
+  content:"";position:absolute;top:30px;width:var(--connector);height:2px;background:rgba(255,255,255,.5)
+}
+.two-col:not(.reverse) .col.text::after{right:calc(-1 * (var(--connector) / 2))}
+.two-col.reverse       .col.text::after{left: calc(-1 * (var(--connector) / 2))}
+
+/* tiny arrow tip */
+.two-col:not(.reverse) .col.text::before,
+.two-col.reverse .col.text::before{content:"";position:absolute;top:26px;border:var(--arrow) solid transparent}
+.two-col:not(.reverse) .col.text::before{right:-2px;border-left-color:rgba(255,255,255,.55)}
+.two-col.reverse .col.text::before{left:-2px;border-right-color:rgba(255,255,255,.55)}
+
+/* =========================
+   Responsive
+   ========================= */
+@media (max-width:980px){.two-col{gap:1.25rem}}
+@media (max-width:900px){
+  .timeline{margin:70px auto 64px}
+  .two-col,.two-col.reverse{flex-direction:column}
+  .two-col .col.media img{width:100%}
+  /* hide timeline chrome on small screens for clarity */
+  .timeline::before,.two-col::before,.two-col .col.text::after,.two-col .col.text::before{display:none}
+}
+@media (max-width:600px){
+  header .content .logo img{width:72px}
+  header .content .logo a{font-size:26px}
+  .textbox{font-size:14px;padding:18px}
+  .textbox h2{font-size:20px}
+  .textbox h3{font-size:16px}
+}
+
+/* Motion accessibility */
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .two-col{opacity:1;transform:none}
+}
+
+/* Legacy cleanup (safe) */
+.left-container-arrow,.right-container-arrow{display:none!important}
+.timeline .container{all:unset}
+
+/* --- Pin logo/header to the very top-left --- */
+header {
+  position: fixed;   /* was relative */
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 5;        /* above content/video */
+  background: transparent; /* keeps the video visible behind */
+}
+
+/* Make the header full-bleed so the logo sits flush left */
+header .container {
+  max-width: none;   /* remove centering */
+  margin: 0;
+  padding: 12px 16px;
+}
+
+/* Optional: tighten header vertical space if you want it slimmer */
+header .content .logo img { width: 90px; } /* was 100px */
+
+/* Because header is now fixed, add a bit more top margin so content isn't hidden */
+.timeline {
+  margin: 140px auto 80px;  /* was 100px auto 80px */
+}
+
+/* ==== Hero banner (network header) ==== */
+.page-hero{
+  position:relative;
+  height:220px;                 /* similar height to your screenshot */
+  margin:100px 0 24px;          /* push below your fixed logo header */
+  overflow:hidden;
+  border-top:1px solid rgba(255,255,255,.06);
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.page-hero .hero-net{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  background:rgba(120,120,120,.68);   /* grey overlay like screenshot */
+}
+.page-hero .hero-inner{
+  position:relative; z-index:1;
+  height:100%; width:100%;
+  display:flex; align-items:center; justify-content:center;
+  flex-direction:column; text-align:center;
+  padding:0 16px;
+}
+.page-hero h1{
+  font-weight:800;
+  font-size:44px;
+  line-height:1.1;
+  color:#0b0b0b;                 /* black title like screenshot */
+  text-shadow:0 1px 0 rgba(255,255,255,.35);
+  letter-spacing:.5px;
+}
+.page-hero p{
+  margin-top:10px;
+  color:#111;
+  opacity:.9;
+  font-size:16px;
+}
+.page-hero p.sub{ margin-top:6px; font-weight:600; }
+
+/* Responsive tweaks */
+@media (max-width:900px){
+  .page-hero{ height:190px; margin-top:110px; }
+  .page-hero h1{ font-size:34px; }
+}
+@media (max-width:600px){
+  .page-hero{ height:170px; }
+  .page-hero h1{ font-size:28px; }
+  .page-hero p{ font-size:14px; }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion:reduce){
+  .page-hero .hero-net{ background:rgba(120,120,120,.75); }
+}
+
+/* Smooth anchor scrolling */
+html { scroll-behavior: smooth; }
+
+/* Make sure scrolling to #hero accounts for the fixed header height */
+.page-hero { scroll-margin-top: 140px; }  /* same as your .timeline top margin */
+
+/* Back-to-top button */
+.to-top{
+  position: fixed;
+  right: 22px;
+  bottom: 24px;
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent), rgba(255,255,255,.15));
+  color: #000000;
+  border: 1px solid rgba(255,255,255,.25);
+  box-shadow: 0 10px 24px rgba(0,0,0,.35);
+  opacity: 0; transform: translateY(10px) scale(.98);
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease, box-shadow .25s ease;
+  z-index: 20;
+}
+.to-top.show{
+  opacity: 1; transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+.to-top:hover{ box-shadow: 0 16px 34px rgba(0,0,0,.55); }
+.to-top:focus-visible{
+  outline: 2px solid #fff; outline-offset: 3px;
+}
+.to-top svg{ width: 22px; height: 22px; }
+
+/* Smaller on mobile */
+@media (max-width: 600px){
+  .to-top{ right: 14px; bottom: 16px; width: 40px; height: 40px; }
+  .to-top svg{ width: 20px; height: 20px; }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .to-top{ transition: none; }
+}
