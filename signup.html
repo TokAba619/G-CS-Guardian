@@ -2,118 +2,153 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>G-CS Guardian Sign-Up</title>
+    <title>G-CS Guardian Login</title>
     <link rel="stylesheet" href="test.css">
 </head>
 <body>
 
-    <div class="main">
-        <div class="content">
-  <div class="navbar">
-    <a href="index.html" class="logo-link">
-      <img src="paper9.png" alt="Group Logo" class="group-logo" />
-      <span class="logo-text">G-CS Guardian</span>
-    </a>
-  </div>
-          <video autoplay muted loop playsinline class="bg-video">
+  <div class="main">
+    <div class="content">
+      <div class="navbar">
+        <a href="index.html" class="logo-link">
+          <img src="paper9.png" alt="Group Logo" class="group-logo" />
+          <span class="logo-text">G-CS Guardian</span>
+        </a>
+      </div>
+
+      <!-- Background video -->
+      <video autoplay muted loop playsinline class="bg-video">
         <source src="vid.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
-            <br><br><br>
-            <h1>Google Cloud <br><span>Storage Bucket</span> <br>Protector</h1><br><br>
-            <p class="par">
-                This project creates a system that can find storage buckets on Google Cloud <br>
-                that are open to the public. It will send alerts when it finds these buckets and <br>
-                help users understand the risks of having public storage buckets through <br>
-                information on our website.
-            </p>
 
-            <div class="form">
-                <br>
-                <form id="loginForm">
-                    <h2>Admin Login</h2>
+      <br><br><br>
+      <h1>Google Cloud <br><span>Storage Bucket</span> <br>Protector</h1><br><br>
+      <p class="par">
+        This project creates a system that can find storage buckets on Google Cloud <br>
+        that are open to the public. It will send alerts when it finds these buckets and <br>
+        help users understand the risks of having public storage buckets through <br>
+        information on our website.
+      </p>
 
-                    <!-- ✅ Updated with IDs for JavaScript -->
-                    <input type="text" id="email" name="username" placeholder="Enter Email Here" required>
-                    <input type="password" id="password" name="password" placeholder="Enter Password Here" required>
+      <div class="form">
+        <br>
+        <form id="loginForm">
+          <h2>Admin Login</h2>
 
-                    <div style="text-align: center;">
-                        <button type="submit" class="learn-more">Login</button>
-                    </div>
+          <input type="text" id="email" name="username" placeholder="Enter Email Here" required>
+          <input type="password" id="password" name="password" placeholder="Enter Password Here" required>
 
-                    <p class="link">
-  Join as a User<br>
-  <a href="https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/auth/login">
-    Login</a> Below</p>
+          <div style="text-align: center;">
+            <button type="submit" class="learn-more">Login</button>
+          </div>
 
-  <div class="google-btn">
-  <a href="https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/auth/login">
-    <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo">
-    <span>Login with Google</span>
-  </a>
-</div>
+          <p class="link">
+            Join as a User<br>Login Below<br>
+          </p>
 
-                  </form>
+          <!-- ✅ T&C consent (REQUIRED for Google OAuth) -->
+          <div class="consent" style="text-align:center; margin-top:8px;">
+            <label for="tncCheck" style="cursor:pointer;">
+              <input type="checkbox" id="tncCheck" style="margin-right:8px;">
+              I agree to the
+              <a href="tnc.html" target="_self" rel="noopener">Terms & Conditions</a>
+              and
+              <a href="privacy.html" target="_self" rel="noopener">Privacy Policy</a>.
+            </label>
+          </div>
 
-                <!-- Error message display -->
-                <div id="error" style="color: red; text-align: center; margin-top: 10px;"></div>
-                 
-            </div>
-        </div>
+          <!-- Optional inline error for T&C -->
+          <div id="tncError" style="display:none; color:#ff6b6b; text-align:center; margin-top:6px;">
+            Please agree to the Terms & Conditions to continue.
+          </div>
+
+          <!-- Google OAuth button (disabled until checkbox is ticked) -->
+          <div class="google-btn">
+            <a id="googleLogin"
+               class="disabled"
+               href="https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/auth/login"
+               aria-disabled="true">
+              <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo">
+              <span>Login with Google</span>
+            </a>
+          </div>
+        </form>
+
+        <!-- Admin login error -->
+        <div id="error" style="color: red; text-align: center; margin-top: 10px;"></div>
+      </div>
     </div>
+  </div>
 
-    <script src="https://unpkg.com/ionicons@5.4.0/dist/ionicons.js"></script>
-    <!-- ✅ Working JavaScript Login -->
-    <script>
-  // ✅ Auto-login via Google OAuth redirect
-  const urlParams = new URLSearchParams(window.location.search);
-  const token = urlParams.get("token");
-  const email = urlParams.get("email");
-  const role = urlParams.get("role");
+  <script src="https://unpkg.com/ionicons@5.4.0/dist/ionicons.js"></script>
 
-  if (token) {
-    localStorage.setItem("access_token", token);
-    if (email) localStorage.setItem("email", email);
-    if (role) localStorage.setItem("role", role);
+  <script>
+    // ===== Google OAuth T&C enforcement =====
+    const tncCheck   = document.getElementById('tncCheck');
+    const googleLink = document.getElementById('googleLogin');
+    const tncError   = document.getElementById('tncError');
 
-    // ✅ Redirect to dashboard (web.html)
-    window.location.href = "/G-CS-Guardian/web.html";
-  }
+    function updateGoogleState() {
+      const ok = tncCheck.checked;
+      googleLink.classList.toggle('disabled', !ok);
+      googleLink.setAttribute('aria-disabled', String(!ok));
+      if (ok) tncError.style.display = 'none';
+    }
+    // Initial state
+    updateGoogleState();
 
-  // ✅ Manual login with email & password
-  document.getElementById("loginForm").addEventListener("submit", function (event) {
-    event.preventDefault();
-    login();
-  });
+    // Toggle on change
+    tncCheck.addEventListener('change', updateGoogleState);
 
-  function login() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+    // Block click if not agreed
+    googleLink.addEventListener('click', function (e) {
+      if (googleLink.classList.contains('disabled')) {
+        e.preventDefault();
+        tncError.style.display = 'block';
+        tncCheck.focus();
+      }
+    });
 
-    fetch("https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    })
+    // ===== Google OAuth redirect handling =====
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("token");
+    const email = urlParams.get("email");
+    const role = urlParams.get("role");
+
+    if (token) {
+      localStorage.setItem("access_token", token);
+      if (email) localStorage.setItem("email", email);
+      if (role) localStorage.setItem("role", role);
+      window.location.href = "/G-CS-Guardian/web.html";
+    }
+
+    // ===== Admin email/password login =====
+    document.getElementById("loginForm").addEventListener("submit", function (event) {
+      event.preventDefault();
+      login();
+    });
+
+    function login() {
+      const emailVal = document.getElementById("email").value;
+      const passwordVal = document.getElementById("password").value;
+
+      fetch("https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailVal, password: passwordVal }),
+      })
       .then((res) => {
-        console.log("Raw response:", res);
-        if (!res.ok) {
-          throw new Error("Login failed");
-        }
+        if (!res.ok) throw new Error("Login failed");
         return res.json();
       })
       .then((data) => {
-        console.log("Login success:", data);
         if (data.access_token) {
           localStorage.setItem("access_token", data.access_token);
           if (data.email) localStorage.setItem("email", data.email);
           if (data.role) localStorage.setItem("role", data.role);
-
-          window.location.href = "/G-CS-Guardian/web.html"; // ✅ Go to protected page
+          window.location.href = "/G-CS-Guardian/web.html";
         } else {
-          console.warn("No access token in response.");
           document.getElementById("error").textContent = "Invalid email or password.";
         }
       })
@@ -121,7 +156,7 @@
         console.error("Login Error:", err);
         document.getElementById("error").textContent = "Something went wrong. Try again.";
       });
-  }
-</script>
+    }
+  </script>
 </body>
 </html>
