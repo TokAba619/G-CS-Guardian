@@ -1,0 +1,95 @@
+/* Base */
+body {
+  font-family: 'Segoe UI', sans-serif;
+  color: #fff;
+  margin: 0;
+  background: #000;
+}
+
+/* Navbar (same look as tnc/login) */
+.navbar {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+}
+.logo-link {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  text-decoration: none; /* no underline */
+}
+.group-logo {
+  height: 80px;
+  width: auto;
+}
+.logo-text {
+  color: #000000;
+  font-size: 32px;
+  font-weight: bold;
+  line-height: 1.2;
+  text-shadow:
+   -1px -1px 0 #ffffff,  
+    1px -1px 0 #ffffff,
+   -1px  1px 0 #ffffff,
+    1px  1px 0 #ffffff;
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+.logo-link:hover .logo-text {
+  color: #00e1ff;
+  text-shadow:
+        -1px -1px 0 #000,  
+         1px -1px 0 #000,
+        -1px  1px 0 #000,
+         1px  1px 0 #000;
+}
+
+/* Container */
+.pp-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 30px;
+  background: rgba(0, 0, 0, 0.75);
+  border-radius: 12px;
+  backdrop-filter: blur(6px);
+  line-height: 1.6;
+  box-shadow: 0 0 15px rgba(0,0,0,0.6);
+}
+
+h1, h2 {
+  color: #00e1ff;
+  margin-bottom: 12px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+p { margin-bottom: 16px; }
+ul { margin: 0 0 16px 20px; }
+
+a {
+  color: #00c4ff;
+  text-decoration: none;
+}
+a:hover { text-decoration: underline; }
+
+.legal-links {
+  margin-top: 20px;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 20px;
+  color: rgba(255,255,255,0.8);
+  font-size: 13px;
+  margin-top: 40px;
+}
+
+/* Optional wrappers to mirror your structure */
+.main { width: 100%; }
+.content { max-width: 1200px; margin: 0 auto; }
