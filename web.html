@@ -172,7 +172,7 @@
             <th data-key="bucket_name">Bucket<span class="sort-ind">↕</span></th>
             <th data-key="public" class="nowrap">Public<span class="sort-ind">↕</span></th>
             <th data-key="risk_score" class="nowrap">Risk Score<span class="sort-ind">↕</span></th>
-            <th data-key="exposure_reason" class="nowrap">Exposure Reason<span class="sort-ind">↕</span></th>
+            <!-- Exposure Reason column REMOVED -->
             <th data-key="risk_reason">Risk Reason<span class="sort-ind">↕</span></th>
             <th data-key="sensitive_keywords_detected">Sensitive Keywords<span class="sort-ind">↕</span></th>
             <th data-key="sample_files" class="sample-col" style="display:none;">Sample Files<span class="sort-ind">↕</span></th>
@@ -232,7 +232,7 @@
             <th data-key="bucket_name">Bucket<span class="sort-ind">↕</span></th>
             <th data-key="public" class="nowrap">Public<span class="sort-ind">↕</span></th>
             <th data-key="risk_score" class="nowrap">Risk Score<span class="sort-ind">↕</span></th>
-            <th data-key="exposure_reason" class="nowrap">Exposure Reason<span class="sort-ind">↕</span></th>
+            <!-- Exposure Reason column REMOVED -->
             <th data-key="risk_reason">Risk Reason<span class="sort-ind">↕</span></th>
             <th data-key="sensitive_keywords_detected">Sensitive Keywords<span class="sort-ind">↕</span></th>
             <th data-key="sample_files" class="sample-col" style="display:none;">Sample Files<span class="sort-ind">↕</span></th>
@@ -442,7 +442,7 @@
   // Keep history hidden for non-owners (same behavior)
   if (historySection && !isOwner) historySection.style.display = "none";
 })();
-    
+
     /* ========================= END CHANGE ========================= */
 
     // ====== Generic table renderer (reusable) ======
@@ -502,12 +502,6 @@
         });
       }
 
-      function linkifyRefs(refs) {
-        if (!refs) return "N/A";
-        const arr = Array.isArray(refs) ? refs : [refs];
-        return arr.map((u, i) => `<a href="${u}" target="_blank" rel="noopener">Ref ${i+1}</a>`).join(", ");
-      }
-
       function render() {
         const filtered = sortData(applyFilter());
         tbody.innerHTML = "";
@@ -526,11 +520,14 @@
             <td class="nowrap">
               ${b.public ? '<span class="badge badge-public">Public</span>' : '<span class="badge badge-private">Private</span>'}
             </td>
-            <td class="nowrap mono">${b.risk_score ?? "0"}</td>
-            <td class="nowrap"><span class="badge ${riskClass(level)}">${level}</span></td>
+            <td class="nowrap mono">
+              ${b.risk_score ?? "0"}
+              <span class="badge ${riskClass(level)}" style="margin-left:.4rem;">${level}</span>
+            </td>
+            <!-- Exposure Reason cell REMOVED -->
             <td>${b.risk_reason ?? "N/A"}</td>
             <td>${sens}</td>
-            <td>${linkifyRefs(b.risk_reference)}</td>
+            <!-- Risk reference links REMOVED -->
             <td class="sample-col" style="${ethicalMode ? "" : "display:none;"}">${samples || ""}</td>
           `;
           tbody.appendChild(tr);
