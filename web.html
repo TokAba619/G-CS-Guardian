@@ -14,7 +14,6 @@
 
     /* ===== Toggle ===== */
     .toggle { display: flex; align-items: center; gap: 10px; }
-    /* Keep input focusable but invisible for better click support */
     .toggle input { position:absolute; opacity:0; width:0; height:0; }
     .slider { width: 40px; height: 20px; background: #ccc; border-radius: 20px; position: relative; cursor: pointer; }
     .slider::before { content: ""; position: absolute; width: 16px; height: 16px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: 0.3s; }
@@ -148,8 +147,6 @@
       </div>
     </div>
 
-    <div class="scroll-down" onclick="scrollToSection('results')" aria-label="Scroll to next section">
-    </div>
   </section>
 
   <!-- RESULTS SECTION -->
@@ -158,10 +155,8 @@
       <h2 class="section-title">Your Scan is Complete!</h2>
       <p class="section-content">This report provides detailed insights into the configuration status of your scanned Google Cloud Storage buckets.</p>
 
-      <!-- scan summary goes here -->
       <div id="results-summary" class="results-container"></div>
 
-      <!-- tools + table -->
       <div class="table-tools" id="results-tools" style="display:none;">
         <input type="text" id="results-filter" placeholder="Filter buckets (bucket name)..." aria-label="Filter buckets">
         <span class="chip" id="results-count">0 buckets</span>
@@ -172,7 +167,8 @@
             <th data-key="bucket_name">Bucket<span class="sort-ind">↕</span></th>
             <th data-key="public" class="nowrap">Public<span class="sort-ind">↕</span></th>
             <th data-key="risk_score" class="nowrap">Risk Score<span class="sort-ind">↕</span></th>
-            <!-- Exposure Reason column REMOVED -->
+            <!-- Exposure Reason removed; keep Risk Level as its own column -->
+            <th data-key="risk_level" class="nowrap">Risk Level<span class="sort-ind">↕</span></th>
             <th data-key="risk_reason">Risk Reason<span class="sort-ind">↕</span></th>
             <th data-key="sensitive_keywords_detected">Sensitive Keywords<span class="sort-ind">↕</span></th>
             <th data-key="sample_files" class="sample-col" style="display:none;">Sample Files<span class="sort-ind">↕</span></th>
@@ -193,7 +189,6 @@
       <h2 class="section-title">My-Scan</h2>
       <p class="section-content">My-Scan lets you review past scans without rescanning the same project.</p>
 
-      <!-- Feature 1: Previous Scan -->
       <div class="myscan-feature">
         <h3>Previous Scans</h3>
         <p>View all your previous scans with timestamps and IDs.</p>
@@ -209,7 +204,6 @@
 
       <hr class="myscan-divider">
 
-      <!-- Feature 2: Detailed Scan Results -->
       <div class="myscan-feature">
         <h3>Detailed Scan Results</h3>
         <p>Enter a Scan ID to retrieve detailed scan information.</p>
@@ -218,10 +212,8 @@
           <button onclick="fetchDetailedScan()" aria-label="Fetch scan details">Enter</button>
         </div>
 
-        <!-- summary -->
         <div id="detailed-scan-results" class="results-container" style="margin-top:1rem;"></div>
 
-        <!-- tools + table -->
         <div class="table-tools" id="detailed-tools" style="display:none;">
           <input type="text" id="detailed-filter" placeholder="Filter buckets (name, reason, keyword)..." aria-label="Filter buckets">
           <span class="chip" id="detailed-count">0 buckets</span>
@@ -229,13 +221,13 @@
         <table class="dashboard-table" id="detailed-table" style="display:none;">
           <thead>
             <tr>
-            <th data-key="bucket_name">Bucket<span class="sort-ind">↕</span></th>
-            <th data-key="public" class="nowrap">Public<span class="sort-ind">↕</span></th>
-            <th data-key="risk_score" class="nowrap">Risk Score<span class="sort-ind">↕</span></th>
-            <!-- Exposure Reason column REMOVED -->
-            <th data-key="risk_reason">Risk Reason<span class="sort-ind">↕</span></th>
-            <th data-key="sensitive_keywords_detected">Sensitive Keywords<span class="sort-ind">↕</span></th>
-            <th data-key="sample_files" class="sample-col" style="display:none;">Sample Files<span class="sort-ind">↕</span></th>
+              <th data-key="bucket_name">Bucket<span class="sort-ind">↕</span></th>
+              <th data-key="public" class="nowrap">Public<span class="sort-ind">↕</span></th>
+              <th data-key="risk_score" class="nowrap">Risk Score<span class="sort-ind">↕</span></th>
+              <th data-key="risk_level" class="nowrap">Risk Level<span class="sort-ind">↕</span></th>
+              <th data-key="risk_reason">Risk Reason<span class="sort-ind">↕</span></th>
+              <th data-key="sensitive_keywords_detected">Sensitive Keywords<span class="sort-ind">↕</span></th>
+              <th data-key="sample_files" class="sample-col" style="display:none;">Sample Files<span class="sort-ind">↕</span></th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -266,55 +258,54 @@
   </section>
 
   <!-- ABOUT US SECTION -->
-<section class="content-section aboutus" id="aboutus">
-  <div class="faq-content">
-    <h2 class="section-title">Meet the Minds Behind It All</h2>
-    <p class="section-content">Back-End Brains & Front-End Flair</p>
-    <div class="team-slider">
-      <div class="team-card">
-        <div class="card-inner">
-          <div class="card-front" style="background-image:url('siramir.jpg');background-size:cover;">
-            <div class="overlay"><h3>Supervisor</h3><p>Sir Amir Hakeem Bin Sahrir</p></div>
+  <section class="content-section aboutus" id="aboutus">
+    <div class="faq-content">
+      <h2 class="section-title">Meet the Minds Behind It All</h2>
+      <p class="section-content">Back-End Brains & Front-End Flair</p>
+      <div class="team-slider">
+        <div class="team-card">
+          <div class="card-inner">
+            <div class="card-front" style="background-image:url('siramir.jpg');background-size:cover;">
+              <div class="overlay"><h3>Supervisor</h3><p>Sir Amir Hakeem Bin Sahrir</p></div>
+            </div>
+            <div class="card-back"><p>"Forever Sensei and Mentor"</p></div>
           </div>
-          <div class="card-back"><p>"Forever Sensei and Mentor"</p></div>
         </div>
-      </div>
-      <div class="team-card">
-        <div class="card-inner">
-          <div class="card-front" style="background-image:url('');background-size:cover;">
-            <div class="overlay"><h3>Coming soon</h3><p>Miss Adani Binti</p></div>
+        <div class="team-card">
+          <div class="card-inner">
+            <div class="card-front" style="background-image:url('');background-size:cover;">
+              <div class="overlay"><h3>Coming soon</h3><p>Miss Adani Binti</p></div>
+            </div>
+            <div class="card-back"><p>"Coming Soon"</p></div>
           </div>
-          <div class="card-back"><p>"Coming Soon"</p></div>
         </div>
-      </div>
-      <div class="team-card">
-        <div class="card-inner">
-          <div class="card-front" style="background-image:url('aqil.jpg');background-size:cover;">
-            <div class="overlay"><h3>Group Leader</h3><p>Muhammad Aqil Darwisy Bin Nor Azli</p></div>
+        <div class="team-card">
+          <div class="card-inner">
+            <div class="card-front" style="background-image:url('aqil.jpg');background-size:cover;">
+              <div class="overlay"><h3>Group Leader</h3><p>Muhammad Aqil Darwisy Bin Nor Azli</p></div>
+            </div>
+            <div class="card-back"><p>"Failure Is Just a Temporary Syntax Error"</p></div>
           </div>
-          <div class="card-back"><p>"Failure Is Just a Temporary Syntax Error"</p></div>
         </div>
-      </div>
-      <div class="team-card">
-        <div class="card-inner">
-          <div class="card-front" style="background-image:url('ilhan.jpg');background-size:cover;">
-            <div class="overlay"><h3>Group Member</h3><p>Ilhan Munsieff Bin Abdullah</p></div>
+        <div class="team-card">
+          <div class="card-inner">
+            <div class="card-front" style="background-image:url('ilhan.jpg');background-size:cover;">
+              <div class="overlay"><h3>Group Member</h3><p>Ilhan Munsieff Bin Abdullah</p></div>
+            </div>
+            <div class="card-back"><p>"The best defense against cyber threats is a well-educated mind"</p></div>
           </div>
-          <div class="card-back"><p>"The best defense against cyber threats is a well-educated mind"</p></div>
         </div>
-      </div>
-      <div class="team-card">
-        <div class="card-inner">
-          <div class="card-front" style="background-image:url('jib.jpg');background-size:cover;">
-            <div class="overlay"><h3>Group Member</h3><p>Jibril Ruhul Amin Bin Mohd Nor Ariffin</p></div>
+        <div class="team-card">
+          <div class="card-inner">
+            <div class="card-front" style="background-image:url('jib.jpg');background-size:cover;">
+              <div class="overlay"><h3>Group Member</h3><p>Jibril Ruhul Amin Bin Mohd Nor Ariffin</p></div>
+            </div>
+            <div class="card-back"><p>"In a world full of threats, be the shield"</p></div>
           </div>
-          <div class="card-back"><p>"In a world full of threats, be the shield"</p></div>
         </div>
       </div>
     </div>
-  </div>
-</section>
-
+  </section>
 
   <!-- SCRIPTS (inline bootstrapping) -->
   <script>
@@ -329,13 +320,13 @@
     }
     function getToken() { return localStorage.getItem("access_token"); }
 
-    // risk helpers
+    // ====== Risk helpers: 1–10 scale ======
     function riskLevelFromScore(score) {
       const s = Number(score ?? 0);
-      if (s >= 80) return "Critical";
-      if (s >= 60) return "High";
-      if (s >= 40) return "Medium";
-      return "Low";
+      if (s >= 10) return "Critical"; // 10 only
+      if (s >= 8)  return "High";     // 8–9
+      if (s >= 5)  return "Medium";   // 5–7
+      return "Low";                   // 1–4 (and 0 fallback)
     }
     function riskClass(level) {
       switch ((level || "").toLowerCase()) {
@@ -359,7 +350,6 @@
       if (!token) window.location.href = "signup.html";
     })();
 
-    // Normalize possible role strings coming from backend/UI storage
     function normalizeRole(r) {
       const s = String(r || "").trim().toLowerCase();
       if (["project_owner", "project owner", "owner"].includes(s)) return "project_owner";
@@ -370,30 +360,19 @@
 
    /* ============================================================
    ETHICAL TOGGLE LOGIC — FINAL
-   Enables toggle only when:
-   - Project ID field has a value, AND
-   - JWT role is Owner/Creator (read from access_token)
-============================================================ */
+   ============================================================ */
 (function roleGate() {
-  // --- helpers ---
   function parseJwt(token) {
     try {
       const base64Url = token.split(".")[1];
       const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
       const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split("")
-          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-          .join("")
+        atob(base64).split("").map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join("")
       );
       return JSON.parse(jsonPayload);
-    } catch {
-      return null;
-    }
+    } catch { return null; }
   }
-  function getToken() {
-    return localStorage.getItem("access_token");
-  }
+  function getToken() { return localStorage.getItem("access_token"); }
   function normalizeRole(r) {
     const s = String(r || "").trim().toLowerCase();
     if (["project_owner", "project owner", "owner"].includes(s)) return "project_owner";
@@ -402,16 +381,13 @@
     return s || "regular";
   }
 
-  // DOM
   const ethicalToggle  = document.getElementById("ethicalModeToggle");
   const historySection = document.getElementById("history");
   const projectInput   = document.getElementById("projectId");
 
-  // Read role from JWT (fallbacks included)
   const token   = getToken();
   const payload = token ? parseJwt(token) : null;
-  const tokenRole =
-    payload?.role || payload?.user_role || payload?.permissions?.role || "";
+  const tokenRole = payload?.role || payload?.user_role || payload?.permissions?.role || "";
   const role = normalizeRole(tokenRole);
   const isOwner = role === "project_owner" || role === "creator";
 
@@ -420,30 +396,22 @@
     const canUse = isOwner && hasProjectId;
 
     if (ethicalToggle) {
-      if (!canUse) ethicalToggle.checked = false; // force OFF when not allowed
+      if (!canUse) ethicalToggle.checked = false;
       ethicalToggle.disabled = !canUse;
       ethicalToggle.title = !isOwner
         ? "Only project owners can enable Ethical Mode"
-        : (!hasProjectId
-            ? "Enter a Project ID to enable Ethical Mode"
-            : "Ethical Mode is available");
+        : (!hasProjectId ? "Enter a Project ID to enable Ethical Mode" : "Ethical Mode is available");
     }
 
-    // Debug (optional): open DevTools > Console to see why it's disabled
-    console.log("[Ethical Toggle]",
-      { roleFromJWT: tokenRole || "(none)", normalizedRole: role, isOwner, hasProjectId, canUse });
+    console.log("[Ethical Toggle]", { roleFromJWT: tokenRole || "(none)", normalizedRole: role, isOwner, hasProjectId, canUse });
   }
 
-  // Initial state and listeners
   updateEthicalToggleState();
   projectInput?.addEventListener("input",  updateEthicalToggleState);
   projectInput?.addEventListener("change", updateEthicalToggleState);
 
-  // Keep history hidden for non-owners (same behavior)
   if (historySection && !isOwner) historySection.style.display = "none";
 })();
-
-    /* ========================= END CHANGE ========================= */
 
     // ====== Generic table renderer (reusable) ======
     function renderResultsTable(options) {
@@ -453,13 +421,11 @@
         defaultSortKey = "risk_score", defaultSortDir = "desc"
       } = options;
 
-      // toggle sample files column
       tableEl.querySelectorAll(".sample-col").forEach(th => th.style.display = ethicalMode ? "" : "none");
 
-      // internal state
       let rows = Array.isArray(buckets) ? [...buckets] : [];
       let sortKey = defaultSortKey;
-      let sortDir = defaultSortDir; // 'asc' | 'desc'
+      let sortDir = defaultSortDir;
 
       const tbody = tableEl.querySelector("tbody");
       const thead = tableEl.querySelector("thead");
@@ -477,7 +443,6 @@
           const kws = Array.isArray(b.sensitive_keywords_detected)
             ? normalizedText(b.sensitive_keywords_detected.join(","))
             : normalizedText(b.sensitive_keywords_detected);
-
           return !q || name.includes(q) || reason.includes(q) || kws.includes(q);
         });
       }
@@ -488,12 +453,9 @@
           const va = (sortKey === "risk_level") ? riskLevelFromScore(a.risk_score) : a[sortKey];
           const vb = (sortKey === "risk_level") ? riskLevelFromScore(b.risk_score) : b[sortKey];
 
-          if (sortKey === "risk_score") {
-            return (Number(va||0) - Number(vb||0)) * dir;
-          }
-          if (sortKey === "public") {
-            return ((va === true ? 1 : 0) - (vb === true ? 1 : 0)) * dir;
-          }
+          if (sortKey === "risk_score") return (Number(va||0) - Number(vb||0)) * dir;
+          if (sortKey === "public") return ((va === true ? 1 : 0) - (vb === true ? 1 : 0)) * dir;
+
           const sa = String(va ?? "").toLowerCase();
           const sb = String(vb ?? "").toLowerCase();
           if (sa < sb) return -1 * dir;
@@ -520,14 +482,11 @@
             <td class="nowrap">
               ${b.public ? '<span class="badge badge-public">Public</span>' : '<span class="badge badge-private">Private</span>'}
             </td>
-            <td class="nowrap mono">
-              ${b.risk_score ?? "0"}
-              <span class="badge ${riskClass(level)}" style="margin-left:.4rem;">${level}</span>
-            </td>
-            <!-- Exposure Reason cell REMOVED -->
+            <td class="nowrap mono">${b.risk_score ?? "0"}</td>
+            <td class="nowrap"><span class="badge ${riskClass(level)}">${level}</span></td>
             <td>${b.risk_reason ?? "N/A"}</td>
             <td>${sens}</td>
-            <!-- Risk reference links REMOVED -->
+            <!-- Removed risk_reference links column -->
             <td class="sample-col" style="${ethicalMode ? "" : "display:none;"}">${samples || ""}</td>
           `;
           tbody.appendChild(tr);
@@ -543,30 +502,21 @@
           const ind = th.querySelector(".sort-ind");
           if (!ind) return;
           const key = th.getAttribute("data-key");
-          if (key === sortKey) {
-            ind.textContent = sortDir === "asc" ? "↑" : "↓";
-          } else {
-            ind.textContent = "↕";
-          }
+          if (key === sortKey) ind.textContent = sortDir === "asc" ? "↑" : "↓";
+          else ind.textContent = "↕";
         });
       }
 
-      // events
       thead.querySelectorAll("th[data-key]").forEach(th => {
         th.addEventListener("click", () => {
           const key = th.getAttribute("data-key");
-          if (key === sortKey) {
-            sortDir = (sortDir === "asc") ? "desc" : "asc";
-          } else {
-            sortKey = key;
-            sortDir = (key === "risk_score") ? "desc" : "asc";
-          }
+          if (key === sortKey) sortDir = (sortDir === "asc") ? "desc" : "asc";
+          else { sortKey = key; sortDir = (key === "risk_score") ? "desc" : "asc"; }
           render();
         });
       });
       filterInput?.addEventListener("input", () => render());
 
-      // initial render (risk score high → low)
       render();
     }
 
@@ -723,7 +673,6 @@
         const buckets = Array.isArray(data?.buckets) ? data.buckets : [];
         const ethicalMode = Boolean(data?.ethical_mode);
 
-        // Header summary
         resultsContainer.innerHTML = `
           <div class="result-card">
             <h4>Scan ${data.scan_id}</h4>
@@ -814,7 +763,6 @@
     });
   </script>
 
-  <!-- Your existing JS if needed -->
   <script src="web.js"></script>
 </body>
 </html>
