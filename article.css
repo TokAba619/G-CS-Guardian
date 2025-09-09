@@ -2,8 +2,8 @@
    THEME
    ========================= */
 :root{
-  --accent:#00e1ff;
-  --accent-2:#7feaff;
+  --accent:#ffffff;
+  --accent-2:#ffffff;
   --card:rgba(0,0,0,.78);
   --ring:rgba(255,255,255,.08);
   --text:#e9f4f6;
@@ -91,7 +91,7 @@ header:hover .content .logo a{color:var(--accent)}
 /* gradient border ring */
 .textbox::before{
   content:"";position:absolute;inset:0;padding:1px;border-radius:inherit;
-  background:linear-gradient(135deg,rgba(0,225,255,.5),rgba(255,255,255,.12) 40%,rgba(0,225,255,.35));
+  background:linear-gradient(135deg,rgba(255, 0, 140, 0.5),rgba(255,255,255,.12) 40%,rgba(0,225,255,.35));
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.6;
 }
@@ -114,7 +114,7 @@ header:hover .content .logo a{color:var(--accent)}
    ========================= */
 .timeline::before{
   content:"";position:absolute;top:0;bottom:0;left:50%;width:4px;transform:translateX(-50%);
-  background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(0,225,255,.6) 50%,rgba(255,255,255,.12));
+  background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255, 0, 106, 0.6) 50%,rgba(255,255,255,.12));
   background-size:100% 300%;animation:lineFlow 8s linear infinite;pointer-events:none;
 }
 @keyframes lineFlow{from{background-position:0 0}to{background-position:0 300%}}
@@ -224,13 +224,13 @@ header .content .logo img { width: 90px; } /* was 100px */
   font-weight:800;
   font-size:44px;
   line-height:1.1;
-  color:#0b0b0b;                 /* black title like screenshot */
-  text-shadow:0 1px 0 rgba(255,255,255,.35);
+  color:#ffffff;                 /* black title like screenshot */
+  text-shadow:0 1px 0 rgba(0, 0, 0, 0.35);
   letter-spacing:.5px;
 }
 .page-hero p{
   margin-top:10px;
-  color:#111;
+  color:#ffffff;
   opacity:.9;
   font-size:16px;
 }
