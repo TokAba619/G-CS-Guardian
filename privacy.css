@@ -38,7 +38,7 @@ body {
   transition: color 0.2s ease, text-shadow 0.2s ease;
 }
 .logo-link:hover .logo-text {
-  color: #AC1754;
+  color: #ffffff;
   text-shadow:
         -1px -1px 0 #000,  
          1px -1px 0 #000,
@@ -59,7 +59,7 @@ body {
 }
 
 h1, h2 {
-  color: #AC1754;
+  color: #ffffff;
   margin-bottom: 12px;
 }
 
