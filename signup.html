@@ -1,87 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>G-CS Guardian Login</title>
-    <link rel="stylesheet" href="test.css">
+  <meta charset="UTF-8" />
+  <title>G-CS Guardian Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Saira:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="test.css" />
 </head>
 <body>
 
-  <div class="main">
-    <div class="content">
-      <div class="navbar">
-        <a href="index.html" class="logo-link">
-          <img src="paper9.png" alt="Group Logo" class="group-logo" />
-          <span class="logo-text">G-CS Guardian</span>
-        </a>
-      </div>
-
-      <!-- Background video -->
-      <video autoplay muted loop playsinline class="bg-video">
-        <source src="vid.mp4" type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
-
-      <br><br><br>
-      <h1>Google Cloud <br><span>Storage Bucket</span> <br>Protector</h1><br><br>
-      <p class="par">
-        This project creates a system that can find storage buckets on Google Cloud <br>
-        that are open to the public. It will send alerts when it finds these buckets and <br>
-        help users understand the risks of having public storage buckets through <br>
-        information on our website.
-      </p>
-
-      <div class="form">
-        <br>
-        <form id="loginForm">
-          <h2>Admin Login</h2>
-
-          <input type="text" id="email" name="username" placeholder="Enter Email Here" required>
-          <input type="password" id="password" name="password" placeholder="Enter Password Here" required>
-
-          <div style="text-align: center;">
-            <button type="submit" class="learn-more">Login</button>
-          </div>
-
-          <p class="link">
-            Join as a User<br>Login Below<br>
-          </p>
-
-          <!-- ✅ T&C consent (REQUIRED for Google OAuth) -->
-          <div class="consent" style="text-align:center; margin-top:8px;">
-            <label for="tncCheck" style="cursor:pointer;">
-              <input type="checkbox" id="tncCheck" style="margin-right:8px;">
-              I agree to the
-              <a href="TnC.html" target="_self" rel="noopener">Terms & Conditions</a>
-              and
-              <a href="privacy.html" target="_self" rel="noopener">Privacy Policy</a>.
-            </label>
-          </div>
-
-          <!-- Optional inline error for T&C -->
-          <div id="tncError" style="display:none; color:#ff6b6b; text-align:center; margin-top:6px;">
-            Please agree to the Terms & Conditions to continue.
-          </div>
-
-          <!-- Google OAuth button (disabled until checkbox is ticked) -->
-          <div class="google-btn">
-            <a id="googleLogin"
-               class="disabled"
-               href="https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/auth/login"
-               aria-disabled="true">
-              <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo">
-              <span>Login with Google</span>
-            </a>
-          </div>
-        </form>
-
-        <!-- Admin login error -->
-        <div id="error" style="color: red; text-align: center; margin-top: 10px;"></div>
-      </div>
-    </div>
+  <!-- Brand-only bar (left aligned) -->
+  <div class="brandbar">
+    <a class="brand" href="index.html">
+      <img src="logo.png" alt="G-CS Guardian logo" />
+      <span class="title">G-CS Guardian</span>
+    </a>
   </div>
 
-  <script src="https://unpkg.com/ionicons@5.4.0/dist/ionicons.js"></script>
+  <div class="wrap">
+    <section class="card" aria-labelledby="cardTitle">
+      <div class="card-head">
+        <img src="paper5.png" alt="Brand" class="card-logo" />
+        <h1 id="cardTitle" class="card-title">Admin Login</h1>
+        <p class="card-subtitle">To continue to G-CS Guardian</p>
+      </div>
+
+      <form id="loginForm" class="card-body" novalidate>
+        <label class="field">
+          <span class="field-label">Email address<span class="req">*</span></span>
+          <input type="email" id="email" name="username" placeholder="name@company.com" required />
+        </label>
+
+        <label class="field">
+          <span class="field-label">Password<span class="req">*</span></span>
+          <input type="password" id="password" name="password" placeholder="••••••••" required />
+        </label>
+
+        <button type="submit" class="btn btn-primary">Login</button>
+
+        <!-- EXACT wording/placement -->
+        <p class="alt" style="margin-top:16px;">
+          Join as a User<br />Login Below
+        </p>
+
+        <!-- Consent + inline error -->
+        <div class="consent">
+          <label class="checkbox" for="tncCheck">
+            <input type="checkbox" id="tncCheck" />
+            <span>I agree to the
+              <a href="tnc.html" target="_self" rel="noopener">Terms &amp; Conditions</a>
+              and
+              <a href="privacy.html" target="_self" rel="noopener">Privacy Policy</a>.
+            </span>
+          </label>
+          <div id="tncError" class="error">Please agree to the Terms &amp; Conditions to continue.</div>
+        </div>
+
+        <!-- Google OAuth button (disabled until T&C checked) -->
+        <a
+          id="googleLogin"
+          class="btn btn-google disabled"
+          href="https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/auth/login"
+          aria-disabled="true"
+        >
+          <img src="https://developers.google.com/identity/images/g-logo.png" alt="" />
+          <span>Login with Google</span>
+        </a>
+
+        <!-- Admin login error -->
+        <div id="error" class="error" role="alert"></div>
+      </form>
+    </section>
+  </div>
 
   <script>
     // ===== Google OAuth T&C enforcement =====
@@ -95,13 +91,9 @@
       googleLink.setAttribute('aria-disabled', String(!ok));
       if (ok) tncError.style.display = 'none';
     }
-    // Initial state
     updateGoogleState();
-
-    // Toggle on change
     tncCheck.addEventListener('change', updateGoogleState);
 
-    // Block click if not agreed
     googleLink.addEventListener('click', function (e) {
       if (googleLink.classList.contains('disabled')) {
         e.preventDefault();
@@ -112,14 +104,14 @@
 
     // ===== Google OAuth redirect handling =====
     const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get("token");
-    const email = urlParams.get("email");
-    const role = urlParams.get("role");
+    const token  = urlParams.get("token");
+    const email  = urlParams.get("email");
+    const role   = urlParams.get("role");
 
     if (token) {
       localStorage.setItem("access_token", token);
       if (email) localStorage.setItem("email", email);
-      if (role) localStorage.setItem("role", role);
+      if (role)  localStorage.setItem("role", role);
       window.location.href = "/G-CS-Guardian/web.html";
     }
 
@@ -130,7 +122,7 @@
     });
 
     function login() {
-      const emailVal = document.getElementById("email").value;
+      const emailVal = document.getElementById("email").value.trim();
       const passwordVal = document.getElementById("password").value;
 
       fetch("https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/auth/login", {
@@ -146,18 +138,20 @@
         if (data.access_token) {
           localStorage.setItem("access_token", data.access_token);
           if (data.email) localStorage.setItem("email", data.email);
-          if (data.role) localStorage.setItem("role", data.role);
+          if (data.role)  localStorage.setItem("role", data.role);
           window.location.href = "/G-CS-Guardian/web.html";
         } else {
           document.getElementById("error").textContent = "Invalid email or password.";
+          document.getElementById("error").style.display = "block";
         }
       })
       .catch((err) => {
         console.error("Login Error:", err);
-        document.getElementById("error").textContent = "Something went wrong. Try again.";
+        const el = document.getElementById("error");
+        el.textContent = "Something went wrong. Try again.";
+        el.style.display = "block";
       });
     }
   </script>
 </body>
 </html>
-
