@@ -239,7 +239,7 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
 }
 
 @keyframes color { to { color: var(--white); } }
-@keyframes up { from { bottom: -100%); } }
+@keyframes up { from { bottom: -100%; } }
 @keyframes textGlow { to { text-shadow: 0 0 1px #ff0000, 0 0 3px #ff0000, 0 0 6px #ff0000; } }
 @keyframes rotate { to { background-position: -200% 0; } }
 
@@ -656,3 +656,4 @@ header .container .content .logo img{
   width: 210px; /* was 175px */
   height: auto;
 }
+
