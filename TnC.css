@@ -40,7 +40,7 @@ body {
 }
 
 .logo-link:hover .logo-text {
-  color: #00e1ff;
+  color: #AC1754;
   text-shadow:
         -1px -1px 0 #000,  
          1px -1px 0 #000,
@@ -61,7 +61,7 @@ body {
 }
 
 h1, h2 {
-  color: #00e1ff;
+  color: #AC1754;
   margin-bottom: 12px;
 }
 
@@ -79,7 +79,7 @@ ul {
 }
 
 a {
-  color: #00c4ff;
+  color: #AC1754;
   text-decoration: none;
 }
 
