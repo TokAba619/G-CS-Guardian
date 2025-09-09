@@ -8,7 +8,7 @@
   --gray: #000000;
   --darkgray: #ffffff;
   --lightgray: #a4a4a4;
-  --aud: "Audiowide", sans-serif;
+  --aud: "Audiowide", sans-serif; /* kept for compatibility but not used */
 }
 
 * {
@@ -27,7 +27,6 @@ body {
   background-color: var(--black);
   color: var(--white);
   font-family: "Inter", sans-serif;
-
   /* ✅ ensures content starts below fixed navbar */
   padding-top: 84px;
 }
@@ -68,17 +67,10 @@ header {
   top: 0;
   left: 0;
   width: 100%;
-
-  /* previously 10vh — use a fixed pixel height for stable padding */
-  height: 84px;
-
-  /* ✅ stop blending so it doesn't "vanish" on dark sections */
+  height: 84px; /* stable height */
   mix-blend-mode: normal !important;
-
-  /* ✅ translucent solid background so it’s always visible */
   background: rgba(0, 0, 0, 0.78);
   backdrop-filter: blur(6px);
-
   z-index: 99999;
   transition: transform 0.3s ease-in-out;
 }
@@ -102,7 +94,8 @@ header .container .content .logo img {
 }
 
 header .container .content .logo a {
-  font: bold 1.2rem "Audiowide", sans-serif;
+  font-family: "Inter", sans-serif;     /* was Audiowide */
+  font-weight: 800;                      /* bold for title look */
   font-size: 35px;
   text-decoration: none;
   color: var(--black);
@@ -139,6 +132,8 @@ header .container .content .extra-nav button {
   color: var(--white);
   width: 150px;
   border-radius: 8px;
+  font-family: "Inter", sans-serif;     /* ensure consistency */
+  font-weight: 600;
 }
 header .container .content .extra-nav button:hover { background: var(--gray); transition: .1s linear; }
 header .container .content .extra-nav button .icon {
@@ -156,7 +151,7 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
 .hero { position: relative; min-height: 100vh; overflow: hidden; }
 .bg-video {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  object-fit: cover; z-index: -1; /* keeps video behind content */
+  object-fit: cover; z-index: -1;
 }
 .hero-content { position: relative; z-index: 1; color: white; text-align: center; top: 50%; transform: translateY(-50%); }
 
@@ -190,9 +185,9 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
 
 .hero .container .content .text h1 {
   font-size: 3.5rem;
-  font-weight: bolder;
+  font-weight: 800;                 /* bold header */
   text-transform: uppercase;
-  font-family: var(--aud);
+  font-family: "Inter", sans-serif; /* was var(--aud) */
   animation: textGlow 2s linear forwards;
   text-shadow:
     -1px -1px 0 black,
@@ -208,12 +203,14 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
   font-size: 1.2rem;
   margin-bottom: 1rem;
   color: var(--lightgray);
+  font-family: "Inter", sans-serif;
 }
 
 .hero .container .content .text p span {
-  font-weight: bold;
+  font-weight: 700;
   font-style: italic;
   animation: color 1s linear forwards;
+  font-family: "Inter", sans-serif;
 }
 
 /* ✅ White CTA buttons only (no global color changes) */
@@ -225,13 +222,14 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
 
   background: #ffffff;
   color: #000000;
-  font-weight: bold;
+  font-weight: 700;
   padding: 12px 24px;
 
   border: 2px solid #000000;
   border-radius: 32px;
 
   transition: background 0.3s ease, color 0.3s ease;
+  font-family: "Inter", sans-serif;
 }
 .hero .container .content .text a:hover { background: #f0f0f0; color: #000000; }
 .hero .container .content .text a:active {
@@ -268,8 +266,17 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
   gap: .5rem;
   margin-bottom: 4rem;
 }
-.why-us .container .content .title h2 { font: bold 1.5rem var(--aud); color: var(--lightgray); }
-.why-us .container .content .title h1 { font: bold 2.5rem var(--aud); }
+.why-us .container .content .title h2 {
+  font-family: "Inter", sans-serif;  /* was var(--aud) */
+  font-weight: 700;                  /* bold-ish subtitle */
+  font-size: 1.5rem;
+  color: var(--lightgray);
+}
+.why-us .container .content .title h1 {
+  font-family: "Inter", sans-serif;  /* was var(--aud) */
+  font-weight: 800;                  /* bold header */
+  font-size: 2.5rem;
+}
 
 .why-us .container .content .title p {
   max-width: 66%;
@@ -278,6 +285,7 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
   line-height: 1.8;
   font-size: 1.1rem;
   margin: 0 auto;
+  font-family: "Inter", sans-serif;
 }
 
 .why-us .container .content .reason {
@@ -311,8 +319,16 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
   background: var(--darkgray);
 }
 .why-us .container .content .reason .card .desc { text-align: center; height: 40%; width: 75%; }
-.why-us .container .content .reason .card .desc h3 { font-weight: bold; margin-bottom: 1rem; }
-.why-us .container .content .reason .card .desc p { color: var(--lightgray); text-align: justify; }
+.why-us .container .content .reason .card .desc h3 {
+  font-weight: 800;  /* bold section title */
+  margin-bottom: 1rem;
+  font-family: "Inter", sans-serif;
+}
+.why-us .container .content .reason .card .desc p {
+  color: var(--lightgray);
+  text-align: justify;
+  font-family: "Inter", sans-serif;
+}
 
 .why-us .container .content .reason .card hr {
   position: absolute;
@@ -346,15 +362,21 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
   justify-content: center;
   gap: .5rem;
 }
-.destination .container .content .title h1 { font: 400 3rem "Audiowide", sans-serif; letter-spacing: .3em; }
-.destination .container .content .title p { font-size: 1.1rem; color: var(--lightgray); }
+.destination .container .content .title h1 {
+  font-family: "Inter", sans-serif;  /* was Audiowide */
+  font-weight: 700;
+  font-size: 3rem;
+  letter-spacing: .3em;
+}
+.destination .container .content .title p { font-size: 1.1rem; color: var(--white); font-family: "Inter", sans-serif; }
 .destination .container .content .title a {
   display: flex; justify-content: center; align-items: center; gap: 1rem;
   text-decoration: none; color: var(--white); font-size: .8rem; padding: 4px;
   border: 2px solid var(--lightgray); border-radius: 12px; background-color: transparent;
   backdrop-filter: blur(2px); width: 20%;
+  font-family: "Inter", sans-serif;
 }
-.destination .container .content .title a:hover { background-color: var(--darkgray); }
+.destination .container .content .title a:hover { background-color: var(--lightgray); }
 
 .destination .container .content .items {
   display: flex; flex-direction: column; justify-content: space-between;
@@ -366,11 +388,16 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
   text-decoration: none; color: var(--white); font-size: .8rem; padding: 4px;
   border: 2px solid var(--lightgray); border-radius: 12px; background-color: transparent;
   backdrop-filter: blur(1px); width: 125px;
+  font-family: "Inter", sans-serif;
 }
-.destination .container .content .items a:hover { background-color: var(--darkgray); }
+.destination .container .content .items a:hover { background-color: var(--black); }
 .destination .container .content .items a .icon { width: 16px; }
 .destination .container .content .items h1 {
-  font: italic bold 1.5rem "Audiowide", sans-serif; color: rgb(0,0,0);
+  font-family: "Inter", sans-serif;   /* was Audiowide */
+  font-weight: 700;                    /* bold item titles */
+  font-style: italic;
+  font-size: 1.5rem;
+  color: rgb(0,0,0);
   text-shadow: -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white, 1px 1px 0 white;
 }
 
@@ -379,27 +406,27 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
 .destination .container .content .moon {
   grid-column: span 2 / span 2; grid-row: span 3 / span 3; grid-column-start: 1; grid-row-start: 3;
   padding: 1rem; background: url("img2.png"); background-size: cover; background-position: center;
-  border: 2px solid var(--darkgray); border-radius: 32px;
+  border: 2px solid var(--white); border-radius: 32px;
 }
 .destination .container .content .eyropa {
   grid-row: span 2 / span 2; grid-column: span 2 / span 2; grid-row-start: 3;
   padding: 1rem; background: url("img7.png"); background-size: cover; background-position: center;
-  border: 2px solid var(--darkgray); border-radius: 32px;
+  border: 2px solid var(--white); border-radius: 32px;
 }
 .destination .container .content .blackhole {
   grid-column: span 2 / span 2; grid-row: span 3 / span 3; grid-column-start: 1; grid-row-start: 6;
   padding: 1rem; background: url("img1.png"); background-size: cover; background-position: center;
-  border: 2px solid var(--darkgray); border-radius: 32px;
+  border: 2px solid var(--white); border-radius: 32px;
 }
 .destination .container .content .titan {
   grid-row: span 2 / span 2; grid-column: span 2 / span 2; grid-row-start: 5;
   padding: 1rem; background: url("img4.png"); background-size: cover; background-position: center;
-  border: 2px solid var(--darkgray); border-radius: 32px;
+  border: 2px solid var(--white); border-radius: 32px;
 }
 .destination .container .content .mars {
   grid-column: span 2 / span 2; grid-row: span 2 / span 2; grid-column-start: 3; grid-row-start: 7;
   padding: 1rem; background: url("img6.png"); background-size: cover; background-position: center;
-  border: 2px solid var(--darkgray); border-radius: 32px;
+  border: 2px solid var(--white); border-radius: 32px;
 }
 
 /* =========================
@@ -427,38 +454,51 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
 }
 .contact .container .content .left-side { width: 50%; display: flex; flex-direction: column; gap: 4rem; }
 .contact .container .content .left-side h1 {
-  font: 400 3rem "Audiowide", sans-serif; letter-spacing: .3em; color: rgb(255,255,255);
+  font-family: "Inter", sans-serif;   /* was Audiowide */
+  font-weight: 700;
+  font-size: 3rem;
+  letter-spacing: .3em;
+  color: rgb(255,255,255);
   text-shadow: -1px -1px 0 rgb(0,0,0), 1px -1px 0 rgb(0,0,0), -1px 1px 0 rgb(0,0,0), 1px 1px 0 rgb(0,0,0);
 }
 .contact .container .content .left-side p {
   font-size: 1.2rem; color: rgb(255,255,255);
   text-shadow: -1px -1px 0 rgb(0,0,0), 1px -1px 0 rgb(0,0,0), -1px 1px 0 rgb(0,0,0), 1px 1px 0 rgb(0,0,0);
+  font-family: "Inter", sans-serif;
 }
 .contact .container .content .right-side { width: 50%; display: flex; justify-content: center; align-items: center; }
 .contact .container .content .right-side form {
   padding: 5rem; background-color: rgba(0,0,0,0.603); backdrop-filter: blur(20px);
   border-radius: 32px; display: flex; flex-direction: column; gap: 2rem; z-index: 50;
+  font-family: "Inter", sans-serif;
 }
-.contact .container .content .right-side form h1 { font: 300 2.5rem "Audiowide", sans-serif; }
+.contact .container .content .right-side form h1 {
+  font-family: "Inter", sans-serif;   /* was Audiowide */
+  font-weight: 500;
+  font-size: 2.5rem;
+}
 .contact .container .content .right-side form .row-1,
 .contact .container .content .right-side form .row-2 { display: flex; justify-content: space-between; gap: 2rem; }
 .contact .container .content .right-side form .row-1 input,
 .contact .container .content .right-side form .row-2 input {
   background: transparent; border: none; border-bottom: 2px solid var(--white);
   width: 50%; outline: none; color: var(--white); font-size: 1.1rem; font-weight: 500;
+  font-family: "Inter", sans-serif;
 }
 .contact .container .content .right-side form .row-1 input::placeholder,
 .contact .container .content .right-side form .row-2 input::placeholder { color: var(--white); }
 .contact .container .content .right-side form textarea {
   resize: none; background: transparent; border: none; border-bottom: 2px solid var(--white);
   outline: none; color: var(--white); font-size: 1.1rem; font-weight: 500;
+  font-family: "Inter", sans-serif;
 }
 .contact .container .content .right-side form textarea::placeholder { color: var(--white); }
 .contact .container .content .right-side form .remember { display: flex; align-items: center; gap: 1rem; }
-.contact .container .content .right-side form .remember p { font-size: 1.1rem; }
+.contact .container .content .right-side form .remember p { font-size: 1.1rem; font-family: "Inter", sans-serif; }
 .contact .container .content .right-side form button {
-  cursor: pointer; background: rgb(20,20,20); border: none; border-radius: 12px;
+  cursor: pointer; background: rgb(54, 54, 54); border: none; border-radius: 12px;
   width: 25%; padding: 12px; color: var(--white); font-size: 1.2rem;
+  font-family: "Inter", sans-serif; font-weight: 600;
 }
 .contact .container .content .right-side form button:active { background: var(--darkgray); }
 
@@ -507,26 +547,35 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
 }
 
 .slide-title {
-  font-size: 4.5rem; font-weight: bold; margin-bottom: 3rem; letter-spacing: 3px;
+  font-family: "Inter", sans-serif;  /* was Audiowide */
+  font-weight: 800;                  /* bold header */
+  font-size: 4rem;
+  margin-bottom: 3rem; letter-spacing: 3px;
   transform: translateY(50px); opacity: 0; transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
 }
 .slide-subtitle {
-  font-size: 2rem; margin-bottom: 2rem; font-weight: 300; letter-spacing: 2px;
+  font-family: "Inter", sans-serif;  /* was Audiowide */
+  font-weight: 500;
+  font-size: 2rem;
+  margin-bottom: 2rem; letter-spacing: 2px;
   transform: translateY(50px); opacity: 0; transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s;
   text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
 }
 .slide-description {
+  font-family: "Inter", sans-serif;  /* was Audiowide */
+  font-weight: 400;
   font-size: 1.3rem; max-width: 700px; line-height: 1.8; margin-bottom: 3rem;
   transform: translateY(50px); opacity: 0; transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s;
   text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
 }
 .explore-btn {
   background: linear-gradient(45deg, #ff6b6b, #ee5a24); color: white; padding: 18px 45px; border: none;
-  border-radius: 50px; font-size: 1.2rem; font-weight: bold; cursor: pointer;
+  border-radius: 50px; font-size: 1.2rem; font-weight: 700; cursor: pointer;
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); text-transform: uppercase; letter-spacing: 2px;
   box-shadow: 0 15px 35px rgba(238, 90, 36, 0.267); transform: translateY(50px); opacity: 0;
   text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  font-family: "Inter", sans-serif;
 }
 .slide.active .slide-title,
 .slide.active .slide-subtitle,
@@ -543,6 +592,7 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
   width: 70px; height: 70px; border-radius: 50%; cursor: pointer; z-index: 10;
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); backdrop-filter: blur(15px);
   display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; user-select: none;
+  font-family: "Inter", sans-serif;
 }
 .nav-button:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-50%) scale(1.1); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); }
 .prev { left: 30px; }
@@ -563,6 +613,7 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
 .scroll-down {
   position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
   color: white; font-size: 2rem; cursor: pointer; animation: bounce 2s infinite; z-index: 10; transition: all 0.3s ease;
+  font-family: "Inter", sans-serif;
 }
 .scroll-down:hover { transform: translateX(-50%) scale(1.2); }
 
@@ -573,19 +624,19 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
 }
 
 /* Content Sections */
-.content-section { min-height: 100vh; padding: 100px 0; position: relative; overflow: hidden; color: white; }
+.content-section { min-height: 100vh; padding: 100px 0; position: relative; overflow: hidden; color: white; font-family: "Inter", sans-serif; }
 
 /* ===== NAVBAR: always visible, no blending, bigger logo ===== */
 header{
-  position: fixed;            /* stays put while scrolling */
+  position: fixed;
   top: 0; left: 0; right: 0;
-  height: 84px;               /* set a stable bar height */
+  height: 84px;
   z-index: 10000;
-  background: rgba(0,0,0,0.85);/* solid/semi-transparent background so it never “vanishes” */
+  background: rgba(0,0,0,0.85);
   backdrop-filter: blur(6px);
   box-shadow: 0 2px 12px rgba(0,0,0,.35);
-  mix-blend-mode: normal !important; /* stop blending with the page */
-  transform: none !important;        /* ignore any previous transforms */
+  mix-blend-mode: normal !important;
+  transform: none !important;
 }
 
 /* prevent content from sliding under the fixed bar */
@@ -602,6 +653,6 @@ header .container .content{ height: 84px; }
 
 /* Bigger logo */
 header .container .content .logo img{
-  width: 210px;               /* was 175px */
+  width: 210px; /* was 175px */
   height: auto;
 }
