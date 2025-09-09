@@ -239,7 +239,7 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
 }
 
 @keyframes color { to { color: var(--white); } }
-@keyframes up { from { bottom: -100%; } }
+@keyframes up { from { bottom: -100%); } }
 @keyframes textGlow { to { text-shadow: 0 0 1px #ff0000, 0 0 3px #ff0000, 0 0 6px #ff0000; } }
 @keyframes rotate { to { background-position: -200% 0; } }
 
@@ -376,7 +376,7 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
   backdrop-filter: blur(2px); width: 20%;
   font-family: "Inter", sans-serif;
 }
-.destination .container .content .title a:hover { background-color: var(--lightgray); }
+.destination .container .content .title a:hover { background-color: var(--black); }
 
 .destination .container .content .items {
   display: flex; flex-direction: column; justify-content: space-between;
