@@ -7,7 +7,7 @@
   --bone: #f2eadb;
   --gray: #000000;
   --darkgray: #ffffff;
-  --lightgray: #ffffff;
+  --lightgray: #a4a4a4;
   --aud: "Audiowide", sans-serif; /* kept for compatibility but not used */
 }
 
@@ -368,7 +368,7 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
   font-size: 3rem;
   letter-spacing: .3em;
 }
-.destination .container .content .title p { font-size: 1.1rem; color: var(--white); font-family: "Inter", sans-serif; }
+.destination .container .content .title p { font-size: 1.1rem; color: var(--lightgray); font-family: "Inter", sans-serif; }
 .destination .container .content .title a {
   display: flex; justify-content: center; align-items: center; gap: 1rem;
   text-decoration: none; color: var(--white); font-size: .8rem; padding: 4px;
@@ -376,7 +376,7 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
   backdrop-filter: blur(2px); width: 20%;
   font-family: "Inter", sans-serif;
 }
-.destination .container .content .title a:hover { background-color: var(--lightgray); }
+.destination .container .content .title a:hover { background-color: var(--darkgray); }
 
 .destination .container .content .items {
   display: flex; flex-direction: column; justify-content: space-between;
@@ -390,7 +390,7 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
   backdrop-filter: blur(1px); width: 125px;
   font-family: "Inter", sans-serif;
 }
-.destination .container .content .items a:hover { background-color: var(--black); }
+.destination .container .content .items a:hover { background-color: var(--darkgray); }
 .destination .container .content .items a .icon { width: 16px; }
 .destination .container .content .items h1 {
   font-family: "Inter", sans-serif;   /* was Audiowide */
@@ -406,27 +406,27 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
 .destination .container .content .moon {
   grid-column: span 2 / span 2; grid-row: span 3 / span 3; grid-column-start: 1; grid-row-start: 3;
   padding: 1rem; background: url("img2.png"); background-size: cover; background-position: center;
-  border: 2px solid var(--white); border-radius: 32px;
+  border: 2px solid var(--darkgray); border-radius: 32px;
 }
 .destination .container .content .eyropa {
   grid-row: span 2 / span 2; grid-column: span 2 / span 2; grid-row-start: 3;
   padding: 1rem; background: url("img7.png"); background-size: cover; background-position: center;
-  border: 2px solid var(--white); border-radius: 32px;
+  border: 2px solid var(--darkgray); border-radius: 32px;
 }
 .destination .container .content .blackhole {
   grid-column: span 2 / span 2; grid-row: span 3 / span 3; grid-column-start: 1; grid-row-start: 6;
   padding: 1rem; background: url("img1.png"); background-size: cover; background-position: center;
-  border: 2px solid var(--white); border-radius: 32px;
+  border: 2px solid var(--darkgray); border-radius: 32px;
 }
 .destination .container .content .titan {
   grid-row: span 2 / span 2; grid-column: span 2 / span 2; grid-row-start: 5;
   padding: 1rem; background: url("img4.png"); background-size: cover; background-position: center;
-  border: 2px solid var(--white); border-radius: 32px;
+  border: 2px solid var(--darkgray); border-radius: 32px;
 }
 .destination .container .content .mars {
   grid-column: span 2 / span 2; grid-row: span 2 / span 2; grid-column-start: 3; grid-row-start: 7;
   padding: 1rem; background: url("img6.png"); background-size: cover; background-position: center;
-  border: 2px solid var(--white); border-radius: 32px;
+  border: 2px solid var(--darkgray); border-radius: 32px;
 }
 
 /* =========================
@@ -496,7 +496,7 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
 .contact .container .content .right-side form .remember { display: flex; align-items: center; gap: 1rem; }
 .contact .container .content .right-side form .remember p { font-size: 1.1rem; font-family: "Inter", sans-serif; }
 .contact .container .content .right-side form button {
-  cursor: pointer; background: rgb(54, 54, 54); border: none; border-radius: 12px;
+  cursor: pointer; background: rgb(20,20,20); border: none; border-radius: 12px;
   width: 25%; padding: 12px; color: var(--white); font-size: 1.2rem;
   font-family: "Inter", sans-serif; font-weight: 600;
 }
@@ -549,7 +549,7 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
 .slide-title {
   font-family: "Inter", sans-serif;  /* was Audiowide */
   font-weight: 800;                  /* bold header */
-  font-size: 4rem;
+  font-size: 4.5rem;
   margin-bottom: 3rem; letter-spacing: 3px;
   transform: translateY(50px); opacity: 0; transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
