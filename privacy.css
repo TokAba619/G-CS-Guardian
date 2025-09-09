@@ -38,7 +38,7 @@ body {
   transition: color 0.2s ease, text-shadow 0.2s ease;
 }
 .logo-link:hover .logo-text {
-  color: #00e1ff;
+  color: #AC1754;
   text-shadow:
         -1px -1px 0 #000,  
          1px -1px 0 #000,
@@ -59,7 +59,7 @@ body {
 }
 
 h1, h2 {
-  color: #00e1ff;
+  color: #AC1754;
   margin-bottom: 12px;
 }
 
@@ -72,10 +72,10 @@ p { margin-bottom: 16px; }
 ul { margin: 0 0 16px 20px; }
 
 a {
-  color: #00c4ff;
+  color: #AC1754;
   text-decoration: none;
 }
-a:hover { text-decoration: underline; }
+a:hover { text-decoration: none; }
 
 .legal-links {
   margin-top: 20px;
