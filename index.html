@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Token catcher: if backend sends ?token=... to the root, save & go to web.html -->
-   <script>
+    <!-- Token catcher -->
+    <script>
       (function handleOAuthToken() {
         const qp = new URLSearchParams(location.search);
         const token = qp.get("token");
@@ -15,16 +15,13 @@
           const role = qp.get("role");
           if (email) localStorage.setItem("email", email);
           if (role) localStorage.setItem("role", role);
-
-          // Clean the URL so token isn't left in history
           history.replaceState({}, "", "index.html");
-          // Head to the app page
           location.replace("web.html");
         }
       })();
     </script>
 
-    <!-- Google Font -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -38,34 +35,113 @@
     <!-- AOS -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
 
+    <!-- Your main stylesheet -->
     <link rel="stylesheet" href="demo.css" />
     <title>Welcome To G-CS Guardian</title>
+
+    <!-- ===== NAVBAR (fixed + visible while scrolling) ===== -->
+    <style>
+      :root{
+        --nav-h: 84px;         /* navbar height */
+        --nav-bg: rgba(0,0,0,.78);
+        --nav-text:#ffffff;
+        --nav-accent:#AC1754;
+      }
+      /* Keep your existing global header styles, but carve out our .site-nav */
+      header.site-nav{
+        position: fixed;       /* stays on screen */
+        top: 0; left: 0; right: 0;
+        height: var(--nav-h);
+        z-index: 10000;
+        background: var(--nav-bg);
+        mix-blend-mode: normal;        /* stop blending so it doesn't “vanish” */
+        backdrop-filter: blur(6px);     /* subtle glass look */
+        box-shadow: 0 2px 10px rgba(0,0,0,.25);
+      }
+      /* Give the page a little top padding so content isn't under the bar */
+      body{ padding-top: var(--nav-h); }
+
+      .site-nav .nav-inner{
+        max-width: 1400px;
+        margin: 0 auto;
+        height: 100%;
+        padding: 0 24px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+      .brand{
+        display:flex; align-items:center; gap:12px; text-decoration:none;
+        color: var(--nav-text);
+      }
+      /* Bigger logo */
+      .brand img{ width:110px; height:auto; object-fit:contain; }
+      .brand .title{ font: 600 22px "Audiowide", sans-serif; letter-spacing:.3px; }
+
+      .nav-spacer{ flex:1; }
+
+      .nav-links{ display:flex; align-items:center; gap:28px; list-style:none; margin:0; padding:0; }
+      .nav-links a{
+        position:relative; text-decoration:none; color:var(--nav-text);
+        font:600 16px "Saira",sans-serif; opacity:.95;
+      }
+      .nav-links a::after{
+        content:""; position:absolute; left:0; right:0; bottom:-10px; height:3px;
+        background: var(--nav-accent); transform:scaleX(0); transform-origin:left;
+        transition: transform .25s ease;
+      }
+      .nav-links a:hover{ opacity:1; }
+      .nav-links a:hover::after{ transform:scaleX(1); }
+      .nav-links a.active::after{ transform:scaleX(1); }
+
+      .nav-cta button{
+        display:inline-flex; align-items:center; gap:8px;
+        padding:10px 16px; border:0; border-radius:14px; cursor:pointer;
+        background:#ffffff; color:#1a1a1a; font:700 14px "Saira", sans-serif;
+      }
+
+      /* Keep anchor jumps below the fixed bar */
+      section[id]{ scroll-margin-top: calc(var(--nav-h) + 12px); }
+
+      @media (max-width:760px){
+        :root{ --nav-h: 70px; }
+        .brand img{ width:84px; }
+        .brand .title{ font-size:18px; }
+        .nav-links{ gap:16px; }
+        .nav-links a{ font-size:14px; }
+      }
+    </style>
   </head>
   <body>
-    <header data-aos="fade-down" data-aos-delay="200">
-      <div class="container">
-        <div class="content">
-          <div data-aos="fade-down-right" data-aos-delay="300" class="logo">
-            <img src="paper9.png" alt="logo" />
-            <a href="index.html">G-CS Guardian</a>
-          </div>
+    <!-- ===== NAVBAR ===== -->
+    <header class="site-nav" data-aos="fade-down" data-aos-delay="120">
+      <div class="nav-inner">
+        <a class="brand" href="index.html">
+          <img src="logo.png" alt="G-CS Guardian logo" />
+          <span class="title">G-CS Guardian</span>
+        </a>
 
-          <div class="extra-nav">
-            <button
-              data-aos="fade-down"
-              data-aos-delay="400"
-              onclick="window.location.href='signup.html';"
-            >
-              Sign Up
-              <i data-feather="aperture" class="icon"></i>
-            </button>
-          </div>
+        <div class="nav-spacer"></div>
+
+        <ul class="nav-links">
+          <li><a href="#hero" class="nav-link active">Home</a></li>
+          <li><a href="#about" class="nav-link">About Tool</a></li>
+          <li><a href="#destination" class="nav-link">Real Cases</a></li>
+          <li><a href="#contact" class="nav-link">Contact Us</a></li>
+        </ul>
+
+        <div class="nav-cta">
+          <button onclick="window.location.href='signup.html'">
+            Sign Up
+            <i data-feather="aperture" class="icon"></i>
+          </button>
         </div>
       </div>
     </header>
 
     <a href="#hero" class="to-top"><i data-feather="chevron-up"></i></a>
 
+    <!-- ===== HERO ===== -->
     <section id="hero" class="hero">
       <video autoplay muted loop playsinline class="bg-video">
         <source src="vid6.mp4" type="video/mp4" />
@@ -79,18 +155,12 @@
             </h1>
             <br />
             <p data-aos="fade-up" data-aos-delay="300">
-              <span
-                >Protect your Google Cloud Storage with G-CS Guardian. Stay
-                secure, stay compliant.</span
-              ></p>
+              <span>Protect your Google Cloud Storage with G-CS Guardian. Stay
+              secure, stay compliant.</span></p>
 
-            <a href="article.html" target="_self" data-aos="fade-up" data-aos-delay="400"
-              >Learn More</a
-
-            ><br /><br /><br /><br /><br />
-            <a href="signup.html" data-aos="fade-up" data-aos-delay="400">
-              Start Scanning
-            </a>
+            <a href="article.html" target="_self" data-aos="fade-up" data-aos-delay="400">Learn More</a>
+            <br /><br /><br /><br /><br />
+            <a href="signup.html" data-aos="fade-up" data-aos-delay="400">Start Scanning</a>
           </div>
 
           <div class="moon"></div>
@@ -98,14 +168,14 @@
       </div>
     </section>
 
-    <section class="why-us">
+    <!-- ===== ABOUT ===== -->
+    <section class="why-us" id="about">
       <div class="container">
         <div class="content">
           <div class="title" data-aos="fade-up" data-aos-delay="400">
             <h1>About Our Tool</h1>
             <p>
               Accidental exposure of sensitive data in cloud storage has become a major security risk, as many organizations misconfigure their access settings without realizing that files or folders are left open to the public. Such weaknesses can lead to serious consequences including data leaks, financial loss, reputational damage, and compliance issues. To address this, our project G-CS Guardian is designed to scan Google Cloud Storage using official Google Cloud Platform APIs to detect any publicly accessible folders, alert users when risks are found, and present the results through a clear and user-friendly dashboard. By combining automated detection with real-time alerts and simple visual reporting, this project not only helps prevent data leaks but also raises awareness among users about the dangers of public cloud misconfigurations, empowering both individuals and organizations to strengthen the security of their cloud environments.
-
             </p>
           </div>
 
@@ -114,11 +184,9 @@
               <div class="icon">🚀</div>
               <div class="desc">
                 <h3>Data Exposure / Leakage</h3>
-                <p>
-                  Sensitive files may be leaked if storage buckets are
-                  misconfigured as publicly accessible, allowing anyone online
-                  to view or download the data.
-                </p>
+                <p>Sensitive files may be leaked if storage buckets are
+                misconfigured as publicly accessible, allowing anyone online
+                to view or download the data.</p>
               </div>
               <hr />
             </div>
@@ -126,11 +194,9 @@
               <div class="icon">🔭</div>
               <div class="desc">
                 <h3>Unauthorized Access</h3>
-                <p>
-                  Weak access controls or stolen credentials can let attackers
-                  enter storage buckets without permission, leading to theft or
-                  manipulation of data.
-                </p>
+                <p>Weak access controls or stolen credentials can let attackers
+                enter storage buckets without permission, leading to theft or
+                manipulation of data.</p>
               </div>
               <hr />
             </div>
@@ -138,11 +204,9 @@
               <div class="icon">✨</div>
               <div class="desc">
                 <h3>Misconfigurations</h3>
-                <p>
-                  Errors like public read/write settings or improper IAM roles
-                  create easy entry points for attackers, making data highly
-                  vulnerable.
-                </p>
+                <p>Errors like public read/write settings or improper IAM roles
+                create easy entry points for attackers, making data highly
+                vulnerable.</p>
               </div>
               <hr />
             </div>
@@ -151,6 +215,7 @@
       </div>
     </section>
 
+    <!-- ===== SLIDER ===== -->
     <section class="homepage-section" id="homepage">
       <div class="slider-container">
         <div class="slider-wrapper">
@@ -160,7 +225,6 @@
               <div class="image-border">
                 <img src="paper1.png" alt="Google Cloud" />
               </div>
-
               <div class="slide-content">
                 <br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
                 <h1 class="slide-title">What is Google Cloud?</h1>
@@ -178,7 +242,6 @@
               <div class="image-border">
                 <img src="paper10.png" alt="Storage Bucket" />
               </div>
-
               <div class="slide-content">
                 <br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
                 <h1 class="slide-title">What is Storage Bucket?</h1>
@@ -194,35 +257,28 @@
             <!-- Slide 3 -->
             <div class="slide">
               <div class="image-border">
-                <img src="paper9.png" alt="Our Tools" />
+                <img src="paper5.png" alt="Our Tools" />
               </div>
-
               <div class="slide-content">
                 <br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
               </div>
             </div>
           </div>
-          <!-- /.slider-track -->
         </div>
-        <!-- /.slider-wrapper -->
 
         <button class="nav-button prev" onclick="prevSlide()" aria-label="Previous Slide">‹</button>
         <button class="nav-button next" onclick="nextSlide()" aria-label="Next Slide">›</button>
 
         <div class="slide-indicators" id="indicators"></div>
 
-        <div
-          class="scroll-down"
-          onclick="scrollToSection('news')"
-          aria-label="Scroll to next section"
-        >
+        <div class="scroll-down" onclick="scrollToSection('news')" aria-label="Scroll to next section">
           <i class="fas fa-chevron-down"></i>
         </div>
       </div>
-      <!-- /.slider-container -->
     </section>
 
-    <section class="destination">
+    <!-- ===== REAL CASES ===== -->
+    <section class="destination" id="destination">
       <div class="container">
         <div class="content">
           <div class="title" data-aos="fade-right" data-aos-delay="200">
@@ -267,11 +323,7 @@
             <h1>RedHunt Labs Finds 23,000 Misconfigured Buckets, Including Google Cloud</h1>
           </div>
 
-          <div
-            class="items blackhole"
-            data-aos="fade-up-right"
-            data-aos-delay="200"
-          >
+          <div class="items blackhole" data-aos="fade-up-right" data-aos-delay="200">
             <a href="https://thecyberexpress.com/google-cloud-storage-bucket-leak/" target="_blank" rel="noopener"
               >Read More
               <i data-feather="arrow-right" size="12px" class="icon"></i
@@ -298,7 +350,8 @@
       </div>
     </section>
 
-    <section class="contact">
+    <!-- ===== CONTACT ===== -->
+    <section class="contact" id="contact">
       <div class="container">
         <div class="content">
           <div class="left-side">
@@ -342,6 +395,44 @@
       AOS.init();
       feather.replace();
     </script>
+
+    <!-- Your existing JS -->
     <script src="demo.js"></script>
+
+    <!-- Navbar behavior: smooth scroll + active link -->
+    <script>
+      // Smooth scroll
+      document.querySelectorAll('.nav-link').forEach(a=>{
+        a.addEventListener('click', e=>{
+          const href = a.getAttribute('href');
+          if(href && href.startsWith('#')){
+            e.preventDefault();
+            document.querySelector(href)?.scrollIntoView({behavior:'smooth', block:'start'});
+          }
+        });
+      });
+
+      // Active link on scroll
+      const sections = [
+        {id:'#hero', link:document.querySelector('.nav-link[href="#hero"]')},
+        {id:'#about', link:document.querySelector('.nav-link[href="#about"]')},
+        {id:'#destination', link:document.querySelector('.nav-link[href="#destination"]')},
+        {id:'#contact', link:document.querySelector('.nav-link[href="#contact"]')}
+      ].filter(s=>document.querySelector(s.id));
+
+      const io = new IntersectionObserver((entries)=>{
+        entries.forEach(entry=>{
+          const sectionId = '#'+entry.target.id;
+          const match = sections.find(s=>s.id===sectionId);
+          if(!match) return;
+          if(entry.isIntersecting){
+            document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+            match.link?.classList.add('active');
+          }
+        });
+      }, {rootMargin:'-45% 0px -45% 0px', threshold:0});
+
+      sections.forEach(s=>io.observe(document.querySelector(s.id)));
+    </script>
   </body>
 </html>
