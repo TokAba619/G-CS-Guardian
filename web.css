@@ -313,9 +313,10 @@ th, td, button, input, textarea, select,
 }
 .dashboard-table thead th{
   background-color: var(--accent);
-  color: var(--white) !important;
+  color: #000 !important;      /* ← headers (column names) black */
   position:sticky; top:0; z-index:2; user-select:none; cursor:pointer;
 }
+.dashboard-table thead th .sort-ind{ color:#000 !important; } /* sort arrow black */
 .dashboard-table tr:hover{ background: rgba(255,255,255,0.05); }
 .dashboard-table th .sort-ind{ float:right; opacity:.9; }
 
@@ -344,6 +345,20 @@ th, td, button, input, textarea, select,
 .risk-medium{ background:#4d3a20; color:#000 !important; }
 .risk-high{ background:#5a2525; color:#000 !important; }
 .risk-critical{ background:#6b1a1a; color:#000 !important; }
+
+/* Risk Reason tidy list */
+.dashboard-table td.risk-reason{ white-space: normal !important; }
+.risk-reason-list{ margin:.25rem 0; padding-left:1.1rem; }
+.risk-reason-list li{ margin:.25rem 0; line-height:1.5; }
+.risk-reason-list .tag{
+  display:inline-block;
+  margin:.15rem .25rem 0 0;
+  padding:.15rem .45rem;
+  border-radius:999px;
+  border:1px solid var(--muted-border);
+  background: rgba(255,255,255,.08);
+  font-size:.85em;
+}
 
 /* Small-screen table scroll */
 @media (max-width: 900px){
