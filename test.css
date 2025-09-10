@@ -34,7 +34,8 @@ body{
   text-decoration:none; color:#fff;
 }
 .brandbar .brand img{
-  width:150px; height:150px; object-fit:contain;
+  width: 130px;   /* was 175px */
+  height: auto;
 }
 .brandbar .brand .title{
   font-family:"Audiowide", sans-serif;
