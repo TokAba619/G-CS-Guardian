@@ -421,12 +421,12 @@ th, td, button, input, textarea, select,
 }
 
 
-/* Brand logo (compact like screenshot) */
 .navbar-brand img.brand-logo {
-  width: 200px;           /* let it scale naturally */
-  height: 185px;          /* control by height, not width */
+  height: 190px;           /* set only the height (clean scale) */
+  width: 200px;            /* auto width keeps aspect ratio */
   object-fit: contain;
   display: block;
   filter: drop-shadow(0 1px 1px rgba(0,0,0,.6));
+  position: relative;
+  top: 6px;               /* pushes the logo slightly lower */
 }
-
