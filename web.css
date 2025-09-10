@@ -1,7 +1,3 @@
-/* ===============================
-   GLOBAL / BACKGROUND
-==================================*/
-
 /* Theme & surfaces */
 :root{
   --bg-brightness: 100%;
@@ -50,10 +46,9 @@ th, td, button, input, textarea, select,
   color: var(--white) !important;
 }
 
-/* ===============================
-   NAVBAR
-==================================*/
-.navbar{
+/* Navbar */
+
+   .navbar{
   position: fixed; top:0; left:0; width:100%;
   height: var(--navbar-h);
   background: transparent;                /* clean, see-through */
@@ -426,7 +421,7 @@ th, td, button, input, textarea, select,
 
 .navbar-brand .brand-logo{
   height: 190px;     /* keep your size */
-  width: auto;       /* fix missing unit & keep aspect ratio */
+  width: 200;       /* fix missing unit & keep aspect ratio */
   object-fit: contain;
   display: block;
   filter: drop-shadow(0 1px 1px rgba(0,0,0,.6));
