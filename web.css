@@ -421,13 +421,15 @@ th, td, button, input, textarea, select,
 }
 
 
-.navbar-brand img.brand-logo {
-  height: 190px;           /* set only the height (clean scale) */
-  width: 200px;            /* auto width keeps aspect ratio */
+/* Let the logo sit a bit lower in the navbar */
+.navbar { overflow: visible; } /* ensures a tall logo won't get clipped */
+
+.navbar-brand .brand-logo{
+  height: 190px;     /* keep your size */
+  width: auto;       /* fix missing unit & keep aspect ratio */
   object-fit: contain;
   display: block;
   filter: drop-shadow(0 1px 1px rgba(0,0,0,.6));
-  position: relative;
-  top: 15px;               /* pushes the logo slightly lower */
+  transform: translateY(12px); /* <— adjust: 8–20px to taste */
+  /* alternative: margin-top: 12px; (works the same here) */
 }
-
