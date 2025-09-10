@@ -5,12 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>G-CS Guardian Tool</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- your global scanner CSS (already defines --cyan); ensure it sets --cyan: #E91E63 -->
   <link rel="stylesheet" href="web.css">
   <style>
+    /* Ensure theme color is pink everywhere on this page */
+    :root { --cyan: #E91E63; --accent:#E91E63; }
+
     /* ===== RESULTS (scan + my-scan) ===== */
     .results-container { margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem; }
     .result-card { background: #111; padding: 1rem; border-radius: 8px; color: #eee; box-shadow: 0 0 10px rgba(0,0,0,0.3); }
-    .result-card h3, .result-card h4 { color: #0ff; margin-bottom: 0.5rem; }
+    .result-card h3, .result-card h4 { color: var(--cyan); margin-bottom: 0.5rem; }
 
     /* ===== Toggle ===== */
     .toggle { display: flex; align-items: center; gap: 10px; }
@@ -18,9 +22,28 @@
     .slider { width: 40px; height: 20px; background: #ccc; border-radius: 20px; position: relative; cursor: pointer; }
     .slider::before { content: ""; position: absolute; width: 16px; height: 16px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: 0.3s; }
     .toggle input:checked + .slider::before { transform: translateX(20px); }
-    .toggle input:checked + .slider { background: #0ff; }
+    .toggle input:checked + .slider { background: var(--cyan); }
     .toggle input:disabled + .slider { background:#666; cursor:not-allowed; }
     .toggle-label { color: white; }
+
+    /* ===== Navbar brand with logo (match your top header look) ===== */
+    .navbar-brand {
+      display: flex; align-items: center; gap: 12px;
+      color: var(--cyan); font-size: 1.8rem; font-weight: 800; text-decoration: none; letter-spacing: 1px;
+      text-shadow: 1px 1px 3px #000;
+    }
+    .navbar-brand .brand-logo {
+      width: 34px; height: 34px; border-radius: 6px; object-fit: contain; display: block;
+      background: transparent;
+    }
+
+    /* ===== Nav links underline / hover color to pink ===== */
+    .nav-links a { color:#fff; text-decoration:none; font-size:1.1rem; font-weight:600; padding:5px 0; position:relative; transition:color .3s; }
+    .nav-links a::after {
+      content:''; position:absolute; width:0; height:2px; background: var(--cyan); left:0; bottom:0; transition:width .3s ease;
+    }
+    .nav-links a:hover::after, .nav-links a.active::after { width:100%; }
+    .nav-links a:hover { color: var(--cyan); }
 
     /* ===== Dashboard table ===== */
     .table-tools { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
@@ -29,7 +52,7 @@
 
     .dashboard-table { width: 100%; border-collapse: collapse; background: #111; color: #eee; margin-top: .75rem; border-radius: 10px; overflow: hidden; }
     .dashboard-table th, .dashboard-table td { padding: 0.8rem 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left; vertical-align: top; }
-    .dashboard-table th { background-color: #0ff; color: #111; position: relative; user-select:none; cursor:pointer; }
+    .dashboard-table th { background-color: var(--cyan); color: #111; position: relative; user-select:none; cursor:pointer; }
     .dashboard-table th .sort-ind { position:absolute; right:.6rem; opacity:.7; }
     .dashboard-table tr:hover { background: rgba(255,255,255,0.05); }
 
@@ -46,7 +69,6 @@
     .nowrap { white-space: nowrap; }
 
     /* ===== Sample Files column (toggle on) ===== */
-    /* Keep this column tidy and readable */
     .sample-col { width: 320px; }
     .sample-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: .35rem; }
     .sample-link {
@@ -55,45 +77,93 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      color: #0ff;
+      color: var(--cyan);
       text-decoration: underline;
     }
-    .sample-link:hover { color: #00cccc; }
+    .sample-link:hover { color: #c2185b; }
 
     /* ===== My-Scan ===== */
     .myscan-feature { margin-top: 2rem; }
     .scan-table { width: 100%; border-collapse: collapse; background: #111; color: #eee; margin-top: 1rem; border-radius: 8px; overflow: hidden; }
     .scan-table th, .scan-table td { padding: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; }
-    .scan-table th { background-color: #0ff; color: #111; }
+    .scan-table th { background-color: var(--cyan); color: #111; }
     .scan-table tr:hover { background: rgba(255,255,255,0.05); }
-    .scan-id { cursor: pointer; color: #0ff; text-decoration: underline; }
-    .scan-id:hover { color: #00cccc; }
+    .scan-id { cursor: pointer; color: var(--cyan); text-decoration: underline; }
+    .scan-id:hover { color: #c2185b; }
     .myscan-divider { margin: 2rem 0; border: none; height: 1px; background: rgba(255,255,255,0.2); }
 
     .detailed-scan-form { display: flex; gap: 0.5rem; margin-top: 1rem; }
     .detailed-scan-form input { flex: 1; padding: 0.5rem; border-radius: 4px; border: none; }
-    .detailed-scan-form button { background: #0ff; color: #111; padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; }
-    .detailed-scan-form button:hover { background: #00cccc; }
+    .detailed-scan-form button { background: var(--cyan); color: #111; padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; }
+    .detailed-scan-form button:hover { background: #c2185b; color:#fff; }
 
     /* ===== HISTORY ===== */
     .history .table-container { overflow-x: auto; margin-top: 20px; }
     .history table { width: 100%; border-collapse: collapse; background-color: #1e1e2f; color: white; border-radius: 8px; overflow: hidden; }
     .history th, .history td { padding: 12px 15px; border-bottom: 1px solid #333; text-align: left; }
-    .history th { background-color: #0ff; color: #000; font-weight: bold; }
+    .history th { background-color: var(--cyan); color: #000; font-weight: bold; }
     .history tr:nth-child(even) { background-color: #2a2a3d; }
     .history tr:hover { background-color: #33334d; transition: 0.2s; }
+
+    /* ===== NEW: minimal pill input + CTA for scanner ===== */
+    .inline-form {
+      display:flex; gap:12px; align-items:center; justify-content:center;
+      max-width: 720px; margin: 18px auto 0;
+      padding: 6px;
+    }
+    .pill-input {
+      flex: 1;
+      height: 52px;
+      padding: 0 18px;
+      border-radius: 999px;
+      border: 1.5px solid rgba(255,255,255,.25);
+      background: rgba(0,0,0,.35);
+      color: #fff;
+      outline: none;
+      font-size: 16px;
+      transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .pill-input::placeholder { color: rgba(255,255,255,.70); }
+    .pill-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(233,30,99,.16);
+      background: rgba(0,0,0,.45);
+    }
+    .cta-pink {
+      height: 52px;
+      padding: 0 22px;
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 800;
+      letter-spacing: .2px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform .06s ease, box-shadow .2s ease, background .15s ease;
+      box-shadow: 0 8px 24px rgba(233,30,99,.28);
+    }
+    .cta-pink:hover { background: #d81b60; box-shadow: 0 10px 28px rgba(233,30,99,.34); }
+    .cta-pink:active { transform: translateY(1px); box-shadow: 0 6px 20px rgba(233,30,99,.28); }
+    .form-title { font-size: 28px; font-weight: 800; text-align: center; margin-top: 18px; margin-bottom: 4px; }
+    .toggle { justify-content: center; margin: 10px auto 0; }
+    .scan .input-slab { margin-top: 8px; }
+    @media (max-width: 640px){
+      .inline-form { flex-direction: column; align-items: stretch; }
+      .cta-pink { width: 100%; }
+    }
   </style>
 </head>
 
 <body>
 
-  <video autoplay muted loop playsinline id="bg-video">
-    <source src="vid11.mp4" type="video/mp4">
-    Your browser does not support HTML5 video.
-  </video>
-
   <nav class="navbar" id="navbar">
-    <a href="#demo" class="navbar-brand">G-CS Guardian</a>
+    <!-- Brand with logo (match header concept) -->
+    <a href="index.html" class="navbar-brand">
+      <img src="logo.png" alt="G-CS Guardian Logo" class="brand-logo">
+      <span>G-CS Guardian</span>
+    </a>
+
     <div class="hamburger-menu" id="hamburgerMenu" aria-label="Open menu" role="button" tabindex="0">
       <i class="fas fa-bars"></i>
     </div>
@@ -131,35 +201,28 @@
       <p class="section-content">Need a Quick Scan of Your Cloud Storage Bucket? I’m ready!</p>
 
       <div class="form">
-        <form id="scanForm">
+        <form id="scanForm" class="input-slab">
           <label class="toggle" id="ethicalModeLabel">
             <input type="checkbox" id="ethicalModeToggle" aria-label="Ethical Mode (Project Owner Only)">
             <span class="slider"></span>
             <span class="toggle-label">Full Access Scan (Project Owner)</span>
           </label>
+
           <h1 class="form-title">Upload Google Cloud Project ID</h1>
-          <div class="card1">
-            <div class="terminal">
-              <div class="terminal-header">
-                <span class="terminal-title">
-                  <svg class="terminal-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 17l6-6-6-6M12 19h8"></path>
-                  </svg>
-                  Terminal
-                </span>
-              </div>
-              <div class="terminal-body">
-                <div class="command-line">
-                  <span class="prompt">Project ID:</span>
-                  <div class="input-wrapper">
-                    <input type="text" class="input-field" id="projectId" placeholder="E.g.: g-cs-guardian" required/>
-                  </div>
-                </div>
-              </div>
-            </div>
+
+          <!-- NEW minimal pill input + CTA -->
+          <div class="inline-form" role="group" aria-label="Project scan form">
+            <input
+              type="text"
+              class="pill-input"
+              id="projectId"
+              placeholder="Your project ID here (e.g. g-cs-guardian)"
+              autocomplete="off"
+              required
+              aria-label="Project ID"
+            />
+            <button id="learn-more" type="button" class="cta-pink" aria-label="Upload and scan">Upload &amp; Scan</button>
           </div>
-          <br/>
-          <button id="learn-more" type="button" class="learn-more">Upload & Scan</button>
         </form>
       </div>
     </div>
@@ -493,7 +556,6 @@
             const tail = u.pathname.split("/").pop() || u.host;
             label = decodeURIComponent(tail);
           } catch {
-            // not an absolute URL; try to use last segment anyway
             label = decodeURIComponent(href.split("/").pop() || href);
           }
           return `<li><a class="sample-link" href="${href}" target="_blank" rel="noopener" title="${href}">${label}</a></li>`;
