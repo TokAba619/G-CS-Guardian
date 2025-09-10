@@ -1,3 +1,7 @@
+/* ===============================
+   GLOBAL / BACKGROUND
+==================================*/
+
 /* Theme & surfaces */
 :root{
   --bg-brightness: 100%;
@@ -12,8 +16,8 @@
   --black: #000000;
 
   /* Navbar + brand sizing (slim + balanced) */
-  --navbar-h: 72px;           /* desktop nav height */
-  --brand-logo-h: 40px;       /* brand logo height inside navbar */
+  --navbar-h: 120px;           /* desktop nav height */
+  --brand-logo-h: 170px;       /* logo height desktop — tweak this to taste */
 }
 
 /* Video BG */
@@ -46,9 +50,10 @@ th, td, button, input, textarea, select,
   color: var(--white) !important;
 }
 
-/* Navbar */
-
-   .navbar{
+/* ===============================
+   NAVBAR
+==================================*/
+.navbar{
   position: fixed; top:0; left:0; width:100%;
   height: var(--navbar-h);
   background: transparent;                /* clean, see-through */
@@ -72,8 +77,9 @@ th, td, button, input, textarea, select,
   text-shadow: 1px 1px 3px #000;
 }
 .navbar-brand img.brand-logo{
-  height: var(--brand-logo-h);
-  width: auto;                 /* keep aspect ratio like your ref shot */
+  height: var(--brand-logo-h);            /* <-- controlled by variable */
+  width: auto;
+  max-height: calc(var(--navbar-h) - 20px); /* breathing room inside navbar */
   object-fit: contain;
   display: block;
   filter: drop-shadow(0 1px 1px rgba(0,0,0,.6));
@@ -376,7 +382,7 @@ th, td, button, input, textarea, select,
    MOBILE
 ==================================*/
 @media (max-width: 768px){
-  :root{ --navbar-h: 64px; --brand-logo-h: 32px; }
+  :root{ --navbar-h: 64px; --brand-logo-h: 32px; } /* smaller logo + navbar on tablets/phones */
   .navbar{ padding: 8px 16px; }
   .hamburger-menu{ display:block; }
 
@@ -413,18 +419,4 @@ th, td, button, input, textarea, select,
 ==================================*/
 @media (prefers-reduced-motion: reduce){
   *{ animation:none !important; transition:none !important; }
-}
-
-
-/* Let the logo sit a bit lower in the navbar */
-.navbar { overflow: visible; } /* ensures a tall logo won't get clipped */
-
-.navbar-brand .brand-logo{
-  height: 190px;     /* keep your size */
-  width: 200;       /* fix missing unit & keep aspect ratio */
-  object-fit: contain;
-  display: block;
-  filter: drop-shadow(0 1px 1px rgba(0,0,0,.6));
-  transform: translateY(12px); /* <— adjust: 8–20px to taste */
-  /* alternative: margin-top: 12px; (works the same here) */
 }
