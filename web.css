@@ -328,6 +328,17 @@ th, td, button, input, textarea, select,
 .badge-public{ background:#ff0000; color:#000; }
 .badge-private{ background:#3cff00; color:#000; }
 
+/* Status badges — force black text even against global white rule */
+.badge-public,
+.badge-private {
+  color: #000 !important;
+  font-weight: 700;
+}
+.badge-public > *,
+.badge-private > * {
+  color: inherit !important;
+}
+
 /* ✅ Force black text for risk levels */
 .risk-low{ background:#204d2a; color:#000 !important; }
 .risk-medium{ background:#4d3a20; color:#000 !important; }
