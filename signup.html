@@ -80,78 +80,155 @@
   </div>
 
   <script>
-    // ===== Google OAuth T&C enforcement =====
-    const tncCheck   = document.getElementById('tncCheck');
-    const googleLink = document.getElementById('googleLogin');
-    const tncError   = document.getElementById('tncError');
+  // ===== Config =====
+  const CONSENT_ENDPOINT = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/consent";
+  const CONSENT_VERSION  = "pp-v1.0"; // keep in sync with backend
 
-    function updateGoogleState() {
-      const ok = tncCheck.checked;
-      googleLink.classList.toggle('disabled', !ok);
-      googleLink.setAttribute('aria-disabled', String(!ok));
-      if (ok) tncError.style.display = 'none';
+  // ===== Elements =====
+  const tncCheck   = document.getElementById('tncCheck');
+  const googleLink = document.getElementById('googleLogin');
+  const tncError   = document.getElementById('tncError');
+
+  // ===== Helpers =====
+  function setGoogleEnabled(enabled) {
+    googleLink.classList.toggle('disabled', !enabled);
+    googleLink.setAttribute('aria-disabled', String(!enabled));
+  }
+
+  function saveConsentLocally(payload) {
+    localStorage.setItem("consent_given", String(!!payload.consent_given));
+    if (payload.consent_at)     localStorage.setItem("consent_at", payload.consent_at);
+    if (payload.consent_version) localStorage.setItem("consent_version", payload.consent_version);
+  }
+
+  function hasValidStoredConsent() {
+    return localStorage.getItem("consent_given") === "true" &&
+           localStorage.getItem("consent_version") === CONSENT_VERSION;
+  }
+
+  // Try to reuse a prior valid consent (same version)
+  (function bootstrapConsent() {
+    if (hasValidStoredConsent()) {
+      tncCheck.checked = true;
+      setGoogleEnabled(true);
+      tncError.style.display = 'none';
+    } else {
+      setGoogleEnabled(false);
     }
-    updateGoogleState();
-    tncCheck.addEventListener('change', updateGoogleState);
+  })();
 
-    googleLink.addEventListener('click', function (e) {
-      if (googleLink.classList.contains('disabled')) {
-        e.preventDefault();
-        tncError.style.display = 'block';
-        tncCheck.focus();
-      }
-    });
+  async function sendConsentOnce() {
+    // Avoid duplicate POSTs if we already stored valid consent
+    if (hasValidStoredConsent()) return;
 
-    // ===== Google OAuth redirect handling =====
-    const urlParams = new URLSearchParams(window.location.search);
-    const token  = urlParams.get("token");
-    const email  = urlParams.get("email");
-    const role   = urlParams.get("role");
+    // Optional identity if available (nice-to-have for your backend)
+    const emailFromStorage = localStorage.getItem("email") || "";
+    const emailFromForm = document.getElementById("email")?.value?.trim() || "";
+    const identity = emailFromStorage || emailFromForm || undefined;
 
-    if (token) {
-      localStorage.setItem("access_token", token);
-      if (email) localStorage.setItem("email", email);
-      if (role)  localStorage.setItem("role", role);
-      window.location.href = "/G-CS-Guardian/web.html";
-    }
-
-    // ===== Admin email/password login =====
-    document.getElementById("loginForm").addEventListener("submit", function (event) {
-      event.preventDefault();
-      login();
-    });
-
-    function login() {
-      const emailVal = document.getElementById("email").value.trim();
-      const passwordVal = document.getElementById("password").value;
-
-      fetch("https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/auth/login", {
+    try {
+      const res = await fetch(CONSENT_ENDPOINT, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: emailVal, password: passwordVal }),
-      })
-      .then((res) => {
-        if (!res.ok) throw new Error("Login failed");
-        return res.json();
-      })
-      .then((data) => {
-        if (data.access_token) {
-          localStorage.setItem("access_token", data.access_token);
-          if (data.email) localStorage.setItem("email", data.email);
-          if (data.role)  localStorage.setItem("role", data.role);
-          window.location.href = "/G-CS-Guardian/web.html";
-        } else {
-          document.getElementById("error").textContent = "Invalid email or password.";
-          document.getElementById("error").style.display = "block";
-        }
-      })
-      .catch((err) => {
-        console.error("Login Error:", err);
-        const el = document.getElementById("error");
-        el.textContent = "Something went wrong. Try again.";
-        el.style.display = "block";
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          consent_given: true,
+          consent_version: CONSENT_VERSION,
+          consent_at: new Date().toISOString(),
+          email: identity // optional; backend can ignore
+        })
       });
+
+      if (!res.ok) throw new Error(`Consent HTTP ${res.status}`);
+      const data = await res.json(); // {consent_given, consent_at, consent_version}
+      saveConsentLocally(data);
+      setGoogleEnabled(true);
+      tncError.style.display = 'none';
+    } catch (err) {
+      console.error("Consent Error:", err);
+      // Roll back UI if we couldn't record consent
+      tncCheck.checked = false;
+      setGoogleEnabled(false);
+      tncError.textContent = "Could not record consent. Please try again.";
+      tncError.style.display = 'block';
     }
-  </script>
+  }
+
+  // Click/Change handlers
+  tncCheck.addEventListener('change', () => {
+    if (tncCheck.checked) {
+      sendConsentOnce();
+    } else {
+      // If user unchecks, disable Google and clear stored consent (optional behavior)
+      setGoogleEnabled(false);
+      localStorage.removeItem("consent_given");
+      localStorage.removeItem("consent_at");
+      localStorage.removeItem("consent_version");
+    }
+  });
+
+  googleLink.addEventListener('click', function (e) {
+    if (googleLink.classList.contains('disabled')) {
+      e.preventDefault();
+      tncError.style.display = 'block';
+      tncCheck.focus();
+    }
+  });
+
+  // ===== Google OAuth redirect handling (unchanged) =====
+  const urlParams = new URLSearchParams(window.location.search);
+  const token  = urlParams.get("token");
+  const email  = urlParams.get("email");
+  const role   = urlParams.get("role");
+
+  if (token) {
+    localStorage.setItem("access_token", token);
+    if (email) localStorage.setItem("email", email);
+    if (role)  localStorage.setItem("role", role);
+    window.location.href = "/G-CS-Guardian/web.html";
+  }
+
+  // ===== Admin email/password login (unchanged) =====
+  document.getElementById("loginForm").addEventListener("submit", function (event) {
+    event.preventDefault();
+    login();
+  });
+
+  function login() {
+    const emailVal = document.getElementById("email").value.trim();
+    const passwordVal = document.getElementById("password").value;
+
+    fetch("https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: emailVal, password: passwordVal }),
+    })
+    .then((res) => {
+      if (!res.ok) throw new Error("Login failed");
+      return res.json();
+    })
+    .then((data) => {
+      if (data.access_token) {
+        localStorage.setItem("access_token", data.access_token);
+        if (data.email) localStorage.setItem("email", data.email);
+        if (data.role)  localStorage.setItem("role", data.role);
+        window.location.href = "/G-CS-Guardian/web.html";
+      } else {
+        const el = document.getElementById("error");
+        el.textContent = "Invalid email or password.";
+        el.style.display = "block";
+      }
+    })
+    .catch((err) => {
+      console.error("Login Error:", err);
+      const el = document.getElementById("error");
+      el.textContent = "Something went wrong. Try again.";
+      el.style.display = "block";
+    });
+  }
+</script>
+
 </body>
 </html>
