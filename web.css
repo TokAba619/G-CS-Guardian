@@ -423,7 +423,7 @@ th, td, button, input, textarea, select,
 
 /* Brand logo (compact like screenshot) */
 .navbar-brand img.brand-logo {
-  width: 210px;           /* let it scale naturally */
+  width: 190px;           /* let it scale naturally */
   height: 200px;          /* control by height, not width */
   object-fit: contain;
   display: block;
