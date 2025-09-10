@@ -53,17 +53,17 @@
     .dashboard-table { width: 100%; border-collapse: collapse; background: #111; color: #eee; margin-top: .75rem; border-radius: 10px; overflow: hidden; }
     .dashboard-table th, .dashboard-table td { padding: 0.8rem 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left; vertical-align: top; }
     .dashboard-table th { background-color: var(--cyan); color: #111; position: relative; user-select:none; cursor:pointer; }
-    .dashboard-table th .sort-ind { position:absolute; right:.6rem; opacity:.7; }
+    .dashboard-table th .sort-ind { position:absolute; right:.6rem; opacity:.7; color:#000; }
     .dashboard-table tr:hover { background: rgba(255,255,255,0.05); }
 
-    /* Badges */
+    /* Badges (black text) */
     .badge { display:inline-block; padding:.25rem .5rem; border-radius:999px; font-size:.8rem; }
-    .badge-public { background:rgb(255, 0, 0); color:#000000; }
-    .badge-private { background:#00ff00; color:#000000; }
-    .risk-low { background:#00ff37; color:#000000; }
-    .risk-medium { background:#ffee00; color:#000000; }
-    .risk-high { background:#7a0c0c; color:#000000; }
-    .risk-critical { background:#ff0000; color:#000000; }
+    .badge-public  { background:#ff0000; color:#000000 !important; font-weight:700; }
+    .badge-private { background:#00ff00; color:#000000 !important; font-weight:700; }
+    .risk-low      { background:#00ff37; color:#000000 !important; font-weight:700; }
+    .risk-medium   { background:#ffee00; color:#000000 !important; font-weight:700; }
+    .risk-high     { background:#7a0c0c; color:#000000 !important; font-weight:700; }
+    .risk-critical { background:#ff0000; color:#000000 !important; font-weight:700; }
 
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
     .nowrap { white-space: nowrap; }
@@ -81,6 +81,21 @@
       text-decoration: underline;
     }
     .sample-link:hover { color: #c2185b; }
+
+    /* ===== Risk Reason tidy list styles ===== */
+    .dashboard-table td.risk-reason { white-space: normal !important; }
+    .risk-reason-list{ margin:.25rem 0; padding-left:1.1rem; }
+    .risk-reason-list li{ margin:.25rem 0; line-height:1.5; }
+    .risk-reason-list .tag{
+      display:inline-block;
+      margin:.15rem .25rem 0 0;
+      padding:.15rem .45rem;
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,0.5);
+      background: rgba(255,255,255,.08);
+      font-size:.85em;
+      color:#ddd;
+    }
 
     /* ===== My-Scan ===== */
     .myscan-feature { margin-top: 2rem; }
@@ -388,14 +403,8 @@
   <!-- SCRIPTS (inline bootstrapping) -->
   <script>
     // ====== Simple helpers ======
-    function scrollToSection(id) {
-      const el = document.getElementById(id);
-      if (el) el.scrollIntoView({ behavior: "smooth" });
-    }
-    function formatDate(timestamp) {
-      const date = new Date(timestamp);
-      return isNaN(date.getTime()) ? "N/A" : date.toLocaleString();
-    }
+    function scrollToSection(id) { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: "smooth" }); }
+    function formatDate(timestamp) { const date = new Date(timestamp); return isNaN(date.getTime()) ? "N/A" : date.toLocaleString(); }
     function getToken() { return localStorage.getItem("access_token"); }
 
     // ====== Risk helpers: 1–10 scale ======
@@ -491,6 +500,35 @@
   if (historySection && !isOwner) historySection.style.display = "none";
 })();
 
+    // ====== Risk Reason tidy formatting ======
+    function htmlEscape(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function formatRiskReasonHTML(reason) {
+      if (!reason) return "N/A";
+      const parts = String(reason)
+        .split(/\s*\|\s*/g)
+        .flatMap(p => p.split(/(?<=\.)\s+(?=[A-Z])|–|—/g))
+        .map(s => s.trim().replace(/\s*\.+$/, ''))
+        .filter(Boolean);
+
+      const items = parts.map(p => {
+        const kw = p.match(/^\s*Sensitive keywords detected:\s*(.+)$/i);
+        if (kw) {
+          const chips = kw[1]
+            .split(/[,;]\s*/)
+            .map(x => x.replace(/^(bucket[:\s]*)?/i, '').trim())
+            .filter(Boolean)
+            .map(k => `<span class="tag">bucket: ${htmlEscape(k)}</span>`)
+            .join(" ");
+          return `<li>Sensitive keywords detected:<div>${chips}</div></li>`;
+        }
+        return `<li>${htmlEscape(p)}</li>`;
+      }).join("");
+
+      return `<ul class="risk-reason-list">${items}</ul>`;
+    }
+
     // ====== Generic table renderer (reusable) ======
     function renderResultsTable(options) {
       const {
@@ -547,7 +585,6 @@
       function buildSampleLinks(samples) {
         if (!samples) return "";
         const arr = Array.isArray(samples) ? samples : [samples];
-
         const items = arr.map((s) => {
           const href = String(s);
           let label = href;
@@ -560,7 +597,6 @@
           }
           return `<li><a class="sample-link" href="${href}" target="_blank" rel="noopener" title="${href}">${label}</a></li>`;
         }).join("");
-
         return `<ul class="sample-list">${items}</ul>`;
       }
 
@@ -574,6 +610,7 @@
             : (b.sensitive_keywords_detected ?? "None");
 
           const samplesHtml = ethicalMode && b.sample_files ? buildSampleLinks(b.sample_files) : "";
+          const reasonHtml = formatRiskReasonHTML(b.risk_reason);
 
           const tr = document.createElement("tr");
           tr.innerHTML = `
@@ -583,8 +620,8 @@
             </td>
             <td class="nowrap mono">${b.risk_score ?? "0"}</td>
             <td class="nowrap"><span class="badge ${riskClass(level)}">${level}</span></td>
-            <td>${b.risk_reason ?? "N/A"}</td>
-            <td>${sens}</td>
+            <td class="risk-reason">${reasonHtml}</td>
+            <td>${htmlEscape(sens)}</td>
             <td class="sample-col" style="${ethicalMode ? "" : "display:none;"}">${samplesHtml}</td>
           `;
           tbody.appendChild(tr);
