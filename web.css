@@ -328,10 +328,11 @@ th, td, button, input, textarea, select,
 .badge-public{ background:#ff0000; color:#000; }
 .badge-private{ background:#3cff00; color:#000; }
 
-.risk-low{ background:#204d2a; color:#000; }
-.risk-medium{ background:#4d3a20; color:#000; }
-.risk-high{ background:#5a2525; color:#000; }
-.risk-critical{ background:#6b1a1a; color:#000; }
+/* ✅ Force black text for risk levels */
+.risk-low{ background:#204d2a; color:#000 !important; }
+.risk-medium{ background:#4d3a20; color:#000 !important; }
+.risk-high{ background:#5a2525; color:#000 !important; }
+.risk-critical{ background:#6b1a1a; color:#000 !important; }
 
 /* Small-screen table scroll */
 @media (max-width: 900px){
