@@ -18,10 +18,6 @@
   /* Navbar + brand sizing (slim + balanced) */
   --navbar-h: 120px;
   --brand-logo-h: 170px;
-
-  /* NEW: results/detailed report width control */
-  --report-maxw: 1100px;          /* <— change this to taste (e.g., 1000px / 1200px) */
-  --report-gutter: 48px;          /* <— side breathing room vs viewport edges */
 }
 
 /* Video BG */
@@ -273,9 +269,9 @@ th, td, button, input, textarea, select,
 ==================================*/
 .table-tools{ display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; margin-top:.75rem; }
 
-/* Center tools and keep them off the edges of the viewport */
+/* Center tools to the same width as the report container */
 #results-tools, #detailed-tools{
-  width: min(var(--report-maxw), calc(100vw - 2*var(--report-gutter)));
+  width: 100%;
   margin: .75rem auto 0;
 }
 
@@ -285,13 +281,10 @@ th, td, button, input, textarea, select,
 .table-tools .chip{ background:#1a1a1a; color:#ccc; padding:.35rem .6rem; border-radius:999px; font-size:.85rem; }
 
 .dashboard-table{
-  /* Hard cap + center */
-  width: min(var(--report-maxw), calc(100vw - 2*var(--report-gutter)));
-  margin: .75rem auto;
-
+  width: 100%;
+  margin: .75rem auto 0;
   border-collapse:collapse; background: var(--card-bg);
-  border-radius:12px; overflow:hidden; display:table;
-  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+  border-radius:10px; overflow:hidden; display:table;
 }
 .dashboard-table th, .dashboard-table td{
   padding:.8rem .9rem; border-bottom:1px solid var(--muted-border); text-align:left; vertical-align:top;
@@ -334,7 +327,7 @@ th, td, button, input, textarea, select,
   background: rgba(255,255,255,.08); font-size:.85em;
 }
 
-/* Sample Files links — bold & white so they stand out */
+/* Sample Files links — bold & white so they’re obvious */
 .sample-link{
   font-weight: 800;
   color: #ffffff !important;
@@ -432,4 +425,47 @@ th, td, button, input, textarea, select,
 ==================================*/
 @media (prefers-reduced-motion: reduce){
   *{ animation:none !important; transition:none !important; }
+}
+
+/* ============================================================
+   HARD CAP + CENTER RESULTS / DETAILED AREAS
+   (Keeps tables away from screen edges and perfectly centered)
+===============================================================*/
+:root{
+  --report-maxw: 1100px;     /* tweak to your liking */
+  --report-gutter: 48px;     /* side breathing room */
+}
+
+/* Cap + center the containers so content never hugs screen edges */
+#results .container,
+#myscan .container{
+  max-width: var(--report-maxw) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-left: var(--report-gutter) !important;
+  padding-right: var(--report-gutter) !important;
+}
+
+/* Let the tables fill the (now capped) container */
+#results .dashboard-table,
+#myscan .dashboard-table{
+  width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+}
+
+/* Make Sample Files links bold + white so they stand out */
+#results .sample-link,
+#myscan  .sample-link{
+  font-weight: 800 !important;
+  color: #fff !important;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+#results .sample-link:hover,
+#myscan  .sample-link:hover{
+  opacity: .9;
+  text-decoration-thickness: 2px;
 }
