@@ -313,12 +313,25 @@ th, td, button, input, textarea, select,
 }
 .dashboard-table thead th{
   background-color: var(--accent);
-  color: #000 !important;      /* ← headers (column names) black */
+  color: #000 !important;      /* headers (column names) black */
   position:sticky; top:0; z-index:2; user-select:none; cursor:pointer;
 }
 .dashboard-table thead th .sort-ind{ color:#000 !important; } /* sort arrow black */
 .dashboard-table tr:hover{ background: rgba(255,255,255,0.05); }
 .dashboard-table th .sort-ind{ float:right; opacity:.9; }
+
+/* ---- Center the Results/Detailed tables and their toolbars ---- */
+#results-table,
+#detailed-table{
+  width: min(1200px, 96%);
+  margin-left: auto;
+  margin-right: auto;
+}
+#results-tools,
+#detailed-tools{
+  width: min(1200px, 96%);
+  margin: .75rem auto 0;
+}
 
 /* Utilities */
 .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
@@ -358,6 +371,19 @@ th, td, button, input, textarea, select,
   border:1px solid var(--muted-border);
   background: rgba(255,255,255,.08);
   font-size:.85em;
+}
+
+/* Make Sample Files links bold + distinct color (override global white) */
+.sample-link{
+  font-weight: 800;
+  color: #00e5ff !important;     /* bright cyan */
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.sample-link:hover,
+.sample-link:focus{
+  color: #7df3ff !important;     /* brighter on hover/focus */
+  text-decoration-thickness: 2px;
 }
 
 /* Small-screen table scroll */
