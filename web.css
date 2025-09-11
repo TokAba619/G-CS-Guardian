@@ -275,7 +275,7 @@ th, td, button, input, textarea, select,
 .dashboard-table{
   margin-left: calc(-1 * var(--table-nudge));
   margin-right: var(--table-nudge);
-  width: calc(100% + var(--table-nudge));
+  width: calc(90% + var(--table-nudge));
 }
 
 /* Tools — follow container width */
@@ -409,7 +409,7 @@ th, td, button, input, textarea, select,
 /* ===============================
    LEGACY RESULTS TABLE
 ==================================*/
-.results-table{ width:100%; max-width:900px; margin:0 auto; border-collapse:collapse; box-shadow:0 0 20px rgba(0,0,0,0.1); background: var(--white); color:#000; }
+.results-table{ width:90%; max-width:900px; margin:0 auto; border-collapse:collapse; box-shadow:0 0 20px rgba(0,0,0,0.1); background: var(--white); color:#000; }
 .results-table th, .results-table td{ padding:12px 15px; border:1px solid #ddd; }
 .results-table th{ background-color: var(--accent); color: var(--white); text-transform:uppercase; }
 .results-table tr:nth-child(even){ background-color:#f2f2f2; }
