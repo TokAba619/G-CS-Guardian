@@ -262,7 +262,7 @@ th, td, button, input, textarea, select,
 }
 
 /* ===============================
-   DASHBOARD TABLE
+   DASHBOARD TABLE  (REVISED)
 ==================================*/
 
 /* Tools — follow container width */
@@ -271,66 +271,70 @@ th, td, button, input, textarea, select,
   margin: .75rem 0 0;
 }
 
-/* The table itself: stick to container, stay centered & tidy */
+/* Table: full width of container, mature look, auto layout */
 .dashboard-table{
-  width: 100%;               /* <= key: use container width */
-  margin: 0 0 2rem;          /* no extra side margins so it aligns with cards */
-  border-collapse: collapse;
+  width: 100%;
+  margin: 0 0 2rem;
+  border-collapse: separate;
+  border-spacing: 0;
   background: var(--card-bg);
   border-radius: 10px;
   overflow: hidden;
-  table-layout: fixed;       /* stable columns even when toggling */
+  table-layout: auto;                /* let columns size to content */
+  box-shadow: 0 6px 18px rgba(0,0,0,.25);
 }
 
-/* column widths (sum to 100%) — give Sample Files enough room */
-.dashboard-table thead th:nth-child(1),
-.dashboard-table tbody td:nth-child(1){ width:20%; }  /* Bucket Name */
-.dashboard-table thead th:nth-child(2),
-.dashboard-table tbody td:nth-child(2){ width:9%; }   /* Status */
-.dashboard-table thead th:nth-child(3),
-.dashboard-table tbody td:nth-child(3){ width:8%; }   /* Risk Score */
-.dashboard-table thead th:nth-child(4),
-.dashboard-table tbody td:nth-child(4){ width:10%; }  /* Risk Level */
-.dashboard-table thead th:nth-child(5),
-.dashboard-table tbody td:nth-child(5){ width:32%; }  /* Risk Reason */
-.dashboard-table thead th:nth-child(6),
-.dashboard-table tbody td:nth-child(6){ width:11%; }  /* Sensitive Keywords */
-.dashboard-table thead th:nth-child(7),
-.dashboard-table tbody td:nth-child(7){ width:10%; }  /* Sample Files */
-
-.dashboard-table th, .dashboard-table td{
-  padding:.8rem .9rem;
-  border-bottom:1px solid var(--muted-border);
-  text-align:left; vertical-align:top;
-  overflow-wrap:anywhere;   /* prevent horizontal overflow */
-}
-
-/* Keep headers on one line and tidy even in narrow widths */
+/* Sticky header, readable, wrap long titles */
 .dashboard-table thead th{
-  background-color: var(--accent);
+  background: linear-gradient(180deg, #e91e63, #c51654);
   color: #000 !important;
-  position: sticky; top: 0; z-index: 2; user-select: none; cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  position: sticky; top: 0; z-index: 2;
+  user-select: none; cursor: pointer;
+
+  font-weight: 800;
+  font-size: 0.95rem;
+  line-height: 1.25;
+  white-space: normal;               /* allow wrapping */
+  overflow: visible;
+  text-overflow: clip;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(0,0,0,.35);
 }
+
+/* Body cells */
+.dashboard-table th,
+.dashboard-table td{
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  text-align: left;
+  vertical-align: top;
+  word-break: normal;
+  overflow-wrap: anywhere;           /* prevents horizontal overflow */
+}
+
+/* Zebra + hover */
+.dashboard-table tbody tr:nth-child(even){ background: rgba(255,255,255,.03); }
+.dashboard-table tbody tr:hover{ background: rgba(255,255,255,.06); }
+.dashboard-table tbody tr:last-child td{ border-bottom: 0; }
+
+/* Sorting icon tone */
 .dashboard-table thead th .sort-ind{ color:#000 !important; float:right; opacity:.9; }
 
-.dashboard-table tr:hover{ background: rgba(255,255,255,0.05); }
-
-.mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-.nowrap{ white-space:nowrap; }
-
-/* Badges */
-.badge{ display:inline-block; padding:.25rem .5rem; border-radius:999px; font-size:.8rem; line-height:1; }
-.badge-public{ background:#ff0000; color:#000 !important; font-weight:700; }
-.badge-private{ background:#3cff00; color:#000 !important; font-weight:700; }
-
-/* Risk levels (black text) */
-.risk-low{ background:#204d2a; color:#000 !important; }
-.risk-medium{ background:#4d3a20; color:#000 !important; }
-.risk-high{ background:#5a2525; color:#000 !important; }
-.risk-critical{ background:#6b1a1a; color:#000 !important; }
+/* Column sizing: min-widths sum ≈ 1200px (fits container/laptop) */
+.dashboard-table thead th:nth-child(1),
+.dashboard-table tbody td:nth-child(1){ min-width: 220px; } /* Bucket Name */
+.dashboard-table thead th:nth-child(2),
+.dashboard-table tbody td:nth-child(2){ min-width: 110px; } /* Status */
+.dashboard-table thead th:nth-child(3),
+.dashboard-table tbody td:nth-child(3){ min-width: 110px; } /* Risk Score */
+.dashboard-table thead th:nth-child(4),
+.dashboard-table tbody td:nth-child(4){ min-width: 120px; } /* Risk Level */
+.dashboard-table thead th:nth-child(5),
+.dashboard-table tbody td:nth-child(5){ min-width: 300px; } /* Risk Reason */
+.dashboard-table thead th:nth-child(6),
+.dashboard-table tbody td:nth-child(6){ min-width: 180px; } /* Sensitive Keywords */
+.dashboard-table thead th:nth-child(7),
+.dashboard-table tbody td:nth-child(7){ min-width: 160px; } /* Sample Files */
 
 /* Risk Reason tidy list */
 .dashboard-table td.risk-reason{ white-space: normal !important; }
@@ -342,7 +346,7 @@ th, td, button, input, textarea, select,
   background: rgba(255,255,255,.08); font-size:.85em;
 }
 
-/* Sample Files link: bold + white + ellipsis so it never blows width */
+/* Sample Files link */
 .sample-link{
   font-weight: 800;
   color: #ffffff !important;
@@ -360,11 +364,27 @@ th, td, button, input, textarea, select,
   text-decoration-thickness: 2px;
 }
 
-/* Small-screen table scroll (still aligned with container) */
+/* Badges */
+.badge{ display:inline-block; padding:.25rem .5rem; border-radius:999px; font-size:.8rem; line-height:1; }
+.badge-public{ background:#ff3b3b; color:#000 !important; font-weight:700; }
+.badge-private{ background:#81ff63; color:#000 !important; font-weight:700; }
+
+/* Risk levels */
+.risk-low{ background:#1b3f26; color:#e8ffe8 !important; }
+.risk-medium{ background:#4a3520; color:#ffeeda !important; }
+.risk-high{ background:#532121; color:#ffecec !important; }
+.risk-critical{ background:#5e1717; color:#fff2f2 !important; }
+
+/* Small-screen: horizontal scroll with sticky header */
 @media (max-width: 900px){
   .dashboard-table{
     display: block;
     overflow-x: auto;
+    max-width: 100%;
+  }
+  .dashboard-table thead th{
+    position: sticky;
+    top: 0;
   }
 }
 
