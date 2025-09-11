@@ -17,6 +17,9 @@
 
   --navbar-h: 120px;
   --brand-logo-h: 170px;
+
+  /* Nudge the results tools + table slightly left for visual balance */
+  --table-nudge: 16px;  /* adjust 12–24px to taste */
 }
 
 /* Video BG */
@@ -145,6 +148,7 @@ th, td, button, input, textarea, select,
 }
 .container.visible{ transform: translateY(0); opacity: 1; }
 
+/* Cards (unchanged) */
 .cards-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px; padding:20px; }
 .card{
   background:#1a1a1a; padding:16px; border-radius:12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
@@ -262,19 +266,25 @@ th, td, button, input, textarea, select,
 }
 
 /* ===============================
-   DASHBOARD TABLE  (REVISED)
+   DASHBOARD TABLE  (REVISED + NUDGE)
 ==================================*/
+
+/* Move tools + table slightly left for balance */
+#results-tools,
+#detailed-tools,
+.dashboard-table{
+  margin-left: calc(-1 * var(--table-nudge));
+  margin-right: var(--table-nudge);
+  width: calc(100% + var(--table-nudge));
+}
 
 /* Tools — follow container width */
 #results-tools, #detailed-tools{
-  width: 100%;
-  margin: .75rem 0 0;
+  margin-top: .75rem;
 }
 
 /* Table: full width of container, mature look, auto layout */
 .dashboard-table{
-  width: 100%;
-  margin: 0 0 2rem;
   border-collapse: separate;
   border-spacing: 0;
   background: var(--card-bg);
@@ -282,6 +292,7 @@ th, td, button, input, textarea, select,
   overflow: hidden;
   table-layout: auto;                /* let columns size to content */
   box-shadow: 0 6px 18px rgba(0,0,0,.25);
+  margin-bottom: 2rem;
 }
 
 /* Sticky header, readable, wrap long titles */
@@ -348,15 +359,15 @@ th, td, button, input, textarea, select,
 
 /* Sample Files link */
 .sample-link{
-  font-weight: 800;
+  font-weight: 600;
   color: #ffffff !important;
   text-decoration: underline;
   text-underline-offset: 2px;
   display:inline-block;
-  max-width:50%;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+  max-width: 50%;            /* keep tidy; expand if you want longer names visible */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .sample-link:hover,
 .sample-link:focus{
@@ -375,8 +386,15 @@ th, td, button, input, textarea, select,
 .risk-high{ background:#532121; color:#ffecec !important; }
 .risk-critical{ background:#5e1717; color:#fff2f2 !important; }
 
-/* Small-screen: horizontal scroll with sticky header */
+/* Small-screen: horizontal scroll with sticky header and no nudge */
 @media (max-width: 900px){
+  #results-tools,
+  #detailed-tools,
+  .dashboard-table{
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
+  }
   .dashboard-table{
     display: block;
     overflow-x: auto;
