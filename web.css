@@ -18,8 +18,8 @@
   --navbar-h: 120px;
   --brand-logo-h: 170px;
 
-  /* Viewport-based balance for tools + table */
-  --table-max-width: min(1400px, 94vw); /* never wider than screen */
+  /* Nudge the results tools + table slightly left for visual balance */
+  --table-nudge: 16px;  /* adjust 12–24px to taste */
 }
 
 /* Video BG */
@@ -148,6 +148,7 @@ th, td, button, input, textarea, select,
 }
 .container.visible{ transform: translateY(0); opacity: 1; }
 
+/* Cards (unchanged) */
 .cards-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px; padding:20px; }
 .card{
   background:#1a1a1a; padding:16px; border-radius:12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
@@ -265,29 +266,32 @@ th, td, button, input, textarea, select,
 }
 
 /* ===============================
-   DASHBOARD TABLE  (VIEWPORT-CENTERED)
+   DASHBOARD TABLE  (REVISED + NUDGE)
 ==================================*/
 
-/* Center the filter row + table relative to the screen */
+/* Move tools + table slightly left for balance */
 #results-tools,
 #detailed-tools,
 .dashboard-table{
-  max-width: var(--table-max-width);
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
+  margin-left: calc(-1 * var(--table-nudge));
+  margin-right: var(--table-nudge);
+  width: calc(100% + var(--table-nudge));
 }
 
-/* Table surface */
+/* Tools — follow container width */
+#results-tools, #detailed-tools{
+  margin-top: .75rem;
+}
+
+/* Table: full width of container, mature look, auto layout */
 .dashboard-table{
   border-collapse: separate;
   border-spacing: 0;
   background: var(--card-bg);
   border-radius: 10px;
   overflow: hidden;
-  table-layout: auto;                /* columns size to content */
+  table-layout: auto;                /* let columns size to content */
   box-shadow: 0 6px 18px rgba(0,0,0,.25);
-  margin-top: .75rem;
   margin-bottom: 2rem;
 }
 
@@ -316,7 +320,7 @@ th, td, button, input, textarea, select,
   text-align: left;
   vertical-align: top;
   word-break: normal;
-  overflow-wrap: anywhere;
+  overflow-wrap: anywhere;           /* prevents horizontal overflow */
 }
 
 /* Zebra + hover */
@@ -324,10 +328,10 @@ th, td, button, input, textarea, select,
 .dashboard-table tbody tr:hover{ background: rgba(255,255,255,.06); }
 .dashboard-table tbody tr:last-child td{ border-bottom: 0; }
 
-/* Sorting icon */
+/* Sorting icon tone */
 .dashboard-table thead th .sort-ind{ color:#000 !important; float:right; opacity:.9; }
 
-/* Column sizing: min-widths total ≈ 1200px (fits most laptops) */
+/* Column sizing: min-widths sum ≈ 1200px (fits container/laptop) */
 .dashboard-table thead th:nth-child(1),
 .dashboard-table tbody td:nth-child(1){ min-width: 220px; } /* Bucket Name */
 .dashboard-table thead th:nth-child(2),
@@ -360,7 +364,7 @@ th, td, button, input, textarea, select,
   text-decoration: underline;
   text-underline-offset: 2px;
   display:inline-block;
-  max-width: 50%;
+  max-width: 50%;            /* keep tidy; expand if you want longer names visible */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -382,16 +386,23 @@ th, td, button, input, textarea, select,
 .risk-high{ background:#532121; color:#ffecec !important; }
 .risk-critical{ background:#5e1717; color:#fff2f2 !important; }
 
-/* Small-screen: horizontal scroll */
+/* Small-screen: horizontal scroll with sticky header and no nudge */
 @media (max-width: 900px){
   #results-tools,
   #detailed-tools,
   .dashboard-table{
-    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
   }
   .dashboard-table{
     display: block;
     overflow-x: auto;
+    max-width: 100%;
+  }
+  .dashboard-table thead th{
+    position: sticky;
+    top: 0;
   }
 }
 
@@ -475,3 +486,6 @@ th, td, button, input, textarea, select,
 @media (prefers-reduced-motion: reduce){
   *{ animation:none !important; transition:none !important; }
 }
+
+/* ---------- Center the filters + table (remove left nudge) ---------- */
+:root{ --table-nudge: 0px; }  /* or just delete the nudge block entirely */
