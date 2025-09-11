@@ -18,6 +18,10 @@
   /* Navbar + brand sizing (slim + balanced) */
   --navbar-h: 120px;
   --brand-logo-h: 170px;
+
+  /* NEW: results/detailed report width control */
+  --report-maxw: 1100px;          /* <— change this to taste (e.g., 1000px / 1200px) */
+  --report-gutter: 48px;          /* <— side breathing room vs viewport edges */
 }
 
 /* Video BG */
@@ -269,9 +273,9 @@ th, td, button, input, textarea, select,
 ==================================*/
 .table-tools{ display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; margin-top:.75rem; }
 
-/* Center tools + tables and keep them off the very edges */
+/* Center tools and keep them off the edges of the viewport */
 #results-tools, #detailed-tools{
-  width: min(1200px, 96%);
+  width: min(var(--report-maxw), calc(100vw - 2*var(--report-gutter)));
   margin: .75rem auto 0;
 }
 
@@ -281,13 +285,13 @@ th, td, button, input, textarea, select,
 .table-tools .chip{ background:#1a1a1a; color:#ccc; padding:.35rem .6rem; border-radius:999px; font-size:.85rem; }
 
 .dashboard-table{
-  /* Center the table and limit its width */
-  width: min(1200px, 96%);
-  margin-left: auto;
-  margin-right: auto;
+  /* Hard cap + center */
+  width: min(var(--report-maxw), calc(100vw - 2*var(--report-gutter)));
+  margin: .75rem auto;
 
-  border-collapse:collapse; background: var(--card-bg); margin-top:.75rem;
-  border-radius:10px; overflow:hidden; display:table;
+  border-collapse:collapse; background: var(--card-bg);
+  border-radius:12px; overflow:hidden; display:table;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
 }
 .dashboard-table th, .dashboard-table td{
   padding:.8rem .9rem; border-bottom:1px solid var(--muted-border); text-align:left; vertical-align:top;
@@ -330,7 +334,7 @@ th, td, button, input, textarea, select,
   background: rgba(255,255,255,.08); font-size:.85em;
 }
 
-/* Sample Files links — bold & white so they’re obvious but on-brand */
+/* Sample Files links — bold & white so they stand out */
 .sample-link{
   font-weight: 800;
   color: #ffffff !important;
