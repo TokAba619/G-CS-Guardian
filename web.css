@@ -5,8 +5,8 @@
 /* Theme & surfaces */
 :root{
   --bg-brightness: 100%;
-  --accent: #E91E63;        /* primary accent (pink) */
-  --cyan: var(--accent);    /* alias for backward compatibility */
+  --accent: #E91E63;
+  --cyan: var(--accent);
 
   --bg-dark: #0b0b0b;
   --card-bg: #111;
@@ -15,7 +15,6 @@
   --white: #ffffff;
   --black: #000000;
 
-  /* Navbar + brand sizing (slim + balanced) */
   --navbar-h: 120px;
   --brand-logo-h: 170px;
 }
@@ -66,7 +65,6 @@ th, td, button, input, textarea, select,
 }
 .navbar.scrolled{ background: transparent; box-shadow: none; }
 
-/* Brand (logo + text) */
 .navbar-brand{
   display: inline-flex; align-items: center; gap: 12px;
   color: var(--white); text-decoration: none; letter-spacing: 1px;
@@ -82,7 +80,6 @@ th, td, button, input, textarea, select,
 }
 .navbar-brand .brand-text{ color: var(--white); }
 
-/* Nav links */
 .nav-links{ list-style:none; display:flex; gap:30px; align-items:center; }
 .nav-links a{
   text-decoration:none; font-size:1.05rem; font-weight: 700;
@@ -95,7 +92,6 @@ th, td, button, input, textarea, select,
 .nav-links a:hover::after, .nav-links a.active::after{ width:100%; }
 .nav-links a:hover{ color: var(--white) !important; }
 
-/* Optional right-side CTA */
 .nav-cta{
   background: var(--white);
   color: var(--black) !important;
@@ -108,7 +104,6 @@ th, td, button, input, textarea, select,
 .nav-cta:active{ transform: translateY(1px); }
 .nav-cta .icon{ font-size: 1.1rem; }
 
-/* Mobile hamburger */
 .hamburger-menu{ display:none; font-size:2rem; cursor:pointer; }
 
 /* ===============================
@@ -125,7 +120,6 @@ th, td, button, input, textarea, select,
 
 .form{ display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; margin-top:20px; }
 
-/* Shared video bg for FAQ/Team sections */
 .faq{ position: relative; overflow: hidden; }
 .bg-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:-1; filter: brightness(var(--bg-brightness)); }
 .faq-content{ position:relative; z-index:1; padding:60px 20px; text-align:center; }
@@ -139,10 +133,14 @@ th, td, button, input, textarea, select,
 }
 .team-slider{ display:flex; flex-wrap:wrap; justify-content:center; gap:20px; }
 
-/* Containers & cards */
+/* Center all “container” blocks */
 .container{
-  max-width: 1200px; margin:0 auto; padding:0 20px;
-  transform: translateY(100px); opacity:0; transition: all 1s cubic-bezier(0.25,0.46,0.45,0.94);
+  max-width: 1200px;
+  margin:0 auto;
+  padding:0 20px;
+  transform: translateY(100px);
+  opacity:0;
+  transition: all 1s cubic-bezier(0.25,0.46,0.45,0.94);
   position: relative; z-index:2;
 }
 .container.visible{ transform: translateY(0); opacity: 1; }
@@ -156,7 +154,7 @@ th, td, button, input, textarea, select,
 .card h3{ font-size:18px; font-weight:700; margin-bottom:10px; line-height:1.3; }
 .card p{ font-size:14px; line-height:1.6; text-align:justify; }
 
-/* Team flip cards */
+/* Flip cards */
 .team-card{ width:300px; height:380px; perspective: 1000px; margin: 0 10px; }
 .card-inner{ position:relative; width:100%; height:100%; transition: transform .8s; transform-style: preserve-3d; }
 .team-card:hover .card-inner{ transform: rotateY(180deg); }
@@ -205,19 +203,14 @@ th, td, button, input, textarea, select,
 .cta-pink:hover{ background: #d81b60; box-shadow: 0 10px 28px rgba(233,30,99,.34); }
 .cta-pink:active{ transform: translateY(1px); box-shadow: 0 6px 20px rgba(233,30,99,.28); }
 
-/* (Old) Terminal styles) */
+/* Terminal bits kept */
 .card1{ background-color: rgba(217,217,217,0.18); backdrop-filter: blur(8px); border-radius:12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow:hidden; width:500px; }
 .terminal-header{ background-color:#202425; padding:10px 15px; display:flex; align-items:center; }
 .terminal-title{ font-size:14px; font-weight:700; display:flex; align-items:center; gap:8px; }
 .terminal-icon{ color: var(--accent); }
 .terminal-body{ background-color:#202425; padding:15px; font-family:"Courier New", Courier, monospace; }
-.command-line{ display:flex; align-items:center; }
-.prompt{ margin-right:10px; }
-.input-wrapper{ position:relative; flex-grow:1; }
-.input-field{ background-color:transparent; border:none; color: var(--white) !important; font-family:inherit; font-size:14px; outline:none; width:100%; padding-right:10px; }
-.input-field::placeholder{ color: rgba(255,255,255,0.6); }
 
-/* LOADER */
+/* Loader */
 .terminal-loader{ border:.1em solid #333; background-color:#1a1a1a; color:#0f0; font-family:"Courier New", Courier, monospace; font-size:1em; padding:1.5em 1em; width:25em; box-shadow:0 4px 8px rgba(0,0,0,0.2); border-radius:4px; position:relative; overflow:hidden; box-sizing:border-box; }
 .terminal-loader .terminal-header{ position:absolute; top:0; left:0; right:0; height:1.5em; background-color:#333; border-top-left-radius:4px; border-top-right-radius:4px; padding:0 .4em; box-sizing:border-box; }
 .terminal-loader .terminal-controls{ float:right; }
@@ -247,7 +240,11 @@ th, td, button, input, textarea, select,
    RESULTS & CARDS
 ==================================*/
 .results-container{ margin-top:2rem; display:flex; flex-direction:column; gap:1rem; }
-.result-card{ background: var(--card-bg); padding:1rem; border-radius:8px; box-shadow: 0 0 10px rgba(0,0,0,0.3); }
+.result-card{
+  background: var(--card-bg);
+  padding:1rem; border-radius:8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
 .result-card h3, .result-card h4{ color: var(--white) !important; }
 
 /* Floating shapes */
@@ -265,38 +262,66 @@ th, td, button, input, textarea, select,
 }
 
 /* ===============================
-   DASHBOARD TABLE (NEW)
+   DASHBOARD TABLE
 ==================================*/
-.table-tools{ display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; margin-top:.75rem; }
 
-/* Center tools to the same width as the report container */
+/* Center filter tools */
 #results-tools, #detailed-tools{
-  width: 100%;
+  max-width: 1200px;
+  width: 96%;
   margin: .75rem auto 0;
 }
 
+.table-tools{ display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
 .table-tools input[type="text"]{
   padding:.5rem .6rem; border:none; border-radius:6px; background:#1a1a1a;
 }
 .table-tools .chip{ background:#1a1a1a; color:#ccc; padding:.35rem .6rem; border-radius:999px; font-size:.85rem; }
 
+/* The table itself: centered, fixed layout so columns stay stable */
 .dashboard-table{
-  width: 100%;
-  margin: .75rem auto 0;
-  border-collapse:collapse; background: var(--card-bg);
-  border-radius:10px; overflow:hidden; display:table;
+  max-width: 1200px;       /* hard stop */
+  width: 96%;              /* breathing room left/right */
+  margin: 0 auto 2rem;     /* center it */
+  border-collapse: collapse;
+  background: var(--card-bg);
+  border-radius: 10px;
+  overflow: hidden;
+  table-layout: fixed;     /* keep column widths consistent */
 }
+
+/* column widths (sum ~100%) */
+.dashboard-table thead th:nth-child(1),
+.dashboard-table tbody td:nth-child(1){ width:18%; }  /* Bucket Name */
+.dashboard-table thead th:nth-child(2),
+.dashboard-table tbody td:nth-child(2){ width:10%; }  /* Status */
+.dashboard-table thead th:nth-child(3),
+.dashboard-table tbody td:nth-child(3){ width:8%; }   /* Risk Score */
+.dashboard-table thead th:nth-child(4),
+.dashboard-table tbody td:nth-child(4){ width:10%; }  /* Risk Level */
+.dashboard-table thead th:nth-child(5),
+.dashboard-table tbody td:nth-child(5){ width:34%; }  /* Risk Reason */
+.dashboard-table thead th:nth-child(6),
+.dashboard-table tbody td:nth-child(6){ width:14%; }  /* Sensitive Keywords */
+.dashboard-table thead th:nth-child(7),
+.dashboard-table tbody td:nth-child(7){ width:6%; }   /* Sample Files (when visible) */
+
 .dashboard-table th, .dashboard-table td{
-  padding:.8rem .9rem; border-bottom:1px solid var(--muted-border); text-align:left; vertical-align:top;
+  padding:.8rem .9rem;
+  border-bottom:1px solid var(--muted-border);
+  text-align:left; vertical-align:top;
+  overflow-wrap:anywhere;   /* prevent overflow on long chunks */
+  word-break: normal;
 }
+
 .dashboard-table thead th{
   background-color: var(--accent);
-  color: #000 !important;      /* column names black */
-  position:sticky; top:0; z-index:2; user-select:none; cursor:pointer;
+  color: #000 !important;       /* black headers */
+  position: sticky; top: 0; z-index: 2; user-select: none; cursor: pointer;
 }
-.dashboard-table thead th .sort-ind{ color:#000 !important; }
+.dashboard-table thead th .sort-ind{ color:#000 !important; float:right; opacity:.9; }
+
 .dashboard-table tr:hover{ background: rgba(255,255,255,0.05); }
-.dashboard-table th .sort-ind{ float:right; opacity:.9; }
 
 /* Utilities */
 .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
@@ -304,14 +329,10 @@ th, td, button, input, textarea, select,
 
 /* Badges */
 .badge{ display:inline-block; padding:.25rem .5rem; border-radius:999px; font-size:.8rem; line-height:1; }
-.badge-public{ background:#ff0000; color:#000; }
-.badge-private{ background:#3cff00; color:#000; }
+.badge-public{ background:#ff0000; color:#000 !important; font-weight:700; }
+.badge-private{ background:#3cff00; color:#000 !important; font-weight:700; }
 
-/* Status badges — force black text even against global white rule */
-.badge-public, .badge-private { color: #000 !important; font-weight: 700; }
-.badge-public > *, .badge-private > * { color: inherit !important; }
-
-/* ✅ Force black text for risk levels */
+/* Risk levels (black text) */
 .risk-low{ background:#204d2a; color:#000 !important; }
 .risk-medium{ background:#4d3a20; color:#000 !important; }
 .risk-high{ background:#5a2525; color:#000 !important; }
@@ -327,7 +348,7 @@ th, td, button, input, textarea, select,
   background: rgba(255,255,255,.08); font-size:.85em;
 }
 
-/* Sample Files links — bold & white so they’re obvious */
+/* Sample Files link: bold + white */
 .sample-link{
   font-weight: 800;
   color: #ffffff !important;
@@ -336,18 +357,21 @@ th, td, button, input, textarea, select,
 }
 .sample-link:hover,
 .sample-link:focus{
-  opacity: 0.9;
+  opacity: .9;
   text-decoration-thickness: 2px;
 }
 
-/* Small-screen table scroll */
+/* Small-screen table scroll (keep centered) */
 @media (max-width: 900px){
-  .dashboard-table{ display:block; overflow-x:auto; }
-  .dashboard-table table{ width:900px; }
+  .dashboard-table{
+    width: 96%;
+    display: block;
+    overflow-x: auto;
+  }
 }
 
 /* ===============================
-   (Legacy) RESULTS-TABLE
+   LEGACY RESULTS TABLE
 ==================================*/
 .results-table{ width:100%; max-width:900px; margin:0 auto; border-collapse:collapse; box-shadow:0 0 20px rgba(0,0,0,0.1); background: var(--white); color:#000; }
 .results-table th, .results-table td{ padding:12px 15px; border:1px solid #ddd; }
@@ -425,47 +449,4 @@ th, td, button, input, textarea, select,
 ==================================*/
 @media (prefers-reduced-motion: reduce){
   *{ animation:none !important; transition:none !important; }
-}
-
-/* ============================================================
-   HARD CAP + CENTER RESULTS / DETAILED AREAS
-   (Keeps tables away from screen edges and perfectly centered)
-===============================================================*/
-:root{
-  --report-maxw: 1100px;     /* tweak to your liking */
-  --report-gutter: 48px;     /* side breathing room */
-}
-
-/* Cap + center the containers so content never hugs screen edges */
-#results .container,
-#myscan .container{
-  max-width: var(--report-maxw) !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  padding-left: var(--report-gutter) !important;
-  padding-right: var(--report-gutter) !important;
-}
-
-/* Let the tables fill the (now capped) container */
-#results .dashboard-table,
-#myscan .dashboard-table{
-  width: 100% !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.25);
-}
-
-/* Make Sample Files links bold + white so they stand out */
-#results .sample-link,
-#myscan  .sample-link{
-  font-weight: 800 !important;
-  color: #fff !important;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-#results .sample-link:hover,
-#myscan  .sample-link:hover{
-  opacity: .9;
-  text-decoration-thickness: 2px;
 }
