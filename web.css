@@ -473,6 +473,18 @@ th, td, button, input, textarea, select,
   .card img{ height:160px; }
 }
 
+/* ---------- Center the filters + table (remove left nudge) ---------- */
+:root{ --table-nudge: 0px; }  /* or just delete the nudge block entirely */
+
+#results-tools,
+#detailed-tools,
+.dashboard-table{
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: 100% !important;  /* stick to the container width */
+}
+
+
 /* Extra small */
 @media (max-width: 480px){
   :root{ --navbar-h: 56px; --brand-logo-h: 28px; }
@@ -486,3 +498,4 @@ th, td, button, input, textarea, select,
 @media (prefers-reduced-motion: reduce){
   *{ animation:none !important; transition:none !important; }
 }
+
