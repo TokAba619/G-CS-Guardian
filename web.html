@@ -400,503 +400,551 @@
     </div>
   </section>
 
-  <!-- SCRIPTS (inline bootstrapping) -->
-  <script>
-    // ====== Simple helpers ======
-    function scrollToSection(id) { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: "smooth" }); }
-    function formatDate(timestamp) { const date = new Date(timestamp); return isNaN(date.getTime()) ? "N/A" : date.toLocaleString(); }
-    function getToken() { return localStorage.getItem("access_token"); }
+ <!-- SCRIPTS (inline bootstrapping) -->
+<script>
+  // ====== Simple helpers ======
+  function scrollToSection(id) { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: "smooth" }); }
 
-    // ====== Risk helpers: 1–10 scale ======
-    function riskLevelFromScore(score) {
-      const s = Number(score ?? 0);
-      if (s >= 10) return "Critical"; // 10 only
-      if (s >= 7)  return "High";     // 7–9
-      if (s >= 4)  return "Medium";   // 4–6
-      return "Low";                   // 1–3 (and 0 fallback)
-    }
-    function riskClass(level) {
-      switch ((level || "").toLowerCase()) {
-        case "critical": return "risk-critical";
-        case "high": return "risk-high";
-        case "medium": return "risk-medium";
-        default: return "risk-low";
+  // Robust timestamp → local string (handles epoch sec/ms, ISO, and "YYYY-MM-DD HH:MM:SS")
+  function formatDate(ts) {
+    if (ts == null) return "N/A";
+
+    function toDate(value) {
+      if (typeof value === "number") {
+        const ms = value < 1e12 ? value * 1000 : value; // seconds → ms
+        return new Date(ms);
       }
+      if (typeof value === "string") {
+        const s = value.trim();
+
+        // numeric string -> epoch
+        if (/^\d+$/.test(s)) {
+          const n = parseInt(s, 10);
+          return new Date(n < 1e12 ? n * 1000 : n);
+        }
+
+        // Normalize "YYYY-MM-DD HH:MM:SS" -> "YYYY-MM-DDTHH:MM:SS"
+        // If no timezone present, treat as UTC (append Z) so it renders correctly in viewer's local time
+        let iso = s.replace(" ", "T");
+        const hasTZ = /[zZ]|[+\-]\d\d:?\d\d$/.test(iso);
+        if (!hasTZ) iso += "Z";
+
+        const d = new Date(iso);
+        if (!isNaN(d)) return d;
+      }
+      const d = new Date(value);
+      return isNaN(d) ? null : d;
     }
 
-    // ====== Mobile nav ======
-    const navLinks = document.getElementById("navLinks");
-    const hamburgerMenu = document.getElementById("hamburgerMenu");
-    function closeMenu() { navLinks?.classList.remove("open"); }
-    hamburgerMenu?.addEventListener("click", () => navLinks?.classList.toggle("open"));
-    hamburgerMenu?.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") navLinks?.classList.toggle("open"); });
+    const d = toDate(ts);
+    if (!d) return "N/A";
 
-    // ====== Auth guard ======
-    (function authGuard() {
-      const token = getToken();
-      if (!token) window.location.href = "signup.html";
-    })();
+    const fmt = new Intl.DateTimeFormat(undefined, {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      timeZoneName: "short"
+    });
 
-    function normalizeRole(r) {
-      const s = String(r || "").trim().toLowerCase();
-      if (["project_owner", "project owner", "owner"].includes(s)) return "project_owner";
-      if (["creator"].includes(s)) return "creator";
-      if (["regular", "user"].includes(s)) return "regular";
-      return s || "regular";
-    }
-
-   /* ============================================================
-   ETHICAL TOGGLE LOGIC — FINAL
-   ============================================================ */
-(function roleGate() {
-  function parseJwt(token) {
-    try {
-      const base64Url = token.split(".")[1];
-      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-      const jsonPayload = decodeURIComponent(
-        atob(base64).split("").map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join("")
-      );
-      return JSON.parse(jsonPayload);
-    } catch { return null; }
+    return fmt.format(d);
   }
+
   function getToken() { return localStorage.getItem("access_token"); }
+
+  // ====== Risk helpers: 1–10 scale ======
+  function riskLevelFromScore(score) {
+    const s = Number(score ?? 0);
+    if (s >= 10) return "Critical"; // 10 only
+    if (s >= 7)  return "High";     // 7–9
+    if (s >= 4)  return "Medium";   // 4–6
+    return "Low";                   // 1–3 (and 0 fallback)
+  }
+  function riskClass(level) {
+    switch ((level || "").toLowerCase()) {
+      case "critical": return "risk-critical";
+      case "high": return "risk-high";
+      case "medium": return "risk-medium";
+      default: return "risk-low";
+    }
+  }
+
+  // ====== Mobile nav ======
+  const navLinks = document.getElementById("navLinks");
+  const hamburgerMenu = document.getElementById("hamburgerMenu");
+  function closeMenu() { navLinks?.classList.remove("open"); }
+  hamburgerMenu?.addEventListener("click", () => navLinks?.classList.toggle("open"));
+  hamburgerMenu?.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") navLinks?.classList.toggle("open"); });
+
+  // ====== Auth guard ======
+  (function authGuard() {
+    const token = getToken();
+    if (!token) window.location.href = "signup.html";
+  })();
+
   function normalizeRole(r) {
     const s = String(r || "").trim().toLowerCase();
     if (["project_owner", "project owner", "owner"].includes(s)) return "project_owner";
     if (["creator"].includes(s)) return "creator";
-    if (["regular", "user", "viewer"].includes(s)) return "regular";
+    if (["regular", "user"].includes(s)) return "regular";
     return s || "regular";
   }
 
-  const ethicalToggle  = document.getElementById("ethicalModeToggle");
-  const historySection = document.getElementById("history");
-  const projectInput   = document.getElementById("projectId");
-
-  const token   = getToken();
-  const payload = token ? parseJwt(token) : null;
-  const tokenRole = payload?.role || payload?.user_role || payload?.permissions?.role || "";
-  const role = normalizeRole(tokenRole);
-  const isOwner = role === "project_owner" || role === "creator";
-
-  function updateEthicalToggleState() {
-    const hasProjectId = !!(projectInput && projectInput.value.trim());
-    const canUse = isOwner && hasProjectId;
-
-    if (ethicalToggle) {
-      if (!canUse) ethicalToggle.checked = false;
-      ethicalToggle.disabled = !canUse;
-      ethicalToggle.title = !isOwner
-        ? "Only project owners can enable Ethical Mode"
-        : (!hasProjectId ? "Enter a Project ID to enable Ethical Mode" : "Ethical Mode is available");
+  /* ============================================================
+  ETHICAL TOGGLE LOGIC — FINAL
+  ============================================================ */
+  (function roleGate() {
+    function parseJwt(token) {
+      try {
+        const base64Url = token.split(".")[1];
+        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+        const jsonPayload = decodeURIComponent(
+          atob(base64).split("").map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join("")
+        );
+        return JSON.parse(jsonPayload);
+      } catch { return null; }
+    }
+    function getToken() { return localStorage.getItem("access_token"); }
+    function normalizeRole(r) {
+      const s = String(r || "").trim().toLowerCase();
+      if (["project_owner", "project owner", "owner"].includes(s)) return "project_owner";
+      if (["creator"].includes(s)) return "creator";
+      if (["regular", "user", "viewer"].includes(s)) return "regular";
+      return s || "regular";
     }
 
-    console.log("[Ethical Toggle]", { roleFromJWT: tokenRole || "(none)", normalizedRole: role, isOwner, hasProjectId, canUse });
+    const ethicalToggle  = document.getElementById("ethicalModeToggle");
+    const historySection = document.getElementById("history");
+    const projectInput   = document.getElementById("projectId");
+
+    const token   = getToken();
+    const payload = token ? parseJwt(token) : null;
+    const tokenRole = payload?.role || payload?.user_role || payload?.permissions?.role || "";
+    const role = normalizeRole(tokenRole);
+    const isOwner = role === "project_owner" || role === "creator";
+
+    function updateEthicalToggleState() {
+      const hasProjectId = !!(projectInput && projectInput.value.trim());
+      const canUse = isOwner && hasProjectId;
+
+      if (ethicalToggle) {
+        if (!canUse) ethicalToggle.checked = false;
+        ethicalToggle.disabled = !canUse;
+        ethicalToggle.title = !isOwner
+          ? "Only project owners can enable Ethical Mode"
+          : (!hasProjectId ? "Enter a Project ID to enable Ethical Mode" : "Ethical Mode is available");
+      }
+
+      console.log("[Ethical Toggle]", { roleFromJWT: tokenRole || "(none)", normalizedRole: role, isOwner, hasProjectId, canUse });
+    }
+
+    updateEthicalToggleState();
+    projectInput?.addEventListener("input",  updateEthicalToggleState);
+    projectInput?.addEventListener("change", updateEthicalToggleState);
+
+    if (historySection && !isOwner) historySection.style.display = "none";
+  })();
+
+  // ====== Risk Reason tidy formatting ======
+  function htmlEscape(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function formatRiskReasonHTML(reason) {
+    if (!reason) return "N/A";
+    const parts = String(reason)
+      .split(/\s*\|\s*/g)
+      .flatMap(p => p.split(/(?<=\.)\s+(?=[A-Z])|–|—/g))
+      .map(s => s.trim().replace(/\s*\.+$/, ''))
+      .filter(Boolean);
+
+    const items = parts.map(p => {
+      const kw = p.match(/^\s*Sensitive keywords detected:\s*(.+)$/i);
+      if (kw) {
+        const chips = kw[1]
+          .split(/[,;]\s*/)
+          .map(x => x.replace(/^(bucket[:\s]*)?/i, '').trim())
+          .filter(Boolean)
+          .map(k => `<span class="tag">bucket: ${htmlEscape(k)}</span>`)
+          .join(" ");
+        return `<li>Sensitive keywords detected:<div>${chips}</div></li>`;
+      }
+      return `<li>${htmlEscape(p)}</li>`;
+    }).join("");
+
+    return `<ul class="risk-reason-list">${items}</ul>`;
   }
 
-  updateEthicalToggleState();
-  projectInput?.addEventListener("input",  updateEthicalToggleState);
-  projectInput?.addEventListener("change", updateEthicalToggleState);
+  // ====== Generic table renderer (reusable) ======
+  function renderResultsTable(options) {
+    const {
+      buckets, ethicalMode,
+      tableEl, toolsEl, countEl, filterInput,
+      defaultSortKey = "risk_score", defaultSortDir = "desc"
+    } = options;
 
-  if (historySection && !isOwner) historySection.style.display = "none";
-})();
+    // toggle sample files column visibility (th + td)
+    tableEl.querySelectorAll(".sample-col").forEach(el => el.style.display = ethicalMode ? "" : "none");
 
-    // ====== Risk Reason tidy formatting ======
-    function htmlEscape(s) {
-      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    }
-    function formatRiskReasonHTML(reason) {
-      if (!reason) return "N/A";
-      const parts = String(reason)
-        .split(/\s*\|\s*/g)
-        .flatMap(p => p.split(/(?<=\.)\s+(?=[A-Z])|–|—/g))
-        .map(s => s.trim().replace(/\s*\.+$/, ''))
-        .filter(Boolean);
+    let rows = Array.isArray(buckets) ? [...buckets] : [];
+    let sortKey = defaultSortKey;
+    let sortDir = defaultSortDir;
 
-      const items = parts.map(p => {
-        const kw = p.match(/^\s*Sensitive keywords detected:\s*(.+)$/i);
-        if (kw) {
-          const chips = kw[1]
-            .split(/[,;]\s*/)
-            .map(x => x.replace(/^(bucket[:\s]*)?/i, '').trim())
-            .filter(Boolean)
-            .map(k => `<span class="tag">bucket: ${htmlEscape(k)}</span>`)
-            .join(" ");
-          return `<li>Sensitive keywords detected:<div>${chips}</div></li>`;
-        }
-        return `<li>${htmlEscape(p)}</li>`;
-      }).join("");
+    const tbody = tableEl.querySelector("tbody");
+    const thead = tableEl.querySelector("thead");
 
-      return `<ul class="risk-reason-list">${items}</ul>`;
+    function normalizedText(v) {
+      if (v == null) return "";
+      return String(v).toLowerCase();
     }
 
-    // ====== Generic table renderer (reusable) ======
-    function renderResultsTable(options) {
-      const {
-        buckets, ethicalMode,
-        tableEl, toolsEl, countEl, filterInput,
-        defaultSortKey = "risk_score", defaultSortDir = "desc"
-      } = options;
-
-      // toggle sample files column visibility (th + td)
-      tableEl.querySelectorAll(".sample-col").forEach(el => el.style.display = ethicalMode ? "" : "none");
-
-      let rows = Array.isArray(buckets) ? [...buckets] : [];
-      let sortKey = defaultSortKey;
-      let sortDir = defaultSortDir;
-
-      const tbody = tableEl.querySelector("tbody");
-      const thead = tableEl.querySelector("thead");
-
-      function normalizedText(v) {
-        if (v == null) return "";
-        return String(v).toLowerCase();
-      }
-
-      function applyFilter() {
-        const q = normalizedText(filterInput?.value || "");
-        return rows.filter(b => {
-          const name = normalizedText(b.bucket_name);
-          const reason = normalizedText(b.risk_reason);
-          const kws = Array.isArray(b.sensitive_keywords_detected)
-            ? normalizedText(b.sensitive_keywords_detected.join(","))
-            : normalizedText(b.sensitive_keywords_detected);
-          return !q || name.includes(q) || reason.includes(q) || kws.includes(q);
-        });
-      }
-
-      function sortData(arr) {
-        const dir = sortDir === "asc" ? 1 : -1;
-        return arr.sort((a, b) => {
-          const va = (sortKey === "risk_level") ? riskLevelFromScore(a.risk_score) : a[sortKey];
-          const vb = (sortKey === "risk_level") ? riskLevelFromScore(b.risk_score) : b[sortKey];
-
-          if (sortKey === "risk_score") return (Number(va||0) - Number(vb||0)) * dir;
-          if (sortKey === "public") return ((va === true ? 1 : 0) - (vb === true ? 1 : 0)) * dir;
-
-          const sa = String(va ?? "").toLowerCase();
-          const sb = String(vb ?? "").toLowerCase();
-          if (sa < sb) return -1 * dir;
-          if (sa > sb) return 1 * dir;
-          return 0;
-        });
-      }
-
-      // Build neat link list for sample files
-      function buildSampleLinks(samples) {
-        if (!samples) return "";
-        const arr = Array.isArray(samples) ? samples : [samples];
-        const items = arr.map((s) => {
-          const href = String(s);
-          let label = href;
-          try {
-            const u = new URL(href);
-            const tail = u.pathname.split("/").pop() || u.host;
-            label = decodeURIComponent(tail);
-          } catch {
-            label = decodeURIComponent(href.split("/").pop() || href);
-          }
-          return `<li><a class="sample-link" href="${href}" target="_blank" rel="noopener" title="${href}">${label}</a></li>`;
-        }).join("");
-        return `<ul class="sample-list">${items}</ul>`;
-      }
-
-      function render() {
-        const filtered = sortData(applyFilter());
-        tbody.innerHTML = "";
-        filtered.forEach(b => {
-          const level = riskLevelFromScore(b.risk_score);
-          const sens = Array.isArray(b.sensitive_keywords_detected)
-            ? b.sensitive_keywords_detected.join(", ")
-            : (b.sensitive_keywords_detected ?? "None");
-
-          const samplesHtml = ethicalMode && b.sample_files ? buildSampleLinks(b.sample_files) : "";
-          const reasonHtml = formatRiskReasonHTML(b.risk_reason);
-
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td class="mono">${b.bucket_name ?? "Unknown"}</td>
-            <td class="nowrap">
-              ${b.public ? '<span class="badge badge-public">Public</span>' : '<span class="badge badge-private">Private</span>'}
-            </td>
-            <td class="nowrap mono">${b.risk_score ?? "0"}</td>
-            <td class="nowrap"><span class="badge ${riskClass(level)}">${level}</span></td>
-            <td class="risk-reason">${reasonHtml}</td>
-            <td>${htmlEscape(sens)}</td>
-            <td class="sample-col" style="${ethicalMode ? "" : "display:none;"}">${samplesHtml}</td>
-          `;
-          tbody.appendChild(tr);
-        });
-        if (toolsEl) toolsEl.style.display = "flex";
-        if (tableEl) tableEl.style.display = "table";
-        if (countEl) countEl.textContent = `${filtered.length} bucket${filtered.length===1?"":"s"}`;
-        updateHeaderIndicators();
-      }
-
-      function updateHeaderIndicators() {
-        thead.querySelectorAll("th").forEach(th => {
-          const ind = th.querySelector(".sort-ind");
-          if (!ind) return;
-          const key = th.getAttribute("data-key");
-          if (key === sortKey) ind.textContent = sortDir === "asc" ? "↑" : "↓";
-          else ind.textContent = "↕";
-        });
-      }
-
-      thead.querySelectorAll("th[data-key]").forEach(th => {
-        th.addEventListener("click", () => {
-          const key = th.getAttribute("data-key");
-          if (key === sortKey) sortDir = (sortDir === "asc") ? "desc" : "asc";
-          else { sortKey = key; sortDir = (key === "risk_score") ? "desc" : "asc"; }
-          render();
-        });
+    function applyFilter() {
+      const q = normalizedText(filterInput?.value || "");
+      return rows.filter(b => {
+        const name = normalizedText(b.bucket_name);
+        const reason = normalizedText(b.risk_reason);
+        const kws = Array.isArray(b.sensitive_keywords_detected)
+          ? normalizedText(b.sensitive_keywords_detected.join(","))
+          : normalizedText(b.sensitive_keywords_detected);
+        return !q || name.includes(q) || reason.includes(q) || kws.includes(q);
       });
-      filterInput?.addEventListener("input", () => render());
-
-      render();
     }
 
-    // ====== RESULTS (live scan) ======
-    async function runScan(projectId, ethicalMode) {
-      const token = getToken();
-      const resultsSummary = document.getElementById("results-summary");
-      const resultsTools = document.getElementById("results-tools");
-      const resultsTable = document.getElementById("results-table");
-      const resultsFilter = document.getElementById("results-filter");
-      const resultsCount = document.getElementById("results-count");
+    function sortData(arr) {
+      const dir = sortDir === "asc" ? 1 : -1;
+      return arr.sort((a, b) => {
+        const va = (sortKey === "risk_level") ? riskLevelFromScore(a.risk_score) : a[sortKey];
+        const vb = (sortKey === "risk_level") ? riskLevelFromScore(b.risk_score) : b[sortKey];
 
-      resultsSummary.innerHTML = `<p>🔍 Scanning in progress...</p>`;
-      resultsTools.style.display = "none";
-      resultsTable.style.display = "none";
+        if (sortKey === "risk_score") return (Number(va||0) - Number(vb||0)) * dir;
+        if (sortKey === "public") return ((va === true ? 1 : 0) - (vb === true ? 1 : 0)) * dir;
 
-      const apiUrl = `https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/scan?project_id=${encodeURIComponent(projectId)}&ethical_mode=${ethicalMode}`;
+        const sa = String(va ?? "").toLowerCase();
+        const sb = String(vb ?? "").toLowerCase();
+        if (sa < sb) return -1 * dir;
+        if (sa > sb) return 1 * dir;
+        return 0;
+      });
+    }
 
-      const response = await fetch(apiUrl, {
-        method: "GET",
+    // Build neat link list for sample files
+    function buildSampleLinks(samples) {
+      if (!samples) return "";
+      const arr = Array.isArray(samples) ? samples : [samples];
+      const items = arr.map((s) => {
+        const href = String(s);
+        let label = href;
+        try {
+          const u = new URL(href);
+          const tail = u.pathname.split("/").pop() || u.host;
+          label = decodeURIComponent(tail);
+        } catch {
+          label = decodeURIComponent(href.split("/").pop() || href);
+        }
+        return `<li><a class="sample-link" href="${href}" target="_blank" rel="noopener" title="${href}">${label}</a></li>`;
+      }).join("");
+      return `<ul class="sample-list">${items}</ul>`;
+    }
+
+    function render() {
+      const filtered = sortData(applyFilter());
+      tbody.innerHTML = "";
+      filtered.forEach(b => {
+        const level = riskLevelFromScore(b.risk_score);
+        const sens = Array.isArray(b.sensitive_keywords_detected)
+          ? b.sensitive_keywords_detected.join(", ")
+          : (b.sensitive_keywords_detected ?? "None");
+
+        const samplesHtml = ethicalMode && b.sample_files ? buildSampleLinks(b.sample_files) : "";
+        const reasonHtml = formatRiskReasonHTML(b.risk_reason);
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="mono">${b.bucket_name ?? "Unknown"}</td>
+          <td class="nowrap">
+            ${b.public ? '<span class="badge badge-public">Public</span>' : '<span class="badge badge-private">Private</span>'}
+          </td>
+          <td class="nowrap mono">${b.risk_score ?? "0"}</td>
+          <td class="nowrap"><span class="badge ${riskClass(level)}">${level}</span></td>
+          <td class="risk-reason">${reasonHtml}</td>
+          <td>${htmlEscape(sens)}</td>
+          <td class="sample-col" style="${ethicalMode ? "" : "display:none;"}">${samplesHtml}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      if (toolsEl) toolsEl.style.display = "flex";
+      if (tableEl) tableEl.style.display = "table";
+      if (countEl) countEl.textContent = `${filtered.length} bucket${filtered.length===1?"":"s"}`;
+      updateHeaderIndicators();
+    }
+
+    function updateHeaderIndicators() {
+      thead.querySelectorAll("th").forEach(th => {
+        const ind = th.querySelector(".sort-ind");
+        if (!ind) return;
+        const key = th.getAttribute("data-key");
+        if (key === sortKey) ind.textContent = sortDir === "asc" ? "↑" : "↓";
+        else ind.textContent = "↕";
+      });
+    }
+
+    thead.querySelectorAll("th[data-key]").forEach(th => {
+      th.addEventListener("click", () => {
+        const key = th.getAttribute("data-key");
+        if (key === sortKey) sortDir = (sortDir === "asc") ? "desc" : "asc";
+        else { sortKey = key; sortDir = (key === "risk_score") ? "desc" : "asc"; }
+        render();
+      });
+    });
+    filterInput?.addEventListener("input", () => render());
+
+    render();
+  }
+
+  // ====== RESULTS (live scan) ======
+  async function runScan(projectId, ethicalMode) {
+    const token = getToken();
+    const resultsSummary = document.getElementById("results-summary");
+    const resultsTools = document.getElementById("results-tools");
+    const resultsTable = document.getElementById("results-table");
+    const resultsFilter = document.getElementById("results-filter");
+    const resultsCount = document.getElementById("results-count");
+
+    resultsSummary.innerHTML = `<p>🔍 Scanning in progress...</p>`;
+    resultsTools.style.display = "none";
+    resultsTable.style.display = "none";
+
+    const apiUrl = `https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/scan?project_id=${encodeURIComponent(projectId)}&ethical_mode=${ethicalMode}`;
+
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (!response.ok) {
+      let msg = `Scan failed: ${response.status}`;
+      try {
+        const err = await response.json();
+        if (err && err.detail) msg = Array.isArray(err.detail) ? err.detail.map(d => d.msg).join(", ") : err.detail;
+      } catch {}
+      throw new Error(msg);
+    }
+
+    const apiData = await response.json();
+    const { scan_id, project_role, buckets } = apiData;
+
+    resultsSummary.innerHTML = `
+      <div class="result-card">
+        <h3>Scan Summary</h3>
+        <p><strong>Scan ID:</strong> ${scan_id}</p>
+        <p><strong>Detected Role:</strong> ${project_role || "N/A"}</p>
+        <p><strong>Bucket Count:</strong> ${Array.isArray(buckets) ? buckets.length : 0}</p>
+      </div>
+    `;
+
+    renderResultsTable({
+      buckets: Array.isArray(buckets) ? buckets : [],
+      ethicalMode,
+      tableEl: resultsTable,
+      toolsEl: resultsTools,
+      countEl: resultsCount,
+      filterInput: resultsFilter,
+      defaultSortKey: "risk_score",
+      defaultSortDir: "desc"
+    });
+
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // ====== Scanner button ======
+  document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("learn-more").addEventListener("click", async function () {
+      const ethicalMode = document.getElementById("ethicalModeToggle").checked;
+      const projectId = document.getElementById("projectId").value.trim();
+      if (!projectId) { alert("Please enter a Project ID."); return; }
+
+      try {
+        const token = getToken();
+        if (!token) { alert("You are not logged in."); return; }
+        await runScan(projectId, ethicalMode);
+      } catch (error) {
+        document.getElementById("results-summary").innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
+      }
+    });
+  });
+
+  // ====== My-Scan APIs ======
+  const API_PREVIOUS_SCANS = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/my-scans/";
+  const API_SCAN_DETAILS = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/my-scans/{scan_id}";
+
+  async function loadPreviousScans() {
+    const tableBody = document.getElementById("previous-scan-table");
+    tableBody.innerHTML = "<tr><td colspan='3'>Loading...</td></tr>";
+
+    const token = getToken();
+    if (!token) {
+      tableBody.innerHTML = "<tr><td colspan='3'>Please log in to view scans</td></tr>";
+      return;
+    }
+
+    try {
+      const res = await fetch(API_PREVIOUS_SCANS, {
         headers: { "Authorization": `Bearer ${token}` }
       });
 
-      if (!response.ok) {
-        let msg = `Scan failed: ${response.status}`;
+      if (!res.ok) throw new Error(`Failed to fetch scans (${res.status})`);
+      const data = await res.json();
+      const scans = Array.isArray(data?.my_scans) ? data.my_scans : [];
+
+      if (scans.length === 0) {
+        tableBody.innerHTML = "<tr><td colspan='3'>No scans found</td></tr>";
+        return;
+      }
+
+      tableBody.innerHTML = "";
+      scans.forEach(scan => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${formatDate(scan.timestamp)}</td>
+          <td class="scan-id" aria-label="Click to view details">${scan.scan_id || "N/A"}</td>
+          <td>${scan.project_id || "N/A"}</td>
+        `;
+        row.querySelector(".scan-id").addEventListener("click", () => {
+          document.getElementById("scanIdInput").value = scan.scan_id;
+          fetchDetailedScan();
+        });
+        tableBody.appendChild(row);
+      });
+    } catch (error) {
+      console.error(error);
+      tableBody.innerHTML = `<tr><td colspan='3'>Error: ${error.message}</td></tr>`;
+    }
+  }
+
+  async function fetchDetailedScan() {
+    const scanId = document.getElementById("scanIdInput").value.trim();
+    const resultsContainer = document.getElementById("detailed-scan-results");
+    const tableEl = document.getElementById("detailed-table");
+    const toolsEl = document.getElementById("detailed-tools");
+    const filterEl = document.getElementById("detailed-filter");
+    const countEl = document.getElementById("detailed-count");
+
+    resultsContainer.innerHTML = "<p>Loading...</p>";
+    toolsEl.style.display = "none";
+    tableEl.style.display = "none";
+
+    if (!scanId) { resultsContainer.innerHTML = "<p>Please enter a Scan ID.</p>"; return; }
+
+    const token = getToken();
+    try {
+      const res = await fetch(API_SCAN_DETAILS.replace("{scan_id}", encodeURIComponent(scanId)), {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      if (!res.ok) {
+        let msg = `Scan not found (${res.status})`;
         try {
-          const err = await response.json();
+          const err = await res.json();
           if (err && err.detail) msg = Array.isArray(err.detail) ? err.detail.map(d => d.msg).join(", ") : err.detail;
         } catch {}
         throw new Error(msg);
       }
 
-      const apiData = await response.json();
-      const { scan_id, project_role, buckets } = apiData;
+      const data = await res.json();
+      const buckets = Array.isArray(data?.buckets) ? data.buckets : [];
+      const ethicalMode = Boolean(data?.ethical_mode);
 
-      resultsSummary.innerHTML = `
+      resultsContainer.innerHTML = `
         <div class="result-card">
-          <h3>Scan Summary</h3>
-          <p><strong>Scan ID:</strong> ${scan_id}</p>
-          <p><strong>Detected Role:</strong> ${project_role || "N/A"}</p>
-          <p><strong>Bucket Count:</strong> ${Array.isArray(buckets) ? buckets.length : 0}</p>
+          <h4>Scan ${data.scan_id}</h4>
+          <p><strong>Project:</strong> ${data.project_id || "N/A"}</p>
+          <p><strong>Time:</strong> ${formatDate(data.timestamp)}</p>
+          <p><strong>Role:</strong> ${data.project_role || "N/A"} | <strong>Ethical Mode:</strong> ${ethicalMode ? "On" : "Off"}</p>
+          <p><strong>Bucket Count:</strong> ${buckets.length}</p>
         </div>
       `;
 
+      if (buckets.length === 0) {
+        resultsContainer.insertAdjacentHTML("beforeend", "<p>No bucket results stored for this scan.</p>");
+        return;
+      }
+
       renderResultsTable({
-        buckets: Array.isArray(buckets) ? buckets : [],
+        buckets,
         ethicalMode,
-        tableEl: resultsTable,
-        toolsEl: resultsTools,
-        countEl: resultsCount,
-        filterInput: resultsFilter,
+        tableEl,
+        toolsEl,
+        countEl,
+        filterInput: filterEl,
         defaultSortKey: "risk_score",
         defaultSortDir: "desc"
       });
+    } catch (error) {
+      console.error(error);
+      resultsContainer.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
+    }
+  }
 
-      document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+  document.addEventListener("DOMContentLoaded", loadPreviousScans);
+
+  // ====== History fetch (owner only) ======
+  document.addEventListener("DOMContentLoaded", function () {
+    const role = normalizeRole(localStorage.getItem("role"));
+    const isOwner = role === "project_owner" || role === "creator";
+    if (!isOwner) return;
+
+    const historyTableBody = document.querySelector("#historyTable tbody");
+    const apiURL = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/history";
+    const token = getToken();
+    if (!token) {
+      historyTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Please log in to view history</td></tr>`;
+      return;
     }
 
-    // ====== Scanner button ======
-    document.addEventListener("DOMContentLoaded", function () {
-      document.getElementById("learn-more").addEventListener("click", async function () {
-        const ethicalMode = document.getElementById("ethicalModeToggle").checked;
-        const projectId = document.getElementById("projectId").value.trim();
-        if (!projectId) { alert("Please enter a Project ID."); return; }
-
-        try {
-          const token = getToken();
-          if (!token) { alert("You are not logged in."); return; }
-          await runScan(projectId, ethicalMode);
-        } catch (error) {
-          document.getElementById("results-summary").innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
-        }
-      });
-    });
-
-    // ====== My-Scan APIs ======
-    const API_PREVIOUS_SCANS = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/my-scans/";
-    const API_SCAN_DETAILS = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/my-scans/{scan_id}";
-
-    async function loadPreviousScans() {
-      const tableBody = document.getElementById("previous-scan-table");
-      tableBody.innerHTML = "<tr><td colspan='3'>Loading...</td></tr>";
-
-      const token = getToken();
-      if (!token) {
-        tableBody.innerHTML = "<tr><td colspan='3'>Please log in to view scans</td></tr>";
+    fetch(apiURL, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    })
+    .then(r => r.ok ? r.json() : Promise.reject(new Error(`Failed (${r.status})`)))
+    .then(data => {
+      historyTableBody.innerHTML = "";
+      if (!Array.isArray(data) || data.length === 0) {
+        historyTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No history found</td></tr>`;
         return;
       }
-
-      try {
-        const res = await fetch(API_PREVIOUS_SCANS, {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-
-        if (!res.ok) throw new Error(`Failed to fetch scans (${res.status})`);
-        const data = await res.json();
-        const scans = Array.isArray(data?.my_scans) ? data.my_scans : [];
-
-        if (scans.length === 0) {
-          tableBody.innerHTML = "<tr><td colspan='3'>No scans found</td></tr>";
-          return;
-        }
-
-        tableBody.innerHTML = "";
-        scans.forEach(scan => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${formatDate(scan.timestamp)}</td>
-            <td class="scan-id" aria-label="Click to view details">${scan.scan_id || "N/A"}</td>
-            <td>${scan.project_id || "N/A"}</td>
-          `;
-          row.querySelector(".scan-id").addEventListener("click", () => {
-            document.getElementById("scanIdInput").value = scan.scan_id;
-            fetchDetailedScan();
-          });
-          tableBody.appendChild(row);
-        });
-      } catch (error) {
-        console.error(error);
-        tableBody.innerHTML = `<tr><td colspan='3'>Error: ${error.message}</td></tr>`;
-      }
-    }
-
-    async function fetchDetailedScan() {
-      const scanId = document.getElementById("scanIdInput").value.trim();
-      const resultsContainer = document.getElementById("detailed-scan-results");
-      const tableEl = document.getElementById("detailed-table");
-      const toolsEl = document.getElementById("detailed-tools");
-      const filterEl = document.getElementById("detailed-filter");
-      const countEl = document.getElementById("detailed-count");
-
-      resultsContainer.innerHTML = "<p>Loading...</p>";
-      toolsEl.style.display = "none";
-      tableEl.style.display = "none";
-
-      if (!scanId) { resultsContainer.innerHTML = "<p>Please enter a Scan ID.</p>"; return; }
-
-      const token = getToken();
-      try {
-        const res = await fetch(API_SCAN_DETAILS.replace("{scan_id}", encodeURIComponent(scanId)), {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-
-        if (!res.ok) {
-          let msg = `Scan not found (${res.status})`;
-          try {
-            const err = await res.json();
-            if (err && err.detail) msg = Array.isArray(err.detail) ? err.detail.map(d => d.msg).join(", ") : err.detail;
-          } catch {}
-          throw new Error(msg);
-        }
-
-        const data = await res.json();
-        const buckets = Array.isArray(data?.buckets) ? data.buckets : [];
-        const ethicalMode = Boolean(data?.ethical_mode);
-
-        resultsContainer.innerHTML = `
-          <div class="result-card">
-            <h4>Scan ${data.scan_id}</h4>
-            <p><strong>Project:</strong> ${data.project_id || "N/A"}</p>
-            <p><strong>Time:</strong> ${formatDate(data.timestamp)}</p>
-            <p><strong>Role:</strong> ${data.project_role || "N/A"} | <strong>Ethical Mode:</strong> ${ethicalMode ? "On" : "Off"}</p>
-            <p><strong>Bucket Count:</strong> ${buckets.length}</p>
-          </div>
+      data.forEach(item => {
+        historyTableBody.innerHTML += `
+          <tr>
+            <td>${item.scan_id}</td>
+            <td>${item.project_id}</td>
+            <td>${item.user_email}</td>
+            <td>${formatDate(item.timestamp)}</td>
+            <td>${item.result_summary}</td>
+          </tr>
         `;
-
-        if (buckets.length === 0) {
-          resultsContainer.insertAdjacentHTML("beforeend", "<p>No bucket results stored for this scan.</p>");
-          return;
-        }
-
-        renderResultsTable({
-          buckets,
-          ethicalMode,
-          tableEl,
-          toolsEl,
-          countEl,
-          filterInput: filterEl,
-          defaultSortKey: "risk_score",
-          defaultSortDir: "desc"
-        });
-      } catch (error) {
-        console.error(error);
-        resultsContainer.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", loadPreviousScans);
-
-    // ====== History fetch (owner only) ======
-    document.addEventListener("DOMContentLoaded", function () {
-      const role = normalizeRole(localStorage.getItem("role"));
-      const isOwner = role === "project_owner" || role === "creator";
-      if (!isOwner) return;
-
-      const historyTableBody = document.querySelector("#historyTable tbody");
-      const apiURL = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/history";
-      const token = getToken();
-      if (!token) {
-        historyTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Please log in to view history</td></tr>`;
-        return;
-      }
-
-      fetch(apiURL, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        }
-      })
-      .then(r => r.ok ? r.json() : Promise.reject(new Error(`Failed (${r.status})`)))
-      .then(data => {
-        historyTableBody.innerHTML = "";
-        if (!Array.isArray(data) || data.length === 0) {
-          historyTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No history found</td></tr>`;
-          return;
-        }
-        data.forEach(item => {
-          historyTableBody.innerHTML += `
-            <tr>
-              <td>${item.scan_id}</td>
-              <td>${item.project_id}</td>
-              <td>${item.user_email}</td>
-              <td>${formatDate(item.timestamp)}</td>
-              <td>${item.result_summary}</td>
-            </tr>
-          `;
-        });
-      })
-      .catch(error => {
-        console.error("Error fetching history:", error);
-        historyTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Error loading history</td></tr>`;
       });
+    })
+    .catch(error => {
+      console.error("Error fetching history:", error);
+      historyTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Error loading history</td></tr>`;
     });
+  });
 
-    // ====== Optional: show stored email/role if such elements exist ======
-    document.addEventListener("DOMContentLoaded", () => {
-      const emailElement = document.getElementById("user-email");
-      const roleElement = document.getElementById("user-role");
-      const userEmail = localStorage.getItem("email");
-      const userRole = localStorage.getItem("role");
-      if (emailElement) emailElement.textContent = userEmail || "Unknown";
-      if (roleElement) roleElement.textContent = userRole || "Unknown";
-    });
-  </script>
+  // ====== Optional: show stored email/role if such elements exist ======
+  document.addEventListener("DOMContentLoaded", () => {
+    const emailElement = document.getElementById("user-email");
+    const roleElement = document.getElementById("user-role");
+    const userEmail = localStorage.getItem("email");
+    const userRole = localStorage.getItem("role");
+    if (emailElement) emailElement.textContent = userEmail || "Unknown";
+    if (roleElement) roleElement.textContent = userRole || "Unknown";
+  });
+</script>
 
   <script src="web.js"></script>
 </body>
