@@ -16,8 +16,8 @@
   --black: #000000;
 
   /* Navbar + brand sizing (slim + balanced) */
-  --navbar-h: 120px;           /* desktop nav height */
-  --brand-logo-h: 170px;       /* logo height desktop — tweak this to taste */
+  --navbar-h: 120px;
+  --brand-logo-h: 170px;
 }
 
 /* Video BG */
@@ -39,7 +39,7 @@ body{
   overflow-x: hidden;
   background-color: var(--bg-dark);
   color: var(--white);
-  padding-top: calc(var(--navbar-h) + 8px); /* keep content clear of fixed navbar */
+  padding-top: calc(var(--navbar-h) + 8px);
 }
 
 /* Force all common text to white */
@@ -56,18 +56,15 @@ th, td, button, input, textarea, select,
 .navbar{
   position: fixed; top:0; left:0; width:100%;
   height: var(--navbar-h);
-  background: transparent;                /* clean, see-through */
+  background: transparent;
   backdrop-filter: blur(10px);
   z-index: 1000;
-  padding: 8px 20px;                      /* compact vertical padding */
+  padding: 8px 20px;
   display: flex; justify-content: space-between; align-items: center;
   box-shadow: none;
   transition: background .3s ease, box-shadow .3s ease, height .3s ease;
 }
-.navbar.scrolled{
-  background: transparent;
-  box-shadow: none;
-}
+.navbar.scrolled{ background: transparent; box-shadow: none; }
 
 /* Brand (logo + text) */
 .navbar-brand{
@@ -77,11 +74,10 @@ th, td, button, input, textarea, select,
   text-shadow: 1px 1px 3px #000;
 }
 .navbar-brand img.brand-logo{
-  height: var(--brand-logo-h);            /* <-- controlled by variable */
+  height: var(--brand-logo-h);
   width: auto;
-  max-height: calc(var(--navbar-h) - 20px); /* breathing room inside navbar */
-  object-fit: contain;
-  display: block;
+  max-height: calc(var(--navbar-h) - 20px);
+  object-fit: contain; display: block;
   filter: drop-shadow(0 1px 1px rgba(0,0,0,.6));
 }
 .navbar-brand .brand-text{ color: var(--white); }
@@ -103,9 +99,7 @@ th, td, button, input, textarea, select,
 .nav-cta{
   background: var(--white);
   color: var(--black) !important;
-  padding: 8px 14px;
-  border-radius: 999px;
-  font-weight: 800;
+  padding: 8px 14px; border-radius: 999px; font-weight: 800;
   display: inline-flex; align-items: center; gap: 8px;
   border: 2px solid rgba(255,255,255,.08);
   transition: transform .08s ease, box-shadow .2s ease, background .2s ease;
@@ -120,12 +114,7 @@ th, td, button, input, textarea, select,
 /* ===============================
    SECTIONS / CONTAINERS
 ==================================*/
-.content-section{
-  min-height: 100vh;
-  padding: 100px 0;
-  position: relative;
-  overflow: hidden;
-}
+.content-section{ min-height: 100vh; padding: 100px 0; position: relative; overflow: hidden; }
 
 .scan{
   position: relative; overflow: hidden;
@@ -196,15 +185,9 @@ th, td, button, input, textarea, select,
   max-width: 720px; margin: 18px auto 0; padding: 6px;
 }
 .pill-input{
-  flex: 1;
-  height: 52px;
-  padding: 0 18px;
-  border-radius: 999px;
-  border: 1.5px solid rgba(255,255,255,.25);
-  background: rgba(0,0,0,.35);
-  color: #fff;
-  outline: none;
-  font-size: 16px;
+  flex: 1; height: 52px; padding: 0 18px; border-radius: 999px;
+  border: 1.5px solid rgba(255,255,255,.25); background: rgba(0,0,0,.35);
+  color: #fff; outline: none; font-size: 16px;
   transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
 }
 .pill-input::placeholder{ color: rgba(255,255,255,.70); }
@@ -214,23 +197,15 @@ th, td, button, input, textarea, select,
   background: rgba(0,0,0,.45);
 }
 .cta-pink{
-  height: 52px;
-  padding: 0 22px;
-  border-radius: 999px;
-  border: none;
-  background: var(--accent);
-  color: #fff;
-  font-weight: 800;
-  letter-spacing: .2px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: transform .06s ease, box-shadow .2s ease, background .15s ease;
+  height: 52px; padding: 0 22px; border-radius: 999px; border: none;
+  background: var(--accent); color: #fff; font-weight: 800; letter-spacing: .2px;
+  cursor: pointer; white-space: nowrap; transition: transform .06s ease, box-shadow .2s ease, background .15s ease;
   box-shadow: 0 8px 24px rgba(233,30,99,.28);
 }
 .cta-pink:hover{ background: #d81b60; box-shadow: 0 10px 28px rgba(233,30,99,.34); }
 .cta-pink:active{ transform: translateY(1px); box-shadow: 0 6px 20px rgba(233,30,99,.28); }
 
-/* (Old) Terminal styles kept only if you still use the card shell elsewhere */
+/* (Old) Terminal styles) */
 .card1{ background-color: rgba(217,217,217,0.18); backdrop-filter: blur(8px); border-radius:12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow:hidden; width:500px; }
 .terminal-header{ background-color:#202425; padding:10px 15px; display:flex; align-items:center; }
 .terminal-title{ font-size:14px; font-weight:700; display:flex; align-items:center; gap:8px; }
@@ -242,9 +217,7 @@ th, td, button, input, textarea, select,
 .input-field{ background-color:transparent; border:none; color: var(--white) !important; font-family:inherit; font-size:14px; outline:none; width:100%; padding-right:10px; }
 .input-field::placeholder{ color: rgba(255,255,255,0.6); }
 
-/* ===============================
-   TERMINAL LOADER (scoped)
-==================================*/
+/* LOADER */
 .terminal-loader{ border:.1em solid #333; background-color:#1a1a1a; color:#0f0; font-family:"Courier New", Courier, monospace; font-size:1em; padding:1.5em 1em; width:25em; box-shadow:0 4px 8px rgba(0,0,0,0.2); border-radius:4px; position:relative; overflow:hidden; box-sizing:border-box; }
 .terminal-loader .terminal-header{ position:absolute; top:0; left:0; right:0; height:1.5em; background-color:#333; border-top-left-radius:4px; border-top-right-radius:4px; padding:0 .4em; box-sizing:border-box; }
 .terminal-loader .terminal-controls{ float:right; }
@@ -274,11 +247,7 @@ th, td, button, input, textarea, select,
    RESULTS & CARDS
 ==================================*/
 .results-container{ margin-top:2rem; display:flex; flex-direction:column; gap:1rem; }
-.result-card{
-  background: var(--card-bg);
-  padding:1rem; border-radius:8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.3);
-}
+.result-card{ background: var(--card-bg); padding:1rem; border-radius:8px; box-shadow: 0 0 10px rgba(0,0,0,0.3); }
 .result-card h3, .result-card h4{ color: var(--white) !important; }
 
 /* Floating shapes */
@@ -299,13 +268,25 @@ th, td, button, input, textarea, select,
    DASHBOARD TABLE (NEW)
 ==================================*/
 .table-tools{ display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; margin-top:.75rem; }
+
+/* Center tools + tables and keep them off the very edges */
+#results-tools, #detailed-tools{
+  width: min(1200px, 96%);
+  margin: .75rem auto 0;
+}
+
 .table-tools input[type="text"]{
   padding:.5rem .6rem; border:none; border-radius:6px; background:#1a1a1a;
 }
 .table-tools .chip{ background:#1a1a1a; color:#ccc; padding:.35rem .6rem; border-radius:999px; font-size:.85rem; }
 
 .dashboard-table{
-  width:100%; border-collapse:collapse; background: var(--card-bg); margin-top:.75rem;
+  /* Center the table and limit its width */
+  width: min(1200px, 96%);
+  margin-left: auto;
+  margin-right: auto;
+
+  border-collapse:collapse; background: var(--card-bg); margin-top:.75rem;
   border-radius:10px; overflow:hidden; display:table;
 }
 .dashboard-table th, .dashboard-table td{
@@ -313,25 +294,12 @@ th, td, button, input, textarea, select,
 }
 .dashboard-table thead th{
   background-color: var(--accent);
-  color: #000 !important;      /* headers (column names) black */
+  color: #000 !important;      /* column names black */
   position:sticky; top:0; z-index:2; user-select:none; cursor:pointer;
 }
-.dashboard-table thead th .sort-ind{ color:#000 !important; } /* sort arrow black */
+.dashboard-table thead th .sort-ind{ color:#000 !important; }
 .dashboard-table tr:hover{ background: rgba(255,255,255,0.05); }
 .dashboard-table th .sort-ind{ float:right; opacity:.9; }
-
-/* ---- Center the Results/Detailed tables and their toolbars ---- */
-#results-table,
-#detailed-table{
-  width: min(1200px, 96%);
-  margin-left: auto;
-  margin-right: auto;
-}
-#results-tools,
-#detailed-tools{
-  width: min(1200px, 96%);
-  margin: .75rem auto 0;
-}
 
 /* Utilities */
 .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
@@ -343,15 +311,8 @@ th, td, button, input, textarea, select,
 .badge-private{ background:#3cff00; color:#000; }
 
 /* Status badges — force black text even against global white rule */
-.badge-public,
-.badge-private {
-  color: #000 !important;
-  font-weight: 700;
-}
-.badge-public > *,
-.badge-private > * {
-  color: inherit !important;
-}
+.badge-public, .badge-private { color: #000 !important; font-weight: 700; }
+.badge-public > *, .badge-private > * { color: inherit !important; }
 
 /* ✅ Force black text for risk levels */
 .risk-low{ background:#204d2a; color:#000 !important; }
@@ -364,25 +325,21 @@ th, td, button, input, textarea, select,
 .risk-reason-list{ margin:.25rem 0; padding-left:1.1rem; }
 .risk-reason-list li{ margin:.25rem 0; line-height:1.5; }
 .risk-reason-list .tag{
-  display:inline-block;
-  margin:.15rem .25rem 0 0;
-  padding:.15rem .45rem;
-  border-radius:999px;
-  border:1px solid var(--muted-border);
-  background: rgba(255,255,255,.08);
-  font-size:.85em;
+  display:inline-block; margin:.15rem .25rem 0 0; padding:.15rem .45rem;
+  border-radius:999px; border:1px solid var(--muted-border);
+  background: rgba(255,255,255,.08); font-size:.85em;
 }
 
-/* Make Sample Files links bold + distinct color (override global white) */
+/* Sample Files links — bold & white so they’re obvious but on-brand */
 .sample-link{
   font-weight: 800;
-  color: #00e5ff !important;     /* bright cyan */
+  color: #ffffff !important;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 .sample-link:hover,
 .sample-link:focus{
-  color: #7df3ff !important;     /* brighter on hover/focus */
+  opacity: 0.9;
   text-decoration-thickness: 2px;
 }
 
@@ -435,7 +392,7 @@ th, td, button, input, textarea, select,
    MOBILE
 ==================================*/
 @media (max-width: 768px){
-  :root{ --navbar-h: 64px; --brand-logo-h: 32px; } /* smaller logo + navbar on tablets/phones */
+  :root{ --navbar-h: 64px; --brand-logo-h: 32px; }
   .navbar{ padding: 8px 16px; }
   .hamburger-menu{ display:block; }
 
@@ -444,8 +401,7 @@ th, td, button, input, textarea, select,
     background: rgba(0,0,0,0.95); box-shadow:0 8px 16px rgba(0,0,0,0.5); padding:20px 0; z-index:999;
     transition: transform .3s ease-in-out, max-height .3s ease-in-out; transform: translateY(-100%); max-height:0; overflow:hidden;
   }
-  .nav-links.open,
-  .nav-links.active{
+  .nav-links.open, .nav-links.active{
     display:flex; transform:translateY(0); max-height: calc(100vh - var(--navbar-h)); overflow-y:auto;
   }
   .nav-links li{ text-align:center; margin:10px 0; }
