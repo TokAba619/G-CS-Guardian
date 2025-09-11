@@ -353,7 +353,7 @@ th, td, button, input, textarea, select,
   text-decoration: underline;
   text-underline-offset: 2px;
   display:inline-block;
-  max-width:100%;
+  max-width:50%;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
