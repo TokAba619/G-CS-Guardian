@@ -27,7 +27,7 @@
     <section class="card" aria-labelledby="cardTitle">
       <div class="card-head">
         <img src="logo1.png" alt="Brand" class="card-logo" />
-        <h1 id="cardTitle" class="card-title">Admin Login</h1>
+        <h1 id="cardTitle" class="card-title">Admin / Google Login</h1>
         <p class="card-subtitle">To continue to G-CS Guardian</p>
       </div>
 
@@ -44,12 +44,11 @@
 
         <button type="submit" class="btn btn-primary">Login</button>
 
-        <!-- EXACT wording/placement -->
         <p class="alt" style="margin-top:16px;">
           Join as a User<br />Login Below
         </p>
 
-        <!-- Consent + inline error -->
+        <!-- Consent + inline message -->
         <div class="consent">
           <label class="checkbox" for="tncCheck">
             <input type="checkbox" id="tncCheck" />
@@ -62,7 +61,7 @@
           <div id="tncError" class="error" style="display:none;">Please agree to the Terms &amp; Conditions to continue.</div>
         </div>
 
-        <!-- Google OAuth button (disabled until T&C checked + consent recorded) -->
+        <!-- Google OAuth button (disabled until server confirms consent OR user ticks & records) -->
         <a
           id="googleLogin"
           class="btn btn-google disabled"
@@ -81,8 +80,11 @@
 
   <script>
   // ===== Config =====
-  const CONSENT_ENDPOINT = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/consent";
-  const CONSENT_VERSION  = "pp-v1.0";
+  const API_BASE                = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app";
+  const CONSENT_ENDPOINT        = API_BASE + "/consent";
+  const CONSENT_REVOKE_ENDPOINT = API_BASE + "/consent/revoke";
+  const CONSENT_ME_ENDPOINT     = API_BASE + "/consent/me";
+  const CONSENT_VERSION         = "pp-v1.0";
 
   // ===== Elements =====
   const tncCheck   = document.getElementById('tncCheck');
@@ -94,106 +96,160 @@
     googleLink.classList.toggle('disabled', !enabled);
     googleLink.setAttribute('aria-disabled', String(!enabled));
   }
+  function showMsg(msg, color = '#d9534f') {
+    tncError.textContent = msg;
+    tncError.style.display = 'block';
+    tncError.style.color = color;
+  }
+  function hideMsg() { tncError.style.display = 'none'; }
 
   function saveConsentLocally(version) {
     localStorage.setItem("consent_given", "true");
     localStorage.setItem("consent_version", version);
     localStorage.setItem("consent_at", new Date().toISOString());
   }
-
   function clearConsentLocally() {
     localStorage.removeItem("consent_given");
     localStorage.removeItem("consent_at");
     localStorage.removeItem("consent_version");
   }
-
   function hasValidStoredConsent() {
     return localStorage.getItem("consent_given") === "true" &&
            localStorage.getItem("consent_version") === CONSENT_VERSION;
   }
+  function getToken() { return localStorage.getItem("access_token"); }
 
+  // ===== API calls =====
   // POST /consent with minimal payload { version: "pp-v1.0" }
   async function postConsent({withAuth=false} = {}) {
     const headers = { "Content-Type": "application/json", "Accept": "application/json" };
-    const tok = localStorage.getItem("access_token");
+    const tok = getToken();
     if (withAuth && tok) headers["Authorization"] = `Bearer ${tok}`;
-
-    const body = { version: CONSENT_VERSION };
 
     const res = await fetch(CONSENT_ENDPOINT, {
       method: "POST",
       mode: "cors",
       credentials: "omit",
       headers,
-      body: JSON.stringify(body)
+      body: JSON.stringify({ version: CONSENT_VERSION })
     });
-
-    // Accept 200 OK (possibly JSON) or 204 No Content as success
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    try { await res.json(); } catch(_) { /* no JSON is fine */ }
+    if (!res.ok) throw new Error(`POST /consent -> HTTP ${res.status}`);
+    try { await res.json(); } catch(_) {}
   }
 
-  function showError(msg, color = '#d9534f') {
-    tncError.textContent = msg;
-    tncError.style.display = 'block';
-    tncError.style.color = color;
+  // POST /consent/revoke
+  async function revokeConsent() {
+    const headers = { "Accept": "application/json" };
+    const tok = getToken();
+    if (tok) headers["Authorization"] = `Bearer ${tok}`;
+
+    const res = await fetch(CONSENT_REVOKE_ENDPOINT, {
+      method: "POST",
+      mode: "cors",
+      credentials: "omit",
+      headers
+    });
+    if (!res.ok) throw new Error(`POST /consent/revoke -> HTTP ${res.status}`);
+    try { await res.json(); } catch(_) {}
   }
 
-  function hideError() {
-    tncError.style.display = 'none';
+  // GET /consent/me
+  async function getConsentMe() {
+    const tok = getToken();
+    if (!tok) throw new Error("No token for /consent/me");
+    const res = await fetch(CONSENT_ME_ENDPOINT, {
+      method: "GET",
+      headers: {
+        "Accept": "application/json",
+        "Authorization": `Bearer ${tok}`
+      }
+    });
+    if (!res.ok) throw new Error(`GET /consent/me -> HTTP ${res.status}`);
+    return res.json();
   }
 
-  // Reuse stored consent if same version
+  // After we have a token, ensure backend confirms consent for this version.
+  async function ensureConsentAfterAuth() {
+    try {
+      const data = await getConsentMe();
+      const ok = data?.consent_given === true && data?.consent_version === CONSENT_VERSION;
+      if (ok) {
+        // Server confirms consent -> proceed to app
+        hideMsg();
+        window.location.href = "/G-CS-Guardian/web.html";
+        return;
+      }
+      // Not ok: require user to tick now (with token, so POST will be attached to account)
+      setGoogleEnabled(false);
+      tncCheck.checked = false;
+      showMsg("Please agree to the Terms & Conditions to continue.", "#d9534f");
+    } catch (e) {
+      // Could be 401/expired token or network. Keep user here with a helpful message.
+      console.warn("ensureConsentAfterAuth:", e);
+      setGoogleEnabled(false);
+      tncCheck.checked = false;
+      showMsg("We couldn't verify your consent. Please tick the box to continue.", "#f0ad4e");
+    }
+  }
+
+  // ===== Bootstrap (pre-login UX) =====
   (function bootstrapConsent() {
+    // Before login, only enable Google if *local* consent exists (prevents confusion).
     if (hasValidStoredConsent()) {
       tncCheck.checked = true;
       setGoogleEnabled(true);
-      hideError();
+      hideMsg();
     } else {
       tncCheck.checked = false;
       setGoogleEnabled(false);
     }
   })();
 
-  // When user ticks the box → POST {version:"pp-v1.0"} immediately.
+  // ===== Checkbox: tick / untick =====
   tncCheck.addEventListener('change', async () => {
+    // UNTICK → try to revoke if logged in; otherwise just clear local
     if (!tncCheck.checked) {
-      // Turn off + revoke local consent
       setGoogleEnabled(false);
       clearConsentLocally();
-      hideError();
+      hideMsg();
+      try {
+        if (getToken()) await revokeConsent();
+      } catch (e) {
+        console.warn("Revoke skipped/failed:", e);
+      }
       return;
     }
 
-    // Optimistically show progress and disable button while posting
+    // TICK → record consent
     setGoogleEnabled(false);
-    showError("Recording your consent…", "#f0ad4e");
+    // If logged-in, send with token so it’s attached to the account
+    const withAuth = !!getToken();
+    showMsg("Recording your consent…", "#f0ad4e");
 
     try {
-      await postConsent({ withAuth: false });  // <— sends exactly {"version":"pp-v1.0"}
+      await postConsent({ withAuth });
       saveConsentLocally(CONSENT_VERSION);
-      hideError();
-      setGoogleEnabled(true); // only enable after backend accepted consent
+      hideMsg();
+      // If logged-in, go straight to app; if not, just enable Google button
+      if (withAuth) {
+        window.location.href = "/G-CS-Guardian/web.html";
+      } else {
+        setGoogleEnabled(true);
+      }
     } catch (e) {
       console.warn("Consent POST failed:", e);
-      // Revert the tick so users don't proceed without server-confirmed consent
       tncCheck.checked = false;
       clearConsentLocally();
       setGoogleEnabled(false);
-
-      // Helpful guidance
-      showError(
-        "Could not record consent. Please try again. If this keeps happening, check your internet connection or contact support.",
-        "#d9534f"
-      );
+      showMsg("Could not record consent. Please try again.", "#d9534f");
     }
   });
 
-  // Block Google button until consent checkbox is on AND server accepted
+  // Block Google button until consent recorded (either local pre-login or server-confirmed after login)
   googleLink.addEventListener('click', function (e) {
     if (googleLink.classList.contains('disabled')) {
       e.preventDefault();
-      showError("Please agree to the Terms & Conditions to continue.", "#d9534f");
+      showMsg("Please agree to the Terms & Conditions to continue.", "#d9534f");
       tncCheck.focus();
     }
   });
@@ -204,14 +260,19 @@
   const email  = urlParams.get("email");
   const role   = urlParams.get("role");
 
-  if (token) {
+  // If OAuth just returned, store token & **verify consent on server** before leaving this page.
+  (async function handleOAuthReturn() {
+    if (!token) return;
     localStorage.setItem("access_token", token);
     if (email) localStorage.setItem("email", email);
     if (role)  localStorage.setItem("role", role);
 
-    // Head to the app page
-    window.location.href = "/G-CS-Guardian/web.html";
-  }
+    // Make Google button irrelevant now; we have a token.
+    setGoogleEnabled(false);
+
+    // Ensure backend consent is valid for this version before proceeding
+    await ensureConsentAfterAuth();
+  })();
 
   // ===== Admin email/password login =====
   document.getElementById("loginForm").addEventListener("submit", function (event) {
@@ -223,7 +284,7 @@
     const emailVal = document.getElementById("email").value.trim();
     const passwordVal = document.getElementById("password").value;
 
-    fetch("https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/auth/login", {
+    fetch(API_BASE + "/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: emailVal, password: passwordVal }),
@@ -238,7 +299,8 @@
         if (data.email) localStorage.setItem("email", data.email);
         if (data.role)  localStorage.setItem("role", data.role);
 
-        window.location.href = "/G-CS-Guardian/web.html";
+        // After admin login, verify consent on the server first
+        await ensureConsentAfterAuth();
       } else {
         const el = document.getElementById("error");
         el.textContent = "Invalid email or password.";
