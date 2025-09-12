@@ -94,7 +94,7 @@ header .container .content .logo img {
 }
 
 header .container .content .logo a {
-  font-family: "Inter", sans-serif;     /* was Audiowide */
+  font-family: 'Segoe UI', sans-serif;     /* was Audiowide */
   font-weight: 800;                      /* bold for title look */
   font-size: 35px;
   text-decoration: none;
@@ -657,3 +657,127 @@ header .container .content .logo img{
   height: auto;
 }
 
+/* ===============================
+   ABOUT US SECTION
+==================================*/
+
+/* Section wrapper */
+.content-section {
+  min-height: 100vh;
+  padding: 100px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.faq-content {
+  position: relative;
+  z-index: 1;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+/* Title + subtitle */
+.section-title {
+  font-size: 3.2rem;
+  text-align: center;
+  margin-bottom: 3rem;
+  font-weight: 800;
+  text-shadow: -1px -1px 0 #000,
+               1px -1px 0 #000,
+              -1px  1px 0 #000,
+               1px  1px 0 #000;
+}
+
+.section-content {
+  font-size: 1.2rem;
+  line-height: 2;
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 4rem;
+  text-shadow: -1px -1px 0 #000,
+               1px -1px 0 #000,
+              -1px  1px 0 #000,
+               1px  1px 0 #000;
+}
+
+/* Team slider row */
+.team-slider {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* Flip cards */
+.team-card {
+  width: 300px;
+  height: 380px;
+  perspective: 1000px;
+  margin: 0 10px;
+}
+
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform .8s;
+  transform-style: preserve-3d;
+}
+
+.team-card:hover .card-inner {
+  transform: rotateY(180deg);
+}
+
+.card-front,
+.card-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 15px;
+  backface-visibility: hidden;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgb(0 0 0 / 80%);
+}
+
+.card-front {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 20px;
+  background-color: #333;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.card-front .overlay {
+  background: rgba(0,0,0,0.6);
+  padding: 10px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.card-front .overlay h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.card-front .overlay p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #fff;
+}
+
+.card-back {
+  background-color: #000;
+  transform: rotateY(180deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #fff;
+  font-size: 1rem;
+  line-height: 1.4;
+  text-align: center;
+}
