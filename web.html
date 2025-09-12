@@ -400,7 +400,7 @@
     </div>
   </section>
 
- <!-- SCRIPTS (inline bootstrapping) -->
+<!-- SCRIPTS (inline bootstrapping) -->
 <script>
   // ====== Simple helpers ======
   function scrollToSection(id) { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: "smooth" }); }
@@ -408,60 +408,64 @@
   // Robust timestamp → local string (handles epoch sec/ms, ISO, and "YYYY-MM-DD HH:MM:SS")
   function formatDate(ts) {
     if (ts == null) return "N/A";
-
     function toDate(value) {
-      if (typeof value === "number") {
-        const ms = value < 1e12 ? value * 1000 : value; // seconds → ms
-        return new Date(ms);
-      }
+      if (typeof value === "number") return new Date(value < 1e12 ? value * 1000 : value);
       if (typeof value === "string") {
         const s = value.trim();
-
-        // numeric string -> epoch
-        if (/^\d+$/.test(s)) {
-          const n = parseInt(s, 10);
-          return new Date(n < 1e12 ? n * 1000 : n);
-        }
-
-        // Normalize "YYYY-MM-DD HH:MM:SS" -> "YYYY-MM-DDTHH:MM:SS"
-        // If no timezone present, treat as UTC (append Z) so it renders correctly in viewer's local time
+        if (/^\d+$/.test(s)) return new Date(parseInt(s, 10) < 1e12 ? parseInt(s, 10) * 1000 : parseInt(s, 10));
         let iso = s.replace(" ", "T");
         const hasTZ = /[zZ]|[+\-]\d\d:?\d\d$/.test(iso);
-        if (!hasTZ) iso += "Z";
-
+        if (!hasTZ) iso += "Z";                 // treat naive string as UTC
         const d = new Date(iso);
         if (!isNaN(d)) return d;
       }
       const d = new Date(value);
       return isNaN(d) ? null : d;
     }
-
     const d = toDate(ts);
     if (!d) return "N/A";
-
-    const fmt = new Intl.DateTimeFormat(undefined, {
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      second: "2-digit",
+    return new Intl.DateTimeFormat(undefined, {
+      year:"numeric", month:"numeric", day:"numeric",
+      hour:"numeric", minute:"2-digit", second:"2-digit",
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       timeZoneName: "short"
-    });
-
-    return fmt.format(d);
+    }).format(d);
   }
 
   function getToken() { return localStorage.getItem("access_token"); }
 
+  // ====== Role helpers ======
+  function normalizeRole(r) {
+    const s = String(r || "").trim().toLowerCase();
+    if (["project_owner","project owner","owner"].includes(s)) return "project_owner";
+    if (["creator"].includes(s)) return "creator";
+    if (["regular","user","viewer"].includes(s)) return "regular";
+    return s || "regular";
+  }
+  function parseJwt(token) {
+    try {
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(atob(base64).split("").map(c => "%"+("00"+c.charCodeAt(0).toString(16)).slice(-2)).join(""));
+      return JSON.parse(jsonPayload);
+    } catch { return null; }
+  }
+  function getViewerRole() {
+    const token = getToken();
+    const payload = token ? parseJwt(token) : null;
+    const fromJwt = payload?.role || payload?.user_role || payload?.permissions?.role || "";
+    const fromLocal = localStorage.getItem("role") || "";
+    return normalizeRole(fromJwt || fromLocal);
+  }
+  const isProjectOwner = () => getViewerRole() === "project_owner";
+
   // ====== Risk helpers: 1–10 scale ======
   function riskLevelFromScore(score) {
     const s = Number(score ?? 0);
-    if (s >= 10) return "Critical"; // 10 only
-    if (s >= 7)  return "High";     // 7–9
-    if (s >= 4)  return "Medium";   // 4–6
-    return "Low";                   // 1–3 (and 0 fallback)
+    if (s >= 10) return "Critical";
+    if (s >= 7)  return "High";
+    if (s >= 4)  return "Medium";
+    return "Low";
   }
   function riskClass(level) {
     switch ((level || "").toLowerCase()) {
@@ -485,67 +489,40 @@
     if (!token) window.location.href = "signup.html";
   })();
 
-  function normalizeRole(r) {
-    const s = String(r || "").trim().toLowerCase();
-    if (["project_owner", "project owner", "owner"].includes(s)) return "project_owner";
-    if (["creator"].includes(s)) return "creator";
-    if (["regular", "user"].includes(s)) return "regular";
-    return s || "regular";
-  }
-
   /* ============================================================
-  ETHICAL TOGGLE LOGIC — FINAL
+     ETHICAL TOGGLE LOGIC — OWNER-ONLY + requires Project ID
   ============================================================ */
   (function roleGate() {
-    function parseJwt(token) {
-      try {
-        const base64Url = token.split(".")[1];
-        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-        const jsonPayload = decodeURIComponent(
-          atob(base64).split("").map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join("")
-        );
-        return JSON.parse(jsonPayload);
-      } catch { return null; }
-    }
-    function getToken() { return localStorage.getItem("access_token"); }
-    function normalizeRole(r) {
-      const s = String(r || "").trim().toLowerCase();
-      if (["project_owner", "project owner", "owner"].includes(s)) return "project_owner";
-      if (["creator"].includes(s)) return "creator";
-      if (["regular", "user", "viewer"].includes(s)) return "regular";
-      return s || "regular";
-    }
-
     const ethicalToggle  = document.getElementById("ethicalModeToggle");
     const historySection = document.getElementById("history");
+    const historyNavLi   = document.querySelector('a[href="#history"]')?.parentElement || null;
     const projectInput   = document.getElementById("projectId");
 
-    const token   = getToken();
-    const payload = token ? parseJwt(token) : null;
-    const tokenRole = payload?.role || payload?.user_role || payload?.permissions?.role || "";
-    const role = normalizeRole(tokenRole);
-    const isOwner = role === "project_owner" || role === "creator";
-
     function updateEthicalToggleState() {
+      const owner = isProjectOwner();
       const hasProjectId = !!(projectInput && projectInput.value.trim());
-      const canUse = isOwner && hasProjectId;
+      const canUse = owner && hasProjectId;
 
       if (ethicalToggle) {
         if (!canUse) ethicalToggle.checked = false;
         ethicalToggle.disabled = !canUse;
-        ethicalToggle.title = !isOwner
+        ethicalToggle.title = !owner
           ? "Only project owners can enable Ethical Mode"
           : (!hasProjectId ? "Enter a Project ID to enable Ethical Mode" : "Ethical Mode is available");
       }
 
-      console.log("[Ethical Toggle]", { roleFromJWT: tokenRole || "(none)", normalizedRole: role, isOwner, hasProjectId, canUse });
+      // Show/Hide HISTORY (section + nav) strictly for project owners
+      const showHistory = owner;
+      if (historySection) historySection.style.display = showHistory ? "" : "none";
+      if (historyNavLi) historyNavLi.style.display = showHistory ? "" : "none";
+
+      console.log("[Gate]", { role:getViewerRole(), owner, hasProjectId, canUse });
     }
 
+    // Initial + on projectId input changes
     updateEthicalToggleState();
     projectInput?.addEventListener("input",  updateEthicalToggleState);
     projectInput?.addEventListener("change", updateEthicalToggleState);
-
-    if (historySection && !isOwner) historySection.style.display = "none";
   })();
 
   // ====== Risk Reason tidy formatting ======
@@ -585,7 +562,6 @@
       defaultSortKey = "risk_score", defaultSortDir = "desc"
     } = options;
 
-    // toggle sample files column visibility (th + td)
     tableEl.querySelectorAll(".sample-col").forEach(el => el.style.display = ethicalMode ? "" : "none");
 
     let rows = Array.isArray(buckets) ? [...buckets] : [];
@@ -595,10 +571,7 @@
     const tbody = tableEl.querySelector("tbody");
     const thead = tableEl.querySelector("thead");
 
-    function normalizedText(v) {
-      if (v == null) return "";
-      return String(v).toLowerCase();
-    }
+    function normalizedText(v) { return v == null ? "" : String(v).toLowerCase(); }
 
     function applyFilter() {
       const q = normalizedText(filterInput?.value || "");
@@ -617,32 +590,21 @@
       return arr.sort((a, b) => {
         const va = (sortKey === "risk_level") ? riskLevelFromScore(a.risk_score) : a[sortKey];
         const vb = (sortKey === "risk_level") ? riskLevelFromScore(b.risk_score) : b[sortKey];
-
         if (sortKey === "risk_score") return (Number(va||0) - Number(vb||0)) * dir;
         if (sortKey === "public") return ((va === true ? 1 : 0) - (vb === true ? 1 : 0)) * dir;
-
-        const sa = String(va ?? "").toLowerCase();
-        const sb = String(vb ?? "").toLowerCase();
-        if (sa < sb) return -1 * dir;
-        if (sa > sb) return 1 * dir;
-        return 0;
+        const sa = String(va ?? "").toLowerCase(), sb = String(vb ?? "").toLowerCase();
+        if (sa < sb) return -1 * dir; if (sa > sb) return 1 * dir; return 0;
       });
     }
 
-    // Build neat link list for sample files
     function buildSampleLinks(samples) {
       if (!samples) return "";
       const arr = Array.isArray(samples) ? samples : [samples];
       const items = arr.map((s) => {
         const href = String(s);
         let label = href;
-        try {
-          const u = new URL(href);
-          const tail = u.pathname.split("/").pop() || u.host;
-          label = decodeURIComponent(tail);
-        } catch {
-          label = decodeURIComponent(href.split("/").pop() || href);
-        }
+        try { const u = new URL(href); label = decodeURIComponent(u.pathname.split("/").pop() || u.host); }
+        catch { label = decodeURIComponent(href.split("/").pop() || href); }
         return `<li><a class="sample-link" href="${href}" target="_blank" rel="noopener" title="${href}">${label}</a></li>`;
       }).join("");
       return `<ul class="sample-list">${items}</ul>`;
@@ -653,13 +615,9 @@
       tbody.innerHTML = "";
       filtered.forEach(b => {
         const level = riskLevelFromScore(b.risk_score);
-        const sens = Array.isArray(b.sensitive_keywords_detected)
-          ? b.sensitive_keywords_detected.join(", ")
-          : (b.sensitive_keywords_detected ?? "None");
-
+        const sens = Array.isArray(b.sensitive_keywords_detected) ? b.sensitive_keywords_detected.join(", ") : (b.sensitive_keywords_detected ?? "None");
         const samplesHtml = ethicalMode && b.sample_files ? buildSampleLinks(b.sample_files) : "";
         const reasonHtml = formatRiskReasonHTML(b.risk_reason);
-
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td class="mono">${b.bucket_name ?? "Unknown"}</td>
@@ -685,8 +643,7 @@
         const ind = th.querySelector(".sort-ind");
         if (!ind) return;
         const key = th.getAttribute("data-key");
-        if (key === sortKey) ind.textContent = sortDir === "asc" ? "↑" : "↓";
-        else ind.textContent = "↕";
+        ind.textContent = key === sortKey ? (sortDir === "asc" ? "↑" : "↓") : "↕";
       });
     }
 
@@ -699,7 +656,6 @@
       });
     });
     filterInput?.addEventListener("input", () => render());
-
     render();
   }
 
@@ -790,18 +746,11 @@
     }
 
     try {
-      const res = await fetch(API_PREVIOUS_SCANS, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-
+      const res = await fetch(API_PREVIOUS_SCANS, { headers: { "Authorization": `Bearer ${token}` } });
       if (!res.ok) throw new Error(`Failed to fetch scans (${res.status})`);
       const data = await res.json();
       const scans = Array.isArray(data?.my_scans) ? data.my_scans : [];
-
-      if (scans.length === 0) {
-        tableBody.innerHTML = "<tr><td colspan='3'>No scans found</td></tr>";
-        return;
-      }
+      if (scans.length === 0) { tableBody.innerHTML = "<tr><td colspan='3'>No scans found</td></tr>"; return; }
 
       tableBody.innerHTML = "";
       scans.forEach(scan => {
@@ -822,6 +771,7 @@
       tableBody.innerHTML = `<tr><td colspan='3'>Error: ${error.message}</td></tr>`;
     }
   }
+  document.addEventListener("DOMContentLoaded", loadPreviousScans);
 
   async function fetchDetailedScan() {
     const scanId = document.getElementById("scanIdInput").value.trim();
@@ -845,10 +795,7 @@
 
       if (!res.ok) {
         let msg = `Scan not found (${res.status})`;
-        try {
-          const err = await res.json();
-          if (err && err.detail) msg = Array.isArray(err.detail) ? err.detail.map(d => d.msg).join(", ") : err.detail;
-        } catch {}
+        try { const err = await res.json(); if (err && err.detail) msg = Array.isArray(err.detail) ? err.detail.map(d => d.msg).join(", ") : err.detail; } catch {}
         throw new Error(msg);
       }
 
@@ -887,13 +834,9 @@
     }
   }
 
-  document.addEventListener("DOMContentLoaded", loadPreviousScans);
-
-  // ====== History fetch (owner only) ======
+  // ====== History fetch (OWNER ONLY) ======
   document.addEventListener("DOMContentLoaded", function () {
-    const role = normalizeRole(localStorage.getItem("role"));
-    const isOwner = role === "project_owner" || role === "creator";
-    if (!isOwner) return;
+    if (!isProjectOwner()) return;
 
     const historyTableBody = document.querySelector("#historyTable tbody");
     const apiURL = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/history";
@@ -903,36 +846,31 @@
       return;
     }
 
-    fetch(apiURL, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      }
-    })
-    .then(r => r.ok ? r.json() : Promise.reject(new Error(`Failed (${r.status})`)))
-    .then(data => {
-      historyTableBody.innerHTML = "";
-      if (!Array.isArray(data) || data.length === 0) {
-        historyTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No history found</td></tr>`;
-        return;
-      }
-      data.forEach(item => {
-        historyTableBody.innerHTML += `
-          <tr>
-            <td>${item.scan_id}</td>
-            <td>${item.project_id}</td>
-            <td>${item.user_email}</td>
-            <td>${formatDate(item.timestamp)}</td>
-            <td>${item.result_summary}</td>
-          </tr>
-        `;
+    fetch(apiURL, { method: "GET", headers: { "Content-Type":"application/json", "Authorization": `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : Promise.reject(new Error(`Failed (${r.status})`)))
+      .then(data => {
+        const rows = Array.isArray(data) ? data : (Array.isArray(data?.history) ? data.history : []);
+        historyTableBody.innerHTML = "";
+        if (rows.length === 0) {
+          historyTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No history found</td></tr>`;
+          return;
+        }
+        rows.forEach(item => {
+          historyTableBody.innerHTML += `
+            <tr>
+              <td>${item.scan_id}</td>
+              <td>${item.project_id}</td>
+              <td>${item.user_email}</td>
+              <td>${formatDate(item.timestamp)}</td>
+              <td>${item.result_summary}</td>
+            </tr>
+          `;
+        });
+      })
+      .catch(error => {
+        console.error("Error fetching history:", error);
+        historyTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Error loading history</td></tr>`;
       });
-    })
-    .catch(error => {
-      console.error("Error fetching history:", error);
-      historyTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Error loading history</td></tr>`;
-    });
   });
 
   // ====== Optional: show stored email/role if such elements exist ======
@@ -940,7 +878,7 @@
     const emailElement = document.getElementById("user-email");
     const roleElement = document.getElementById("user-role");
     const userEmail = localStorage.getItem("email");
-    const userRole = localStorage.getItem("role");
+    const userRole = getViewerRole();
     if (emailElement) emailElement.textContent = userEmail || "Unknown";
     if (roleElement) roleElement.textContent = userRole || "Unknown";
   });
