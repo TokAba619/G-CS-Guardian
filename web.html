@@ -104,6 +104,20 @@
     .cta-pink:hover { background: #d81b60; box-shadow: 0 10px 28px rgba(233,30,99,.34); }
     .cta-pink:active { transform: translateY(1px); box-shadow: 0 6px 20px rgba(233,30,99,.28); }
 
+    /* NEW: small action button for report download */
+    .btn-report {
+      padding: .45rem .8rem;
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(233,30,99,.25);
+    }
+    .btn-report:hover { background:#d81b60; }
+    .btn-report[disabled] { opacity:.6; cursor:not-allowed; }
+
     .form-title { font-size: 28px; font-weight: 800; text-align: center; margin-top: 18px; margin-bottom: 4px; }
     .toggle { justify-content: center; margin: 10px auto 0; }
     .scan .input-slab { margin-top: 8px; }
@@ -219,10 +233,11 @@
         <p>View all your previous scans with timestamps and IDs.</p>
         <table class="scan-table">
           <thead>
-            <tr><th>Timestamp</th><th>Scan ID</th><th>Project ID</th></tr>
+            <!-- ADDED: Download Report column -->
+            <tr><th>Timestamp</th><th>Scan ID</th><th>Project ID</th><th>Download Report</th></tr>
           </thead>
           <tbody id="previous-scan-table">
-            <tr><td colspan="3">Loading...</td></tr>
+            <tr><td colspan="4">Loading...</td></tr>
           </tbody>
         </table>
       </div>
@@ -680,18 +695,61 @@
     // ====== My-Scan APIs ======
     const API_PREVIOUS_SCANS = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/my-scans/";
     const API_SCAN_DETAILS = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/my-scans/{scan_id}";
+    const API_REPORT_PDF   = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/reports/{scan_id}/report.pdf";
+
+    // NEW: helper to parse filename from Content-Disposition
+    function getFilenameFromDisposition(header, fallback) {
+      if (!header) return `${fallback}.pdf`;
+      // look for filename="name.pdf"
+      const m = /filename\\*=UTF-8''([^;]+)|filename=\"?([^\";]+)\"?/i.exec(header);
+      const name = decodeURIComponent(m?.[1] || m?.[2] || '');
+      return name || `${fallback}.pdf`;
+    }
+
+    // NEW: download report function
+    async function downloadReport(scanId, btnEl) {
+      const token = getToken();
+      if (!token) { alert("You are not logged in."); return; }
+      try {
+        if (btnEl) { btnEl.disabled = true; btnEl.textContent = "Downloading..."; }
+        const url = API_REPORT_PDF.replace("{scan_id}", encodeURIComponent(scanId));
+        const res = await fetch(url, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Accept": "application/pdf"
+          }
+        });
+        if (!res.ok) throw new Error(`Failed to download (${res.status})`);
+        const blob = await res.blob();
+        const cd = res.headers.get("Content-Disposition");
+        const filename = getFilenameFromDisposition(cd, scanId);
+
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        URL.revokeObjectURL(link.href);
+        link.remove();
+      } catch (e) {
+        alert(e.message || "Download failed");
+      } finally {
+        if (btnEl) { btnEl.disabled = false; btnEl.textContent = "Download"; }
+      }
+    }
 
     async function loadPreviousScans() {
       const tableBody = document.getElementById("previous-scan-table");
-      tableBody.innerHTML = "<tr><td colspan='3'>Loading...</td></tr>";
+      tableBody.innerHTML = "<tr><td colspan='4'>Loading...</td></tr>";
       const token = getToken();
-      if (!token) { tableBody.innerHTML = "<tr><td colspan='3'>Please log in to view scans</td></tr>"; return; }
+      if (!token) { tableBody.innerHTML = "<tr><td colspan='4'>Please log in to view scans</td></tr>"; return; }
       try {
         const res = await fetch(API_PREVIOUS_SCANS, { headers: { "Authorization": `Bearer ${token}` } });
         if (!res.ok) throw new Error(`Failed to fetch scans (${res.status})`);
         const data = await res.json();
         const scans = Array.isArray(data?.my_scans) ? data.my_scans : [];
-        if (scans.length === 0) { tableBody.innerHTML = "<tr><td colspan='3'>No scans found</td></tr>"; return; }
+        if (scans.length === 0) { tableBody.innerHTML = "<tr><td colspan='4'>No scans found</td></tr>"; return; }
         tableBody.innerHTML = "";
         scans.forEach(scan => {
           const row = document.createElement("tr");
@@ -699,16 +757,19 @@
             <td>${formatDate(scan.timestamp)}</td>
             <td class="scan-id" aria-label="Click to view details">${scan.scan_id || "N/A"}</td>
             <td>${scan.project_id || "N/A"}</td>
+            <td><button class="btn-report" data-scan="${scan.scan_id}">Download</button></td>
           `;
           row.querySelector(".scan-id").addEventListener("click", () => {
             document.getElementById("scanIdInput").value = scan.scan_id;
             fetchDetailedScan();
           });
+          const btn = row.querySelector(".btn-report");
+          btn.addEventListener("click", () => downloadReport(scan.scan_id, btn));
           tableBody.appendChild(row);
         });
       } catch (error) {
         console.error(error);
-        tableBody.innerHTML = `<tr><td colspan='3'>Error: ${error.message}</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan='4'>Error: ${error.message}</td></tr>`;
       }
     }
 
