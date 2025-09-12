@@ -434,7 +434,7 @@
 
   function getToken() { return localStorage.getItem("access_token"); }
 
-  // ====== Role helpers ======
+  // ====== Role helpers (very robust) ======
   function normalizeRole(r) {
     const s = String(r || "").trim().toLowerCase();
     if (["project_owner","project owner","owner"].includes(s)) return "project_owner";
@@ -450,12 +450,51 @@
       return JSON.parse(jsonPayload);
     } catch { return null; }
   }
+  function extractRoleCandidates(payload) {
+    const out = [];
+    if (!payload) return out;
+
+    // common direct
+    if (payload.role) out.push(payload.role);
+    if (payload.user_role) out.push(payload.user_role);
+    if (payload.permissions?.role) out.push(payload.permissions.role);
+
+    // arrays
+    if (Array.isArray(payload.roles)) out.push(...payload.roles);
+    if (Array.isArray(payload.user_roles)) out.push(...payload.user_roles);
+    if (Array.isArray(payload.permissions)) out.push(...payload.permissions);
+
+    // keycloak-ish
+    if (payload.realm_access?.roles) out.push(...payload.realm_access.roles);
+    if (payload.resource_access) {
+      try {
+        Object.values(payload.resource_access).forEach(v => {
+          if (v?.roles) out.push(...v.roles);
+        });
+      } catch {}
+    }
+
+    // scopes / authorities
+    if (typeof payload.scope === "string") out.push(...payload.scope.split(/[,\s]+/));
+    if (typeof payload.scopes === "string") out.push(...payload.scopes.split(/[,\s]+/));
+    if (Array.isArray(payload.authorities)) out.push(...payload.authorities);
+
+    // custom names
+    for (const k of Object.keys(payload)) {
+      if (/^https?:.*\/roles?$/i.test(k) && Array.isArray(payload[k])) out.push(...payload[k]);
+      else if (/roles?$/i.test(k) && Array.isArray(payload[k])) out.push(...payload[k]);
+      else if (/role$/i.test(k) && typeof payload[k] === "string") out.push(payload[k]);
+    }
+    return out;
+  }
   function getViewerRole() {
     const token = getToken();
     const payload = token ? parseJwt(token) : null;
-    const fromJwt = payload?.role || payload?.user_role || payload?.permissions?.role || "";
-    const fromLocal = localStorage.getItem("role") || "";
-    return normalizeRole(fromJwt || fromLocal);
+    const cands = extractRoleCandidates(payload);
+    cands.push(localStorage.getItem("role") || "");
+    const resolved = cands.map(normalizeRole).find(Boolean) || "regular";
+    console.log("[Role Debug]", { candidates: cands, resolved });
+    return resolved;
   }
   const isProjectOwner = () => getViewerRole() === "project_owner";
 
@@ -507,8 +546,8 @@
         if (!canUse) ethicalToggle.checked = false;
         ethicalToggle.disabled = !canUse;
         ethicalToggle.title = !owner
-          ? "Only project owners can enable Ethical Mode"
-          : (!hasProjectId ? "Enter a Project ID to enable Ethical Mode" : "Ethical Mode is available");
+          ? "Disabled: your role is not project_owner"
+          : (!hasProjectId ? "Disabled: enter a Project ID first" : "Ethical Mode is available");
       }
 
       // Show/Hide HISTORY (section + nav) strictly for project owners
@@ -523,6 +562,17 @@
     updateEthicalToggleState();
     projectInput?.addEventListener("input",  updateEthicalToggleState);
     projectInput?.addEventListener("change", updateEthicalToggleState);
+
+    // Re-evaluate a few times in case token/role arrives after page load
+    let tries = 0;
+    const timer = setInterval(() => {
+      tries++;
+      updateEthicalToggleState();
+      if (tries > 12) clearInterval(timer); // ~6s
+    }, 500);
+
+    // Also on window focus (returning from login popup, etc.)
+    window.addEventListener("focus", updateEthicalToggleState);
   })();
 
   // ====== Risk Reason tidy formatting ======
@@ -849,6 +899,7 @@
     fetch(apiURL, { method: "GET", headers: { "Content-Type":"application/json", "Authorization": `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : Promise.reject(new Error(`Failed (${r.status})`)))
       .then(data => {
+        // API may return {history:[...]} or an array
         const rows = Array.isArray(data) ? data : (Array.isArray(data?.history) ? data.history : []);
         historyTableBody.innerHTML = "";
         if (rows.length === 0) {
