@@ -5,18 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>G-CS Guardian Tool</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <!-- your global scanner CSS (already defines --cyan); ensure it sets --cyan: #E91E63 -->
   <link rel="stylesheet" href="web.css">
   <style>
-    /* Ensure theme color is pink everywhere on this page */
     :root { --cyan: #E91E63; --accent:#E91E63; }
 
-    /* ===== RESULTS (scan + my-scan) ===== */
     .results-container { margin-top: 2rem; display: flex; flex-direction: column; gap: 1rem; }
     .result-card { background: #111; padding: 1rem; border-radius: 8px; color: #eee; box-shadow: 0 0 10px rgba(0,0,0,0.3); }
     .result-card h3, .result-card h4 { color: var(--cyan); margin-bottom: 0.5rem; }
 
-    /* ===== Toggle ===== */
     .toggle { display: flex; align-items: center; gap: 10px; }
     .toggle input { position:absolute; opacity:0; width:0; height:0; }
     .slider { width: 40px; height: 20px; background: #ccc; border-radius: 20px; position: relative; cursor: pointer; }
@@ -26,17 +22,14 @@
     .toggle input:disabled + .slider { background:#666; cursor:not-allowed; }
     .toggle-label { color: white; }
 
-    /* ===== Navbar brand with logo (match your top header look) ===== */
     .navbar-brand { display: flex; align-items: center; gap: 12px; color: var(--cyan); font-size: 1.8rem; font-weight: 800; text-decoration: none; letter-spacing: 1px; text-shadow: 1px 1px 3px #000; }
     .navbar-brand .brand-logo { width: 34px; height: 34px; border-radius: 6px; object-fit: contain; display: block; background: transparent; }
 
-    /* ===== Nav links underline / hover color to pink ===== */
     .nav-links a { color:#fff; text-decoration:none; font-size:1.1rem; font-weight:600; padding:5px 0; position:relative; transition:color .3s; }
     .nav-links a::after { content:''; position:absolute; width:0; height:2px; background: var(--cyan); left:0; bottom:0; transition:width .3s ease; }
     .nav-links a:hover::after, .nav-links a.active::after { width:100%; }
     .nav-links a:hover { color: var(--cyan); }
 
-    /* ===== Dashboard table ===== */
     .table-tools { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
     .table-tools input[type="text"]{ padding:.5rem .6rem; border:none; border-radius:6px; background:#1a1a1a; color:#eee; }
     .table-tools .chip { background:#1a1a1a; color:#ccc; padding:.35rem .6rem; border-radius:999px; font-size:.85rem; }
@@ -47,7 +40,6 @@
     .dashboard-table th .sort-ind { position:absolute; right:.6rem; opacity:.7; color:#000; }
     .dashboard-table tr:hover { background: rgba(255,255,255,0.05); }
 
-    /* Badges (black text) */
     .badge { display:inline-block; padding:.25rem .5rem; border-radius:999px; font-size:.8rem; }
     .badge-public { background:#ff0000; color:#000000 !important; font-weight:700; }
     .badge-private { background:#00ff00; color:#000000 !important; font-weight:700; }
@@ -59,19 +51,16 @@
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
     .nowrap { white-space: nowrap; }
 
-    /* ===== Sample Files column (toggle on) ===== */
     .sample-col { width: 320px; }
     .sample-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: .35rem; }
     .sample-link { display: inline-block; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--cyan); text-decoration: underline; }
     .sample-link:hover { color: #c2185b; }
 
-    /* ===== Risk Reason tidy list styles ===== */
     .dashboard-table td.risk-reason { white-space: normal !important; }
     .risk-reason-list{ margin:.25rem 0; padding-left:1.1rem; }
     .risk-reason-list li{ margin:.25rem 0; line-height:1.5; }
     .risk-reason-list .tag{ display:inline-block; margin:.15rem .25rem 0 0; padding:.15rem .45rem; border-radius:999px; border:1px solid rgba(0,0,0,0.5); background: rgba(255,255,255,.08); font-size:.85em; color:#ddd; }
 
-    /* ===== My-Scan ===== */
     .myscan-feature { margin-top: 2rem; }
     .scan-table { width: 100%; border-collapse: collapse; background: #111; color: #eee; margin-top: 1rem; border-radius: 8px; overflow: hidden; }
     .scan-table th, .scan-table td { padding: 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; }
@@ -86,7 +75,6 @@
     .detailed-scan-form button { background: var(--cyan); color: #111; padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; }
     .detailed-scan-form button:hover { background: #c2185b; color:#fff; }
 
-    /* ===== HISTORY ===== */
     .history .table-container { overflow-x: auto; margin-top: 20px; }
     .history table { width: 100%; border-collapse: collapse; background-color: #1e1e2f; color: white; border-radius: 8px; overflow: hidden; }
     .history th, .history td { padding: 12px 15px; border-bottom: 1px solid #333; text-align: left; }
@@ -94,7 +82,6 @@
     .history tr:nth-child(even) { background-color: #2a2a3d; }
     .history tr:hover { background-color: #33334d; transition: 0.2s; }
 
-    /* ===== NEW: minimal pill input + CTA for scanner ===== */
     .inline-form { display:flex; gap:12px; align-items:center; justify-content:center; max-width: 720px; margin: 18px auto 0; padding: 6px; }
     .pill-input { flex: 1; height: 52px; padding: 0 18px; border-radius: 999px; border: 1.5px solid rgba(255,255,255,.25); background: rgba(0,0,0,.35); color: #fff; outline: none; font-size: 16px; transition: border-color .2s ease, box-shadow .2s ease, background .2s ease; }
     .pill-input::placeholder { color: rgba(255,255,255,.70); }
@@ -104,17 +91,7 @@
     .cta-pink:hover { background: #d81b60; box-shadow: 0 10px 28px rgba(233,30,99,.34); }
     .cta-pink:active { transform: translateY(1px); box-shadow: 0 6px 20px rgba(233,30,99,.28); }
 
-    /* NEW: small action button for report download */
-    .btn-report {
-      padding: .45rem .8rem;
-      border-radius: 999px;
-      border: none;
-      background: var(--accent);
-      color: #fff;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 6px 18px rgba(233,30,99,.25);
-    }
+    .btn-report { padding: .45rem .8rem; border-radius: 999px; border: none; background: var(--accent); color: #fff; font-weight: 700; cursor: pointer; box-shadow: 0 6px 18px rgba(233,30,99,.25); }
     .btn-report:hover { background:#d81b60; }
     .btn-report[disabled] { opacity:.6; cursor:not-allowed; }
 
@@ -126,11 +103,29 @@
       .inline-form { flex-direction: column; align-items: stretch; }
       .cta-pink { width: 100%; }
     }
+
+    .project-picker-card { margin-top:16px; padding:16px; border-radius:12px; background:#111; }
+    .picker-header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
+    .picker-actions { display:flex; gap:8px; }
+    #projectSearch { padding:8px 10px; min-width:260px; border-radius:8px; border:1px solid #222; background:#0e0e0e; color:#fff; }
+    #refreshProjectsBtn { padding:8px 12px; border-radius:8px; border:1px solid #222; background:var(--accent); color:#000; font-weight:600; }
+    .project-table-wrap { max-height:360px; overflow:auto; border:1px solid #000; border-radius:10px; }
+    .project-table { width:100%; border-collapse:separate; border-spacing:0; }
+    .project-table thead th { position:sticky; top:0; background:#0d0d0d; text-align:left; padding:10px; font-weight:700; border-bottom:1px solid #222; }
+    .project-table tbody td { padding:10px; border-bottom:1px solid #161616; }
+    .project-table tbody tr:hover { background:#0f0f13; }
+    .picker-footer { margin-top:10px; display:flex; gap:8px; align-items:center; }
+    .muted { opacity:.75; }
+    .error { color:#ff6b6b; }
+    .badge.owner { background:#1a3; color:#d7ffd7; }
+    .badge.editor { background:#332; color:#ffd; }
+    .badge.viewer { background:#223; color:#ddf; }
+    .badge.no_access { background:#311; color:#fdd; }
+    .callout { margin-top:10px; padding:10px 12px; border-radius:10px; background:#2a1a1a; color:#ffd3d3; border:1px solid #5a2a2a; display:none; }
   </style>
 </head>
 <body>
   <nav class="navbar" id="navbar">
-    <!-- Brand with logo (match header concept) -->
     <a href="index.html" class="navbar-brand">
       <img src="logo.png" alt="G-CS Guardian Logo" class="brand-logo">
       <span>G-CS Guardian</span>
@@ -169,6 +164,7 @@
     <div class="container">
       <h2 class="section-title">Welcome to G-CS Guardian Scanner</h2>
       <p class="section-content">Need a Quick Scan of Your Cloud Storage Bucket? I’m ready!</p>
+
       <div class="form">
         <form id="scanForm" class="input-slab">
           <label class="toggle" id="ethicalModeLabel">
@@ -177,11 +173,44 @@
             <span class="toggle-label">Full Access Scan (Project Owner)</span>
           </label>
 
-          <h1 class="form-title">Upload Google Cloud Project ID</h1>
-          <!-- NEW minimal pill input + CTA -->
+          <!-- PROJECT PICKER -->
+          <section class="card project-picker-card" aria-labelledby="pickerTitle">
+            <div class="picker-header">
+              <h3 id="pickerTitle">Select a GCP Project</h3>
+              <div class="picker-actions">
+                <input id="projectSearch" type="text" placeholder="Search by Name or ID" />
+                <button id="refreshProjectsBtn" type="button">Refresh</button>
+              </div>
+            </div>
+
+            <div id="projectsLoading" class="muted">Loading your projects…</div>
+            <div id="projectsError" class="error" style="display:none"></div>
+            <div id="scopeCallout" class="callout">Your login session is missing Google Cloud permissions (cloud-platform). Please log out and sign in again, and accept the permissions prompt.</div>
+
+            <div class="project-table-wrap" aria-live="polite">
+              <table id="projectTable" class="project-table" aria-label="GCP projects">
+                <thead>
+                  <tr>
+                    <th style="width:38%">Name</th>
+                    <th style="width:38%;">ID</th>
+                    <th style="width:14%">Access level</th>
+                    <th style="width:10%">Select</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+
+            <div class="picker-footer">
+              <span class="muted">Selected:</span>
+              <strong id="selectedProjectLabel">—</strong>
+            </div>
+          </section>
+
+          <h1 class="form-title" style="margin-top:18px;">Or type a Project ID (optional)</h1>
           <div class="inline-form" role="group" aria-label="Project scan form">
-            <input type="text" class="pill-input" id="projectId" placeholder="Your project ID here (e.g. g-cs-guardian)" autocomplete="off" required aria-label="Project ID" />
-            <button id="learn-more" type="button" class="cta-pink" aria-label="Upload and scan">Upload &amp; Scan</button>
+            <input type="text" class="pill-input" id="projectId" placeholder="Your project ID here (e.g. g-cs-guardian)" autocomplete="off" aria-label="Project ID (optional)" />
+            <button id="learn-more" type="button" class="cta-pink" aria-label="Scan">Scan</button>
           </div>
         </form>
       </div>
@@ -232,7 +261,6 @@
         <p>View all your previous scans with timestamps and IDs.</p>
         <table class="scan-table">
           <thead>
-            <!-- ADDED: Download Report column -->
             <tr><th>Timestamp</th><th>Scan ID</th><th>Project ID</th><th>Download Report</th></tr>
           </thead>
           <tbody id="previous-scan-table">
@@ -279,7 +307,9 @@
   <!-- HISTORY SECTION (owner only) -->
   <section class="content-section history" id="history">
     <div class="floating-elements">
-      <div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div>
+      <div class="floating-element"></div><div class="floating-element"></div>
+      <div class="floating-element"></div><div class="floating-element"></div>
+      <div class="floating-element"></div>
     </div>
     <div class="container">
       <h2 class="section-title">History</h2>
@@ -297,537 +327,402 @@
     </div>
   </section>
 
-  <!-- SCRIPTS (inline bootstrapping) -->
-  <script>
-    // ====== Simple helpers ======
-    function scrollToSection(id) { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: "smooth" }); }
+<script>
+/* =========================
+   CONFIG
+========================= */
+var API_BASE = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app";
 
-    // Robust timestamp → local string (handles epoch sec/ms, ISO, and "YYYY-MM-DD HH:MM:SS")
-    function formatDate(ts) {
-      if (ts == null) return "N/A";
-      function toDate(value) {
-        if (typeof value === "number") {
-          const ms = value < 1e12 ? value * 1000 : value; // seconds → ms
-          return new Date(ms);
-        }
-        if (typeof value === "string") {
-          const s = value.trim();
-          // numeric string -> epoch
-          if (/^\d+$/.test(s)) { const n = parseInt(s, 10); return new Date(n < 1e12 ? n * 1000 : n); }
-          // Normalize "YYYY-MM-DD HH:MM:SS" -> "YYYY-MM-DDTHH:MM:SS"
-          // If no timezone present, treat as UTC (append Z) so it renders correctly in viewer's local time
-          let iso = s.replace(" ", "T");
-          const hasTZ = /[zZ]|[+\-]\d\d:?\d\d$/.test(iso);
-          if (!hasTZ) iso += "Z";
-          const d = new Date(iso);
-          if (!isNaN(d)) return d;
-        }
-        const d = new Date(value);
-        return isNaN(d) ? null : d;
-      }
-      const d = toDate(ts);
-      if (!d) return "N/A";
-      const fmt = new Intl.DateTimeFormat(undefined, {
-        year: "numeric", month: "numeric", day: "numeric",
-        hour: "numeric", minute: "2-digit", second: "2-digit",
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        timeZoneName: "short"
-      });
-      return fmt.format(d);
+/* Helpers */
+function scrollToSection(id){var el=document.getElementById(id);if(el)el.scrollIntoView({behavior:"smooth"});}
+function getToken(){return localStorage.getItem("access_token");}
+function formatDate(ts){
+  if(ts==null)return"N/A";
+  function toDate(v){
+    if(typeof v==="number"){var ms=v<1e12?v*1000:v;return new Date(ms);}
+    if(typeof v==="string"){
+      var s=v.trim();
+      if(/^\d+$/.test(s)){var n=parseInt(s,10);return new Date(n<1e12?n*1000:n);}
+      var iso=s.replace(" ","T");if(!/[zZ]|[+\-]\d\d:?\d\d$/.test(iso))iso+="Z";
+      var d1=new Date(iso);if(!isNaN(d1))return d1;
     }
+    var d2=new Date(v);return isNaN(d2)?null:d2;
+  }
+  var d=toDate(ts);if(!d)return"N/A";
+  var fmt=new Intl.DateTimeFormat(undefined,{year:"numeric",month:"numeric",day:"numeric",hour:"numeric",minute:"2-digit",second:"2-digit",timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone,timeZoneName:"short"});
+  return fmt.format(d);
+}
+function riskLevelFromScore(score){var s=Number(score||0);if(s>=10)return"Critical";if(s>=7)return"High";if(s>=4)return"Medium";return"Low";}
+function riskClass(level){switch((level||"").toLowerCase()){case"critical":return"risk-critical";case"high":return"risk-high";case"medium":return"risk-medium";default:return"risk-low";}}
 
-    function getToken() { return localStorage.getItem("access_token"); }
+/* Mobile nav */
+var navLinks=document.getElementById("navLinks");
+var hamburgerMenu=document.getElementById("hamburgerMenu");
+function closeMenu(){if(navLinks)navLinks.classList.remove("open");}
+if(hamburgerMenu){
+  hamburgerMenu.addEventListener("click",function(){if(navLinks)navLinks.classList.toggle("open");});
+  hamburgerMenu.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){if(navLinks)navLinks.classList.toggle("open");}});
+}
 
-    // ====== Risk helpers: 1–10 scale ======
-    function riskLevelFromScore(score) {
-      const s = Number(score ?? 0);
-      if (s >= 10) return "Critical"; // 10 only if
-      if (s >= 7) return "High";      // 7–9
-      if (s >= 4) return "Medium";    // 4–6
-      return "Low";                   // 1–3 (and 0 fallback)
-    }
-    function riskClass(level) {
-      switch ((level || "").toLowerCase()) {
-        case "critical": return "risk-critical";
-        case "high": return "risk-high";
-        case "medium": return "risk-medium";
-        default: return "risk-low";
-      }
-    }
+/* Auth guard */
+(function(){var t=getToken();if(!t)window.location.href="signup.html";})();
 
-    // ====== Mobile nav ======
-    const navLinks = document.getElementById("navLinks");
-    const hamburgerMenu = document.getElementById("hamburgerMenu");
-    function closeMenu() { navLinks?.classList.remove("open"); }
-    hamburgerMenu?.addEventListener("click", () => navLinks?.classList.toggle("open"));
-    hamburgerMenu?.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") navLinks?.classList.toggle("open"); });
+/* =========================
+   PROJECT PICKER
+========================= */
+(function(){
+  var els={
+    table:document.getElementById("projectTable"),
+    tbody:document.querySelector("#projectTable tbody"),
+    search:document.getElementById("projectSearch"),
+    refresh:document.getElementById("refreshProjectsBtn"),
+    loading:document.getElementById("projectsLoading"),
+    error:document.getElementById("projectsError"),
+    callout:document.getElementById("scopeCallout"),
+    selectedLabel:document.getElementById("selectedProjectLabel"),
+    ethicalToggle:document.getElementById("ethicalModeToggle")
+  };
+  var state={projects:[],filtered:[],selected:{
+    id:localStorage.getItem("selected_project_id")||null,
+    access:localStorage.getItem("selected_project_access")||null,
+    name:localStorage.getItem("selected_project_name")||null
+  }};
 
-    // ====== Auth guard ======
-    (function authGuard() { const token = getToken(); if (!token) window.location.href = "signup.html"; })();
+  function fetchJSON(path){
+    var token=getToken();if(!token)return Promise.reject(new Error("Missing access token."));
+    return fetch(API_BASE+path,{headers:{"Authorization":"Bearer "+token}})
+      .then(function(res){if(!res.ok)return res.text().then(function(t){throw new Error(t||("HTTP "+res.status));});return res.json();});
+  }
+  function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
-    function normalizeRole(r) {
-      const s = String(r || "").trim().toLowerCase();
-      if (["project_owner", "project owner", "owner"].includes(s)) return "project_owner";
-      if (["creator"].includes(s)) return "creator";
-      if (["regular", "user"].includes(s)) return "regular";
-      return s || "regular";
-    }
+  function renderTable(rows){
+    els.tbody.innerHTML="";
+    if(!rows.length){els.tbody.innerHTML="<tr><td colspan='4' class='muted'>No projects found.</td></tr>";return;}
+    rows.forEach(function(p){
+      var tr=document.createElement("tr");
+      tr.innerHTML="<td>"+escapeHtml(p.name||"—")+"</td>"+
+        "<td><code>"+escapeHtml(p.id)+"</code></td>"+
+        "<td><span class='badge "+p.access_level+"'>"+p.access_level+"</span></td>"+
+        "<td style='text-align:right'><button type='button' data-id='"+p.id+"' data-name='"+escapeHtml(p.name||"")+"' data-access='"+p.access_level+"'>Select</button></td>";
+      els.tbody.appendChild(tr);
+    });
+  }
+  function applySelectionLabel(){
+    var s=state.selected;
+    els.selectedLabel.textContent=s.id?((s.name||"")+" ("+s.id+") — "+s.access):"—";
+  }
+  function applyEthicalToggleState(){
+    var isOwner=state.selected.access==="owner";
+    if(!els.ethicalToggle)return;
+    if(!isOwner)els.ethicalToggle.checked=false;
+    els.ethicalToggle.disabled=!isOwner;
+    els.ethicalToggle.title=isOwner?"You are Owner for this project":"Ethical Mode requires Owner access.";
+  }
+  function selectProject(sel){
+    state.selected={id:sel.id,name:sel.name,access:sel.access};
+    localStorage.setItem("selected_project_id",sel.id);
+    localStorage.setItem("selected_project_name",sel.name||"");
+    localStorage.setItem("selected_project_access",sel.access);
+    applySelectionLabel();applyEthicalToggleState();
+    window.dispatchEvent(new CustomEvent("gcs_project_selected",{detail:state.selected}));
+  }
+  els.tbody.addEventListener("click",function(e){
+    var btn=e.target.closest("button[data-id]");if(!btn)return;
+    selectProject({id:btn.dataset.id,name:btn.dataset.name,access:btn.dataset.access});
+  });
+  function filterRows(){
+    var q=(els.search.value||"").toLowerCase().trim();
+    state.filtered=!q?state.projects.slice():state.projects.filter(function(p){
+      return (p.name||"").toLowerCase().includes(q)||(p.id||"").toLowerCase().includes(q);
+    });
+    renderTable(state.filtered);
+  }
+  function loadProjects(){
+    els.error.style.display="none";els.callout.style.display="none";els.loading.style.display="block";
+    fetchJSON("/projects").then(function(data){
+      state.projects=data.projects||[];state.filtered=state.projects.slice();renderTable(state.filtered);
+      if(state.selected.id){applySelectionLabel();applyEthicalToggleState();}
+    }).catch(function(err){
+      var msg=String(err.message||err);els.error.textContent=msg;els.error.style.display="block";
+      if(/ACCESS_TOKEN_SCOPE_INSUFFICIENT|cloudresourcemanager/.test(msg)){els.callout.style.display="block";}
+    }).finally(function(){els.loading.style.display="none";});
+  }
 
-    /* ============================================================
-       ETHICAL TOGGLE LOGIC — FINAL
-    ============================================================ */
-    (function roleGate() {
-      function parseJwt(token) {
-        try {
-          const base64Url = token.split(".")[1];
-          const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-          const jsonPayload = decodeURIComponent(
-            atob(base64).split("").map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join("")
-          );
-          return JSON.parse(jsonPayload);
-        } catch { return null; }
-      }
-      function getToken() { return localStorage.getItem("access_token"); }
-      function normalizeRole(r) {
-        const s = String(r || "").trim().toLowerCase();
-        if (["project_owner", "project owner", "owner"].includes(s)) return "project_owner";
-        if (["creator"].includes(s)) return "creator";
-        if (["regular", "user", "viewer"].includes(s)) return "regular";
-        return s || "regular";
-      }
+  // expose getter for scan button
+  window.ProjectPicker={getSelected:function(){return {id:state.selected.id,name:state.selected.name,access:state.selected.access};}};
 
-      const ethicalToggle = document.getElementById("ethicalModeToggle");
-      const historySection = document.getElementById("history");
-      const projectInput = document.getElementById("projectId");
+  els.refresh.addEventListener("click",loadProjects);
+  els.search.addEventListener("input",function(){filterRows();});
+  loadProjects();applySelectionLabel();applyEthicalToggleState();
+})();
 
-      const token = getToken();
-      const payload = token ? parseJwt(token) : null;
-      const tokenRole = payload?.role || payload?.user_role || payload?.permissions?.role || "";
-      const role = normalizeRole(tokenRole);
-      const isOwner = role === "project_owner" || role === "creator";
-
-      function updateEthicalToggleState() {
-        const hasProjectId = !!(projectInput && projectInput.value.trim());
-        const canUse = isOwner && hasProjectId;
-        if (ethicalToggle) {
-          if (!canUse) ethicalToggle.checked = false;
-          ethicalToggle.disabled = !canUse;
-          ethicalToggle.title = !isOwner
-            ? "Only project owners can enable Ethical Mode"
-            : (!hasProjectId ? "Enter a Project ID to enable Ethical Mode" : "Ethical Mode is available");
-        }
-        console.log("[Ethical Toggle]", { roleFromJWT: tokenRole || "(none)", normalizedRole: role, isOwner, hasProjectId, canUse });
-      }
-
-      updateEthicalToggleState();
-      projectInput?.addEventListener("input", updateEthicalToggleState);
-      projectInput?.addEventListener("change", updateEthicalToggleState);
-
-      if (historySection && !isOwner) historySection.style.display = "none";
-    })();
-
-    // ====== Risk Reason tidy formatting ======
-    function htmlEscape(s) {
-      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
-    }
-    function formatRiskReasonHTML(reason) {
-      if (!reason) return "N/A";
-      const parts = String(reason)
-        .split(/\s*\|\s*/g)
-        .flatMap(p => p.split(/(?<=\.)\s+(?=[A-Z])|–|—/g))
-        .map(s => s.trim().replace(/\s*\.+$/, ''))
-        .filter(Boolean);
-
-      const items = parts.map(p => {
-        const kw = p.match(/^\s*Sensitive keywords detected:\s*(.+)$/i);
-        if (kw) {
-          const chips = kw[1]
-            .split(/[,;]\s*/)
-            .map(x => x.replace(/^(bucket[:\s]*)?/i, '').trim())
-            .filter(Boolean)
-            .map(k => `<span class="tag">bucket: ${htmlEscape(k)}</span>`)
-            .join(" ");
-          return `<li>Sensitive keywords detected:<div>${chips}</div></li>`;
-        }
-        return `<li>${htmlEscape(p)}</li>`;
-      }).join("");
-      return `<ul class="risk-reason-list">${items}</ul>`;
-    }
-
-    // ====== Generic table renderer (reusable) ======
-    function renderResultsTable(options) {
-      const { buckets, ethicalMode, tableEl, toolsEl, countEl, filterInput, defaultSortKey = "risk_score", defaultSortDir = "desc" } = options;
-
-      // toggle sample files column visibility (th + td)
-      tableEl.querySelectorAll(".sample-col").forEach(el => el.style.display = ethicalMode ? "" : "none");
-
-      let rows = Array.isArray(buckets) ? [...buckets] : [];
-      let sortKey = defaultSortKey;
-      let sortDir = defaultSortDir;
-
-      const tbody = tableEl.querySelector("tbody");
-      const thead = tableEl.querySelector("thead");
-
-      function normalizedText(v) { if (v == null) return ""; return String(v).toLowerCase(); }
-
-      function applyFilter() {
-        const q = normalizedText(filterInput?.value || "");
-        return rows.filter(b => {
-          const name = normalizedText(b.bucket_name);
-          const reason = normalizedText(b.risk_reason);
-          const kws = Array.isArray(b.sensitive_keywords_detected) ? normalizedText(b.sensitive_keywords_detected.join(",")) : normalizedText(b.sensitive_keywords_detected);
-          return !q || name.includes(q) || reason.includes(q) || kws.includes(q);
-        });
-      }
-
-      function sortData(arr) {
-        const dir = sortDir === "asc" ? 1 : -1;
-        return arr.sort((a, b) => {
-          const va = (sortKey === "risk_level") ? riskLevelFromScore(a.risk_score) : a[sortKey];
-          const vb = (sortKey === "risk_level") ? riskLevelFromScore(b.risk_score) : b[sortKey];
-          if (sortKey === "risk_score") return (Number(va||0) - Number(vb||0)) * dir;
-          if (sortKey === "public") return ((va === true ? 1 : 0) - (vb === true ? 1 : 0)) * dir;
-          const sa = String(va ?? "").toLowerCase();
-          const sb = String(vb ?? "").toLowerCase();
-          if (sa < sb) return -1 * dir;
-          if (sa > sb) return 1 * dir;
-          return 0;
-        });
-      }
-
-      // Build neat link list for sample files
-      function buildSampleLinks(samples) {
-        if (!samples) return "";
-        const arr = Array.isArray(samples) ? samples : [samples];
-        const items = arr.map((s) => {
-          const href = String(s);
-          let label = href;
-          try {
-            const u = new URL(href);
-            const tail = u.pathname.split("/").pop() || u.host;
-            label = decodeURIComponent(tail);
-          } catch {
-            label = decodeURIComponent(href.split("/").pop() || href);
-          }
-          return `<li><a class="sample-link" href="${href}" target="_blank" rel="noopener" title="${href}">${label}</a></li>`;
-        }).join("");
-        return `<ul class="sample-list">${items}</ul>`;
-      }
-
-      function render() {
-        const filtered = sortData(applyFilter());
-        tbody.innerHTML = "";
-        filtered.forEach(b => {
-          const level = riskLevelFromScore(b.risk_score);
-          const sens = Array.isArray(b.sensitive_keywords_detected) ? b.sensitive_keywords_detected.join(", ") : (b.sensitive_keywords_detected ?? "None");
-          const samplesHtml = ethicalMode && b.sample_files ? buildSampleLinks(b.sample_files) : "";
-          const reasonHtml = formatRiskReasonHTML(b.risk_reason);
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td class="mono">${b.bucket_name ?? "Unknown"}</td>
-            <td class="nowrap">
-              ${b.public ? '<span class="badge badge-public">Public</span>' : '<span class="badge badge-private">Private</span>'}
-            </td>
-            <td class="nowrap mono">${b.risk_score ?? "0"}</td>
-            <td class="nowrap"><span class="badge ${riskClass(level)}">${level}</span></td>
-            <td class="risk-reason">${reasonHtml}</td>
-            <td>${htmlEscape(sens)}</td>
-            <td class="sample-col" style="${ethicalMode ? "" : "display:none;"}">${samplesHtml}</td>
-          `;
-          tbody.appendChild(tr);
-        });
-
-        if (toolsEl) toolsEl.style.display = "flex";
-        if (tableEl) tableEl.style.display = "table";
-        if (countEl) countEl.textContent = `${filtered.length} bucket${filtered.length===1?"":"s"}`;
-        updateHeaderIndicators();
-      }
-
-      function updateHeaderIndicators() {
-        thead.querySelectorAll("th").forEach(th => {
-          const ind = th.querySelector(".sort-ind");
-          if (!ind) return;
-          const key = th.getAttribute("data-key");
-          if (key === sortKey) ind.textContent = sortDir === "asc" ? "↑" : "↓";
-          else ind.textContent = "↕";
-        });
-      }
-
-      thead.querySelectorAll("th[data-key]").forEach(th => {
-        th.addEventListener("click", () => {
-          const key = th.getAttribute("data-key");
-          if (key === sortKey) sortDir = (sortDir === "asc") ? "desc" : "asc";
-          else { sortKey = key; sortDir = (key === "risk_score") ? "desc" : "asc"; }
-          render();
-        });
-      });
-
-      filterInput?.addEventListener("input", () => render());
+/* =========================
+   RESULTS TABLE RENDER
+========================= */
+function htmlEscape(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function formatRiskReasonHTML(reason){
+  if(!reason)return"N/A";
+  var parts=String(reason).split(/\s*\|\s*/g).map(function(s){return s.trim().replace(/\s*\.+$/,"");}).filter(Boolean);
+  var items=parts.map(function(p){return"<li>"+htmlEscape(p)+"</li>";}).join("");
+  return"<ul class='risk-reason-list'>"+items+"</ul>";
+}
+function renderResultsTable(opts){
+  var buckets=Array.isArray(opts.buckets)?opts.buckets:[];
+  var ethicalMode=opts.ethicalMode,tableEl=opts.tableEl,toolsEl=opts.toolsEl,countEl=opts.countEl,filterInput=opts.filterInput;
+  var sortKey=opts.defaultSortKey||"risk_score",sortDir=opts.defaultSortDir||"desc";
+  tableEl.querySelectorAll(".sample-col").forEach(function(el){el.style.display=ethicalMode?"":"none";});
+  var tbody=tableEl.querySelector("tbody");var thead=tableEl.querySelector("thead");
+  function normalizedText(v){return v==null?"":String(v).toLowerCase();}
+  function applyFilter(){
+    var q=normalizedText((filterInput&&filterInput.value)||"");
+    return buckets.filter(function(b){
+      var name=normalizedText(b.bucket_name);var reason=normalizedText(b.risk_reason);
+      var kws=Array.isArray(b.sensitive_keywords_detected)?normalizedText(b.sensitive_keywords_detected.join(",")):normalizedText(b.sensitive_keywords_detected);
+      return !q||name.includes(q)||reason.includes(q)||kws.includes(q);
+    });
+  }
+  function sortData(arr){
+    var dir=sortDir==="asc"?1:-1;
+    return arr.sort(function(a,b){
+      var va=(sortKey==="risk_level")?riskLevelFromScore(a.risk_score):a[sortKey];
+      var vb=(sortKey==="risk_level")?riskLevelFromScore(b.risk_score):b[sortKey];
+      if(sortKey==="risk_score")return (Number(va||0)-Number(vb||0))*dir;
+      if(sortKey==="public")return ((va?1:0)-(vb?1:0))*dir;
+      var sa=String(va||"").toLowerCase(),sb=String(vb||"").toLowerCase();
+      if(sa<sb)return -1*dir;if(sa>sb)return 1*dir;return 0;
+    });
+  }
+  function render(){
+    var filtered=sortData(applyFilter());tbody.innerHTML="";
+    filtered.forEach(function(b){
+      var level=riskLevelFromScore(b.risk_score);
+      var sens=Array.isArray(b.sensitive_keywords_detected)?b.sensitive_keywords_detected.join(", "):(b.sensitive_keywords_detected||"None");
+      var tr=document.createElement("tr");
+      tr.innerHTML="<td>"+(b.bucket_name||"Unknown")+"</td>"+
+        "<td>"+(b.public?"<span class='badge badge-public'>Public</span>":"<span class='badge badge-private'>Private</span>")+"</td>"+
+        "<td>"+(b.risk_score||"0")+"</td>"+
+        "<td><span class='badge "+riskClass(level)+"'>"+level+"</span></td>"+
+        "<td>"+formatRiskReasonHTML(b.risk_reason)+"</td>"+
+        "<td>"+htmlEscape(sens)+"</td>"+
+        "<td class='sample-col' style='"+(ethicalMode?"":"display:none;")+"'></td>";
+      tbody.appendChild(tr);
+    });
+    if(toolsEl)toolsEl.style.display="flex";if(tableEl)tableEl.style.display="table";
+    if(countEl)countEl.textContent=filtered.length+" buckets";
+  }
+  thead.querySelectorAll("th[data-key]").forEach(function(th){
+    th.addEventListener("click",function(){
+      var key=th.getAttribute("data-key");
+      if(key===sortKey)sortDir=(sortDir==="asc"?"desc":"asc");else{sortKey=key;sortDir=(key==="risk_score"?"desc":"asc");}
       render();
-    }
-
-    // ====== RESULTS (live scan) ======
-    async function runScan(projectId, ethicalMode) {
-      const token = getToken();
-      const resultsSummary = document.getElementById("results-summary");
-      const resultsTools = document.getElementById("results-tools");
-      const resultsTable = document.getElementById("results-table");
-      const resultsFilter = document.getElementById("results-filter");
-      const resultsCount = document.getElementById("results-count");
-
-      resultsSummary.innerHTML = `<p>🔍 Scanning in progress...</p>`;
-      resultsTools.style.display = "none";
-      resultsTable.style.display = "none";
-
-      const apiUrl = `https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/scan?project_id=${encodeURIComponent(projectId)}&ethical_mode=${ethicalMode}`;
-      const response = await fetch(apiUrl, {
-        method: "GET",
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-
-      if (!response.ok) {
-        let msg = `Scan failed: ${response.status}`;
-        try {
-          const err = await response.json();
-          if (err && err.detail) msg = Array.isArray(err.detail) ? err.detail.map(d => d.msg).join(", ") : err.detail;
-        } catch {}
-        throw new Error(msg);
-      }
-
-      const apiData = await response.json();
-      const { scan_id, project_role, buckets } = apiData;
-
-      resultsSummary.innerHTML = `
-        <div class="result-card">
-          <h3>Scan Summary</h3>
-          <p><strong>Scan ID:</strong> ${scan_id}</p>
-          <p><strong>Detected Role:</strong> ${project_role || "N/A"}</p>
-          <p><strong>Bucket Count:</strong> ${Array.isArray(buckets) ? buckets.length : 0}</p>
-        </div>
-      `;
-
-      renderResultsTable({
-        buckets: Array.isArray(buckets) ? buckets : [],
-        ethicalMode,
-        tableEl: resultsTable,
-        toolsEl: resultsTools,
-        countEl: resultsCount,
-        filterInput: resultsFilter,
-        defaultSortKey: "risk_score",
-        defaultSortDir: "desc"
-      });
-
-      document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    // ====== Scanner button ======
-    document.addEventListener("DOMContentLoaded", function () {
-      document.getElementById("learn-more").addEventListener("click", async function () {
-        const ethicalMode = document.getElementById("ethicalModeToggle").checked;
-        const projectId = document.getElementById("projectId").value.trim();
-        if (!projectId) { alert("Please enter a Project ID."); return; }
-        try {
-          const token = getToken();
-          if (!token) { alert("You are not logged in."); return; }
-          await runScan(projectId, ethicalMode);
-        } catch (error) {
-          document.getElementById("results-summary").innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
-        }
-      });
     });
+  });
+  if(filterInput)filterInput.addEventListener("input",render);
+  render();
+}
 
-    // ====== My-Scan APIs ======
-    const API_PREVIOUS_SCANS = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/my-scans/";
-    const API_SCAN_DETAILS = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/my-scans/{scan_id}";
-    const API_REPORT_PDF   = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/reports/{scan_id}/report.pdf";
+/* =========================
+   SCAN FLOW
+========================= */
+async function runScan(projectId, ethicalMode){
+  var token=getToken();
+  var resultsSummary=document.getElementById("results-summary");
+  var resultsTools=document.getElementById("results-tools");
+  var resultsTable=document.getElementById("results-table");
+  var resultsFilter=document.getElementById("results-filter");
+  var resultsCount=document.getElementById("results-count");
 
-    // NEW: helper to parse filename from Content-Disposition
-    function getFilenameFromDisposition(header, fallback) {
-      if (!header) return `${fallback}.pdf`;
-      // look for filename="name.pdf"
-      const m = /filename\\*=UTF-8''([^;]+)|filename=\"?([^\";]+)\"?/i.exec(header);
-      const name = decodeURIComponent(m?.[1] || m?.[2] || '');
-      return name || `${fallback}.pdf`;
-    }
+  resultsSummary.innerHTML="<p>🔍 Scanning in progress...</p>";
+  resultsTools.style.display="none";resultsTable.style.display="none";
 
-    // NEW: download report function
-    async function downloadReport(scanId, btnEl) {
-      const token = getToken();
-      if (!token) { alert("You are not logged in."); return; }
-      try {
-        if (btnEl) { btnEl.disabled = true; btnEl.textContent = "Downloading..."; }
-        const url = API_REPORT_PDF.replace("{scan_id}", encodeURIComponent(scanId));
-        const res = await fetch(url, {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Accept": "application/pdf"
-          }
-        });
-        if (!res.ok) throw new Error(`Failed to download (${res.status})`);
-        const blob = await res.blob();
-        const cd = res.headers.get("Content-Disposition");
-        const filename = getFilenameFromDisposition(cd, scanId);
+  var apiUrl=API_BASE+"/scan?project_id="+encodeURIComponent(projectId)+"&ethical_mode="+ethicalMode;
+  var response=await fetch(apiUrl,{method:"GET",headers:{"Authorization":"Bearer "+token}});
+  if(!response.ok){throw new Error("Scan failed: "+response.status);}
+  var apiData=await response.json();
 
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        URL.revokeObjectURL(link.href);
-        link.remove();
-      } catch (e) {
-        alert(e.message || "Download failed");
-      } finally {
-        if (btnEl) { btnEl.disabled = false; btnEl.textContent = "Download"; }
-      }
-    }
+  resultsSummary.innerHTML="<div class='result-card'><h3>Scan Summary</h3>"+
+    "<p><strong>Scan ID:</strong> "+apiData.scan_id+"</p>"+
+    "<p><strong>Detected Role:</strong> "+(apiData.project_role||"N/A")+"</p>"+
+    "<p><strong>Bucket Count:</strong> "+(Array.isArray(apiData.buckets)?apiData.buckets.length:0)+"</p></div>";
 
-    async function loadPreviousScans() {
-      const tableBody = document.getElementById("previous-scan-table");
-      tableBody.innerHTML = "<tr><td colspan='4'>Loading...</td></tr>";
-      const token = getToken();
-      if (!token) { tableBody.innerHTML = "<tr><td colspan='4'>Please log in to view scans</td></tr>"; return; }
-      try {
-        const res = await fetch(API_PREVIOUS_SCANS, { headers: { "Authorization": `Bearer ${token}` } });
-        if (!res.ok) throw new Error(`Failed to fetch scans (${res.status})`);
-        const data = await res.json();
-        const scans = Array.isArray(data?.my_scans) ? data.my_scans : [];
-        if (scans.length === 0) { tableBody.innerHTML = "<tr><td colspan='4'>No scans found</td></tr>"; return; }
-        tableBody.innerHTML = "";
-        scans.forEach(scan => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${formatDate(scan.timestamp)}</td>
-            <td class="scan-id" aria-label="Click to view details">${scan.scan_id || "N/A"}</td>
-            <td>${scan.project_id || "N/A"}</td>
-            <td><button class="btn-report" data-scan="${scan.scan_id}">Download</button></td>
-          `;
-          row.querySelector(".scan-id").addEventListener("click", () => {
-            document.getElementById("scanIdInput").value = scan.scan_id;
-            fetchDetailedScan();
-          });
-          const btn = row.querySelector(".btn-report");
-          btn.addEventListener("click", () => downloadReport(scan.scan_id, btn));
-          tableBody.appendChild(row);
-        });
-      } catch (error) {
-        console.error(error);
-        tableBody.innerHTML = `<tr><td colspan='4'>Error: ${error.message}</td></tr>`;
-      }
-    }
+  renderResultsTable({
+    buckets:Array.isArray(apiData.buckets)?apiData.buckets:[],
+    ethicalMode:ethicalMode,
+    tableEl:resultsTable,
+    toolsEl:resultsTools,
+    countEl:resultsCount,
+    filterInput:resultsFilter
+  });
+  document.getElementById("results").scrollIntoView({behavior:"smooth"});
+}
 
-    async function fetchDetailedScan() {
-      const scanId = document.getElementById("scanIdInput").value.trim();
-      const resultsContainer = document.getElementById("detailed-scan-results");
-      const tableEl = document.getElementById("detailed-table");
-      const toolsEl = document.getElementById("detailed-tools");
-      const filterEl = document.getElementById("detailed-filter");
-      const countEl = document.getElementById("detailed-count");
+/* Scan button: prefer selected project from picker, else typed input */
+document.addEventListener("DOMContentLoaded",function(){
+  document.getElementById("learn-more").addEventListener("click",function(){
+    var ethicalMode=document.getElementById("ethicalModeToggle").checked;
+    var picked=window.ProjectPicker&&window.ProjectPicker.getSelected?window.ProjectPicker.getSelected():{id:null};
+    var typed=(document.getElementById("projectId").value||"").trim();
+    var projectId=picked.id||typed;
+    if(!projectId){alert("Please select a project (or type one).");return;}
+    runScan(projectId,ethicalMode).catch(function(e){
+      document.getElementById("results-summary").innerHTML="<p style='color:red;'>Error: "+e.message+"</p>";
+    });
+  });
+});
 
-      resultsContainer.innerHTML = "<p>Loading...</p>";
-      toolsEl.style.display = "none";
-      tableEl.style.display = "none";
-      if (!scanId) { resultsContainer.innerHTML = "<p>Please enter a Scan ID.</p>"; return; }
+/* =========================
+   MY-SCAN (list, detail, pdf)
+========================= */
+var API_PREVIOUS_SCANS=API_BASE+"/my-scans/";
+var API_SCAN_DETAILS=API_BASE+"/my-scans/{scan_id}";
+var API_REPORT_PDF=API_BASE+"/reports/{scan_id}/report.pdf";
 
-      const token = getToken();
-      try {
-        const res = await fetch(API_SCAN_DETAILS.replace("{scan_id}", encodeURIComponent(scanId)), { headers: { "Authorization": `Bearer ${token}` } });
-        if (!res.ok) {
-          let msg = `Scan not found (${res.status})`;
-          try {
-            const err = await res.json();
-            if (err && err.detail) msg = Array.isArray(err.detail) ? err.detail.map(d => d.msg).join(", ") : err.detail;
-          } catch {}
-          throw new Error(msg);
-        }
-        const data = await res.json();
-        const buckets = Array.isArray(data?.buckets) ? data.buckets : [];
-        const ethicalMode = Boolean(data?.ethical_mode);
-
-        resultsContainer.innerHTML = `
-          <div class="result-card">
-            <h4>Scan ${data.scan_id}</h4>
-            <p><strong>Project:</strong> ${data.project_id || "N/A"}</p>
-            <p><strong>Time:</strong> ${formatDate(data.timestamp)}</p>
-            <p><strong>Role:</strong> ${data.project_role || "N/A"} | <strong>Ethical Mode:</strong> ${ethicalMode ? "On" : "Off"}</p>
-            <p><strong>Bucket Count:</strong> ${buckets.length}</p>
-          </div>
-        `;
-
-        if (buckets.length === 0) {
-          resultsContainer.insertAdjacentHTML("beforeend", "<p>No bucket results stored for this scan.</p>");
-          return;
-        }
-
-        renderResultsTable({
-          buckets,
-          ethicalMode,
-          tableEl,
-          toolsEl,
-          countEl,
-          filterInput: filterEl,
-          defaultSortKey: "risk_score",
-          defaultSortDir: "desc"
-        });
-      } catch (error) {
-        console.error(error);
-        resultsContainer.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", loadPreviousScans);
-
-    // ====== History fetch (owner only) ======
-    document.addEventListener("DOMContentLoaded", function () {
-      const role = normalizeRole(localStorage.getItem("role"));
-      const isOwner = role === "project_owner" || role === "creator";
-      if (!isOwner) return;
-
-      const historyTableBody = document.querySelector("#historyTable tbody");
-      const apiURL = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/history";
-      const token = getToken();
-      if (!token) { historyTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Please log in to view history</td></tr>`; return; }
-
-      fetch(apiURL, {
-        method: "GET",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }
-      })
-      .then(r => r.ok ? r.json() : Promise.reject(new Error(`Failed (${r.status})`)))
-      .then(data => {
-        historyTableBody.innerHTML = "";
-        if (!Array.isArray(data) || data.length === 0) {
-          historyTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No history found</td></tr>`; return;
-        }
-        data.forEach(item => {
-          historyTableBody.innerHTML += `
-            <tr>
-              <td>${item.scan_id}</td>
-              <td>${item.project_id}</td>
-              <td>${item.user_email}</td>
-              <td>${formatDate(item.timestamp)}</td>
-              <td>${item.result_summary}</td>
-            </tr>`;
-        });
-      })
-      .catch(error => {
-        console.error("Error fetching history:", error);
-        historyTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Error loading history</td></tr>`;
+function getFilenameFromDisposition(header,fallback){
+  if(!header)return fallback+".pdf";
+  var m=/filename\*=UTF-8''([^;]+)|filename=\"?([^\";]+)\"?/i.exec(header);
+  var name=decodeURIComponent((m&& (m[1]||m[2]))||"");
+  return name||fallback+".pdf";
+}
+async function downloadReport(scanId,btnEl){
+  var token=getToken();if(!token){alert("You are not logged in.");return;}
+  try{
+    if(btnEl){btnEl.disabled=true;btnEl.textContent="Downloading...";}
+    var url=API_REPORT_PDF.replace("{scan_id}",encodeURIComponent(scanId));
+    var res=await fetch(url,{method:"GET",headers:{"Authorization":"Bearer "+token,"Accept":"application/pdf"}});
+    if(!res.ok)throw new Error("Failed to download ("+res.status+")");
+    var blob=await res.blob();var cd=res.headers.get("Content-Disposition");
+    var filename=getFilenameFromDisposition(cd,scanId);
+    var link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download=filename;document.body.appendChild(link);link.click();URL.revokeObjectURL(link.href);link.remove();
+  }catch(e){alert(e.message||"Download failed");}
+  finally{if(btnEl){btnEl.disabled=false;btnEl.textContent="Download";}}
+}
+async function loadPreviousScans(){
+  var tableBody=document.getElementById("previous-scan-table");
+  tableBody.innerHTML="<tr><td colspan='4'>Loading...</td></tr>";
+  var token=getToken();if(!token){tableBody.innerHTML="<tr><td colspan='4'>Please log in to view scans</td></tr>";return;}
+  try{
+    var res=await fetch(API_PREVIOUS_SCANS,{headers:{"Authorization":"Bearer "+token}});
+    if(!res.ok)throw new Error("Failed to fetch scans ("+res.status+")");
+    var data=await res.json();
+    var scans=Array.isArray(data&&data.my_scans)?data.my_scans:[];
+    if(scans.length===0){tableBody.innerHTML="<tr><td colspan='4'>No scans found</td></tr>";return;}
+    tableBody.innerHTML="";
+    scans.forEach(function(scan){
+      var row=document.createElement("tr");
+      row.innerHTML="<td>"+formatDate(scan.timestamp)+"</td>"+
+        "<td class='scan-id'>"+(scan.scan_id||"N/A")+"</td>"+
+        "<td>"+(scan.project_id||"N/A")+"</td>"+
+        "<td><button class='btn-report' data-scan='"+scan.scan_id+"'>Download</button></td>";
+      row.querySelector(".scan-id").addEventListener("click",function(){
+        document.getElementById("scanIdInput").value=scan.scan_id;fetchDetailedScan();
       });
+      var btn=row.querySelector(".btn-report");
+      btn.addEventListener("click",function(){downloadReport(scan.scan_id,btn);});
+      tableBody.appendChild(row);
     });
+  }catch(error){
+    console.error(error);
+    tableBody.innerHTML="<tr><td colspan='4'>Error: "+error.message+"</td></tr>";
+  }
+}
+async function fetchDetailedScan(){
+  var scanId=(document.getElementById("scanIdInput").value||"").trim();
+  var resultsContainer=document.getElementById("detailed-scan-results");
+  var tableEl=document.getElementById("detailed-table");
+  var toolsEl=document.getElementById("detailed-tools");
+  var filterEl=document.getElementById("detailed-filter");
+  var countEl=document.getElementById("detailed-count");
 
-    // ====== Optional: show stored email/role if such elements exist ======
-    document.addEventListener("DOMContentLoaded", () => {
-      const emailElement = document.getElementById("user-email");
-      const roleElement = document.getElementById("user-role");
-      const userEmail = localStorage.getItem("email");
-      const userRole = localStorage.getItem("role");
-      if (emailElement) emailElement.textContent = userEmail || "Unknown";
-      if (roleElement) roleElement.textContent = userRole || "Unknown";
+  resultsContainer.innerHTML="<p>Loading...</p>";
+  toolsEl.style.display="none";tableEl.style.display="none";
+  if(!scanId){resultsContainer.innerHTML="<p>Please enter a Scan ID.</p>";return;}
+
+  var token=getToken();
+  try{
+    var url=API_SCAN_DETAILS.replace("{scan_id}",encodeURIComponent(scanId));
+    var res=await fetch(url,{headers:{"Authorization":"Bearer "+token}});
+    if(!res.ok){
+      var msg="Scan not found ("+res.status+")";
+      try{var err=await res.json();if(err&&err.detail)msg=(Array.isArray(err.detail)?err.detail.map(function(d){return d.msg;}).join(", "):err.detail);}catch(_){}
+      throw new Error(msg);
+    }
+    var data=await res.json();
+    var buckets=Array.isArray(data&&data.buckets)?data.buckets:[];
+    var ethicalMode=Boolean(data&&data.ethical_mode);
+
+    resultsContainer.innerHTML="<div class='result-card'>"+
+      "<h4>Scan "+data.scan_id+"</h4>"+
+      "<p><strong>Project:</strong> "+(data.project_id||"N/A")+"</p>"+
+      "<p><strong>Time:</strong> "+formatDate(data.timestamp)+"</p>"+
+      "<p><strong>Role:</strong> "+(data.project_role||"N/A")+" | <strong>Ethical Mode:</strong> "+(ethicalMode?"On":"Off")+"</p>"+
+      "<p><strong>Bucket Count:</strong> "+buckets.length+"</p>"+
+      "</div>";
+
+    if(buckets.length===0){resultsContainer.insertAdjacentHTML("beforeend","<p>No bucket results stored for this scan.</p>");return;}
+
+    renderResultsTable({
+      buckets:buckets,ethicalMode:ethicalMode,tableEl:tableEl,toolsEl:toolsEl,countEl:countEl,filterInput:filterEl,
+      defaultSortKey:"risk_score",defaultSortDir:"desc"
     });
-  </script>
+  }catch(error){
+    console.error(error);
+    resultsContainer.innerHTML="<p style='color:red;'>Error: "+error.message+"</p>";
+  }
+}
+document.addEventListener("DOMContentLoaded",loadPreviousScans);
+
+/* =========================
+   HISTORY (owner only)
+========================= */
+function normalizeRole(r){
+  var s=String(r||"").trim().toLowerCase();
+  if(["project_owner","project owner","owner"].indexOf(s)!==-1)return "project_owner";
+  if(s==="creator")return "creator";
+  return "regular";
+}
+
+document.addEventListener("DOMContentLoaded",function(){
+  var role=normalizeRole(localStorage.getItem("role"));
+  var isOwner=(role==="project_owner"||role==="creator");
+  var historyTableBody=document.querySelector("#historyTable tbody");
+
+  if(!isOwner){
+    historyTableBody.innerHTML="<tr><td colspan='5' style='text-align:center;'>Not authorized (Owner only)</td></tr>";
+    return;
+  }
+
+  var apiURL=API_BASE+"/history";
+  var token=getToken();
+  if(!token){
+    historyTableBody.innerHTML="<tr><td colspan='5' style='text-align:center;'>Please log in to view history</td></tr>";
+    return;
+  }
+
+  fetch(apiURL,{method:"GET",headers:{"Authorization":"Bearer "+token}})
+    .then(function(r){return r.ok?r.json():Promise.reject(new Error("Failed ("+r.status+")"));})
+    .then(function(data){
+      historyTableBody.innerHTML="";
+      if(!Array.isArray(data)||data.length===0){
+        historyTableBody.innerHTML="<tr><td colspan='5' style='text-align:center;'>No history found</td></tr>";
+        return;
+      }
+      data.forEach(function(item){
+        historyTableBody.innerHTML+="<tr>"+
+          "<td>"+item.scan_id+"</td>"+
+          "<td>"+item.project_id+"</td>"+
+          "<td>"+item.user_email+"</td>"+
+          "<td>"+formatDate(item.timestamp)+"</td>"+
+          "<td>"+item.result_summary+"</td>"+
+        "</tr>";
+      });
+    })
+    .catch(function(error){
+      console.error("Error fetching history:",error);
+      historyTableBody.innerHTML="<tr><td colspan='5' style='text-align:center; color:red;'>Error loading history</td></tr>";
+    });
+});
+</script>
 
   <script src="web.js"></script>
 </body>
 </html>
-
