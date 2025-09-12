@@ -96,9 +96,13 @@
   }
 
   function saveConsentLocally(payload) {
-    localStorage.setItem("consent_given", String(!!payload.consent_given));
-    if (payload.consent_at)      localStorage.setItem("consent_at", payload.consent_at);
-    if (payload.consent_version) localStorage.setItem("consent_version", payload.consent_version);
+    // payload may be {version} (POST request) or server response (ConsentOut)
+    const version = payload.version || payload.consent_version || CONSENT_VERSION;
+    const at = payload.consent_at || new Date().toISOString();
+
+    localStorage.setItem("consent_given", "true");
+    localStorage.setItem("consent_version", version);
+    localStorage.setItem("consent_at", at);
   }
 
   function hasValidStoredConsent() {
@@ -106,40 +110,30 @@
            localStorage.getItem("consent_version") === CONSENT_VERSION;
   }
 
-  function markPendingConsent() {
-    localStorage.setItem("consent_pending", "true");
-  }
-  function clearPendingConsent() {
-    localStorage.removeItem("consent_pending");
-  }
-  function isPendingConsent() {
-    return localStorage.getItem("consent_pending") === "true";
-  }
+  function markPendingConsent() { localStorage.setItem("consent_pending", "true"); }
+  function clearPendingConsent() { localStorage.removeItem("consent_pending"); }
+  function isPendingConsent() { return localStorage.getItem("consent_pending") === "true"; }
 
-  // Try to post consent (with/without auth)
+  // POST /consent with minimal payload { version: "pp-v1.0" }
   async function postConsent({withAuth=false} = {}) {
-    const identity = localStorage.getItem("email") ||
-                     document.getElementById("email")?.value?.trim() || undefined;
-
     const headers = { "Content-Type": "application/json", "Accept": "application/json" };
     const tok = localStorage.getItem("access_token");
     if (withAuth && tok) headers["Authorization"] = `Bearer ${tok}`;
 
-    const body = {
-      consent_given: true,
-      consent_version: CONSENT_VERSION,
-      consent_at: new Date().toISOString(),
-      email: identity
-    };
+    const body = { version: CONSENT_VERSION };
 
     const res = await fetch(CONSENT_ENDPOINT, {
       method: "POST",
       headers,
       body: JSON.stringify(body)
     });
+
+    // Some servers might return 200 with JSON (ConsentOut) or 204 No Content.
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json().catch(() => null);
-    // prefer server values if returned
+    let data = null;
+    try { data = await res.json(); } catch (_) {}
+
+    // Prefer server fields if present, otherwise store our local version + now.
     saveConsentLocally(data || body);
     clearPendingConsent();
   }
@@ -155,7 +149,7 @@
     }
   })();
 
-  // When user ticks the box:
+  // When user ticks the box → auto-send to backend now
   tncCheck.addEventListener('change', async () => {
     if (!tncCheck.checked) {
       setGoogleEnabled(false);
@@ -166,27 +160,24 @@
       return;
     }
 
-    // 1) Immediately enable login so UX is never blocked
+    // 1) UX: enable login immediately
     setGoogleEnabled(true);
     tncError.style.display = 'none';
 
-    // 2) Save locally + try to send right now (no auth)
-    saveConsentLocally({
-      consent_given: true,
-      consent_version: CONSENT_VERSION,
-      consent_at: new Date().toISOString()
-    });
+    // 2) Save locally so UX is resilient even if network blips
+    saveConsentLocally({ version: CONSENT_VERSION });
 
+    // 3) Try to send right now (no auth required)
     try {
       await postConsent({ withAuth: false });
       // success → nothing else to show
     } catch (e) {
       // Network/CORS/etc → queue for later (after login when token exists)
       markPendingConsent();
-      // Show subtle note instead of an error
       tncError.textContent = "Consent saved locally. We’ll sync after login.";
       tncError.style.display = 'block';
-      tncError.style.color = '#f0ad4e'; // soft warning color
+      tncError.style.color = '#f0ad4e';
+      console.warn("Immediate consent post failed; will retry after login:", e);
     }
   });
 
@@ -211,10 +202,8 @@
     if (!isPendingConsent()) return;
     try {
       await postConsent({ withAuth: true });
-      // clear note if shown
       tncError.style.display = 'none';
     } catch (e) {
-      // If even authenticated sync fails, don’t block user
       console.warn("Deferred consent sync failed:", e);
     }
   }
