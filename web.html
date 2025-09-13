@@ -304,34 +304,14 @@
     </div>
   </section>
 
-  <!-- HISTORY SECTION (owner only) -->
-  <section class="content-section history" id="history">
-    <div class="floating-elements">
-      <div class="floating-element"></div><div class="floating-element"></div>
-      <div class="floating-element"></div><div class="floating-element"></div>
-      <div class="floating-element"></div>
-    </div>
-    <div class="container">
-      <h2 class="section-title">History</h2>
-      <p class="section-content">This section is only visible to the project owner.</p>
-      <div class="table-container">
-        <table id="historyTable">
-          <thead>
-            <tr><th>Scan ID</th><th>Project ID</th><th>User Email</th><th>Timestamp</th><th>Result Summary</th></tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="5" style="text-align:center;">Loading history...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
 <script>
 /* =========================
    CONFIG
 ========================= */
 var API_BASE = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app";
+var CONSENT_ME_ENDPOINT = API_BASE + "/consent/me";
+var CONSENT_ENDPOINT    = API_BASE + "/consent";
+var CONSENT_VERSION     = "pp-v1.0";
 
 /* Helpers */
 function scrollToSection(id){var el=document.getElementById(id);if(el)el.scrollIntoView({behavior:"smooth"});}
@@ -366,6 +346,56 @@ if(hamburgerMenu){
 
 /* Auth guard */
 (function(){var t=getToken();if(!t)window.location.href="signup.html";})();
+
+/* =========================
+   CONSENT GUARD (NEW)
+========================= */
+async function requireAuth(){
+  var tok=getToken();
+  if(!tok) throw new Error("No session. Please login again.");
+  return tok;
+}
+
+async function getConsentMe(){
+  var tok=await requireAuth();
+  var r=await fetch(CONSENT_ME_ENDPOINT,{headers:{"Accept":"application/json","Authorization":"Bearer "+tok}});
+  if(r.status===401) throw new Error("Session expired. Please login again.");
+  if(!r.ok) throw new Error("Consent check failed: "+r.status);
+  return r.json();
+}
+
+async function syncConsentIfLocal(){
+  // If user previously ticked on the login page, we stored the version locally.
+  if(localStorage.getItem("consent_version")!==CONSENT_VERSION) return false;
+  var tok=await requireAuth();
+  var res=await fetch(CONSENT_ENDPOINT,{
+    method:"POST",
+    headers:{"Content-Type":"application/json","Accept":"application/json","Authorization":"Bearer "+tok},
+    body: JSON.stringify({version: CONSENT_VERSION})
+  });
+  return res.ok;
+}
+
+async function requireConsent(){
+  // 1) Ask backend
+  try{
+    var data=await getConsentMe();
+    if(data && data.consent_given===true && data.consent_version===CONSENT_VERSION) return;
+  }catch(e){
+    // if network/401, bubble up
+    if(!/Consent check failed/.test(String(e.message||e))) throw e;
+  }
+  // 2) Try to sync from local to backend
+  var synced=false;
+  try{ synced = await syncConsentIfLocal(); } catch(_){}
+  if(synced){
+    // Recheck quickly
+    var data2=await getConsentMe();
+    if(data2 && data2.consent_given===true && data2.consent_version===CONSENT_VERSION) return;
+  }
+  // 3) Hard stop
+  throw new Error("Consent not recorded for this account. Please log out and accept the Terms on the sign-in page, then log in again.");
+}
 
 /* =========================
    PROJECT PICKER
@@ -416,7 +446,7 @@ if(hamburgerMenu){
     if(!els.ethicalToggle)return;
     if(!isOwner)els.ethicalToggle.checked=false;
     els.ethicalToggle.disabled=!isOwner;
-    els.ethicalToggle.title=isOwner?"You are Owner for this project":"Ethical Mode requires Owner access.";
+    els.ethicalToggle.title=isOwner?"You are Owner for this project":"Full Access Scan requires Owner access.";
   }
   function selectProject(sel){
     state.selected={id:sel.id,name:sel.name,access:sel.access};
@@ -539,8 +569,16 @@ function renderResultsTable(opts){
 }
 
 /* =========================
-   SCAN FLOW
+   SCAN FLOW (UPDATED)
 ========================= */
+function requireEthicalGate(ethicalMode){
+  if(!ethicalMode) return;
+  var access = localStorage.getItem("selected_project_access");
+  if(access!=="owner"){
+    throw new Error("Full Access Scan requires Owner access on the selected project.");
+  }
+}
+
 async function runScan(projectId, ethicalMode){
   var token=getToken();
   var resultsSummary=document.getElementById("results-summary");
@@ -549,28 +587,46 @@ async function runScan(projectId, ethicalMode){
   var resultsFilter=document.getElementById("results-filter");
   var resultsCount=document.getElementById("results-count");
 
-  resultsSummary.innerHTML="<p>🔍 Scanning in progress...</p>";
+  resultsSummary.innerHTML="<p>🔍 Preparing scan…</p>";
   resultsTools.style.display="none";resultsTable.style.display="none";
 
-  var apiUrl=API_BASE+"/scan?project_id="+encodeURIComponent(projectId)+"&ethical_mode="+ethicalMode;
-  var response=await fetch(apiUrl,{method:"GET",headers:{"Authorization":"Bearer "+token}});
-  if(!response.ok){throw new Error("Scan failed: "+response.status);}
-  var apiData=await response.json();
+  try{
+    // Hard gates: JWT + Consent + Ethical role
+    await requireAuth();
+    await requireConsent();
+    requireEthicalGate(ethicalMode);
 
-  resultsSummary.innerHTML="<div class='result-card'><h3>Scan Summary</h3>"+
-    "<p><strong>Scan ID:</strong> "+apiData.scan_id+"</p>"+
-    "<p><strong>Detected Role:</strong> "+(apiData.project_role||"N/A")+"</p>"+
-    "<p><strong>Bucket Count:</strong> "+(Array.isArray(apiData.buckets)?apiData.buckets.length:0)+"</p></div>";
+    // Call your scan API (kept as GET since that's what you have)
+    var apiUrl=API_BASE+"/scan?project_id="+encodeURIComponent(projectId)+"&ethical_mode="+ethicalMode;
+    var response=await fetch(apiUrl,{method:"GET",headers:{"Authorization":"Bearer "+token,"Accept":"application/json"}});
+    if(response.status===401) throw new Error("Unauthorized (401). Please login again.");
+    if(response.status===403){
+      // Try to extract backend reason
+      var detail="Forbidden (403)";
+      try{ detail=(await response.json()).detail || detail; }catch(_){}
+      throw new Error(detail);
+    }
+    if(!response.ok) throw new Error("Scan failed: "+response.status);
 
-  renderResultsTable({
-    buckets:Array.isArray(apiData.buckets)?apiData.buckets:[],
-    ethicalMode:ethicalMode,
-    tableEl:resultsTable,
-    toolsEl:resultsTools,
-    countEl:resultsCount,
-    filterInput:resultsFilter
-  });
-  document.getElementById("results").scrollIntoView({behavior:"smooth"});
+    var apiData=await response.json();
+
+    resultsSummary.innerHTML="<div class='result-card'><h3>Scan Summary</h3>"+
+      "<p><strong>Scan ID:</strong> "+apiData.scan_id+"</p>"+
+      "<p><strong>Detected Role:</strong> "+(apiData.project_role||"N/A")+"</p>"+
+      "<p><strong>Bucket Count:</strong> "+(Array.isArray(apiData.buckets)?apiData.buckets.length:0)+"</p></div>";
+
+    renderResultsTable({
+      buckets:Array.isArray(apiData.buckets)?apiData.buckets:[],
+      ethicalMode:ethicalMode,
+      tableEl:resultsTable,
+      toolsEl:resultsTools,
+      countEl:resultsCount,
+      filterInput:resultsFilter
+    });
+    document.getElementById("results").scrollIntoView({behavior:"smooth"});
+  }catch(e){
+    resultsSummary.innerHTML="<p style='color:#ff6b6b;'>Error: "+(e.message||e)+"</p>";
+  }
 }
 
 /* Scan button: prefer selected project from picker, else typed input */
@@ -581,9 +637,7 @@ document.addEventListener("DOMContentLoaded",function(){
     var typed=(document.getElementById("projectId").value||"").trim();
     var projectId=picked.id||typed;
     if(!projectId){alert("Please select a project (or type one).");return;}
-    runScan(projectId,ethicalMode).catch(function(e){
-      document.getElementById("results-summary").innerHTML="<p style='color:red;'>Error: "+e.message+"</p>";
-    });
+    runScan(projectId,ethicalMode);
   });
 });
 
