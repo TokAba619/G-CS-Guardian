@@ -61,7 +61,7 @@
           <div id="tncError" class="error" style="display:none;">Please agree to the Terms &amp; Conditions to continue.</div>
         </div>
 
-        <!-- Google OAuth button (disabled until user agrees) -->
+        <!-- Google OAuth button (disabled until user ticks consent) -->
         <a
           id="googleLogin"
           class="btn btn-google disabled"
@@ -123,44 +123,40 @@
   function isPendingConsent() { return localStorage.getItem("consent_pending") === "true"; }
   function getToken() { return localStorage.getItem("access_token"); }
 
-  // ===== API calls =====
-  // POST /consent with minimal payload { version: "pp-v1.0" }
-  async function postConsent({withAuth=false} = {}) {
-    const headers = { "Content-Type": "application/json", "Accept": "application/json" };
+  // ===== API calls (AUTH REQUIRED for consent on your backend) =====
+  async function postConsentWithAuth() {
     const tok = getToken();
-    if (withAuth && tok) headers["Authorization"] = `Bearer ${tok}`;
-
+    if (!tok) throw new Error("No token for POST /consent");
     const res = await fetch(CONSENT_ENDPOINT, {
       method: "POST",
-      mode: "cors",
-      credentials: "omit",
-      headers,
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": `Bearer ${tok}`
+      },
       body: JSON.stringify({ version: CONSENT_VERSION })
     });
     if (!res.ok) throw new Error(`POST /consent -> HTTP ${res.status}`);
     try { await res.json(); } catch(_) {}
   }
 
-  // POST /consent/revoke
-  async function revokeConsent() {
-    const headers = { "Accept": "application/json" };
+  async function revokeConsentWithAuth() {
     const tok = getToken();
-    if (tok) headers["Authorization"] = `Bearer ${tok}`;
-
+    if (!tok) return; // best-effort only before login
     const res = await fetch(CONSENT_REVOKE_ENDPOINT, {
       method: "POST",
-      mode: "cors",
-      credentials: "omit",
-      headers
+      headers: {
+        "Accept": "application/json",
+        "Authorization": `Bearer ${tok}`
+      }
     });
     if (!res.ok) throw new Error(`POST /consent/revoke -> HTTP ${res.status}`);
     try { await res.json(); } catch(_) {}
   }
 
-  // GET /consent/me
   async function getConsentMe() {
     const tok = getToken();
-    if (!tok) throw new Error("No token for /consent/me");
+    if (!tok) throw new Error("No token for GET /consent/me");
     const res = await fetch(CONSENT_ME_ENDPOINT, {
       method: "GET",
       headers: {
@@ -172,9 +168,9 @@
     return res.json();
   }
 
-  // After we have a token, ensure backend confirms consent for this version.
+  // Ensure backend records consent after login, then go to app.
   async function ensureConsentAfterAuth() {
-    // 1) If backend already has valid consent → proceed.
+    // If backend already has valid consent → go
     try {
       const data = await getConsentMe();
       if (data?.consent_given === true && data?.consent_version === CONSENT_VERSION) {
@@ -182,14 +178,12 @@
         window.location.href = "/G-CS-Guardian/web.html";
         return;
       }
-    } catch (e) {
-      // ignore here; we try to sync below
-    }
+    } catch (_) { /* continue to sync */ }
 
-    // 2) If we have local/pending consent, sync it WITH TOKEN
+    // If we had ticked earlier, sync it now WITH JWT
     if (hasLocalConsent() || isPendingConsent()) {
       try {
-        await postConsent({ withAuth: true });
+        await postConsentWithAuth();
         clearPendingConsent();
         const recheck = await getConsentMe();
         if (recheck?.consent_given === true && recheck?.consent_version === CONSENT_VERSION) {
@@ -201,7 +195,7 @@
       }
     }
 
-    // 3) Otherwise, require ticking again (now authenticated)
+    // Otherwise, require ticking now (while authenticated)
     setGoogleEnabled(false);
     tncCheck.checked = false;
     showMsg("Please agree to the Terms & Conditions to continue.", "#d9534f");
@@ -209,7 +203,7 @@
 
   // ===== Bootstrap (pre-login UX) =====
   (function bootstrapConsent() {
-    // Before login, only enable Google if local consent exists.
+    // Before login, enable Google only if user has ticked consent locally.
     if (hasLocalConsent()) {
       tncCheck.checked = true;
       setGoogleEnabled(true);
@@ -220,41 +214,25 @@
     }
   })();
 
-  // ===== Checkbox: tick / untick =====
+  // ===== Checkbox handler =====
   tncCheck.addEventListener('change', async () => {
-    // UNTICK → try to revoke if logged in; otherwise just clear local
+    // UNTICK: disable Google, clear local, try revoke later if logged in
     if (!tncCheck.checked) {
       setGoogleEnabled(false);
       clearConsentLocally();
       hideMsg();
-      try {
-        if (getToken()) await revokeConsent();
-      } catch (e) {
-        console.warn("Revoke skipped/failed:", e);
-      }
+      try { await revokeConsentWithAuth(); } catch (_) {}
       return;
     }
 
-    // TICK → record consent (ANONYMOUS). Never redirect from here.
-    setGoogleEnabled(false);
-    showMsg("Recording your consent…", "#f0ad4e");
-
-    try {
-      await postConsent({ withAuth: false }); // always without auth on this page
-      saveConsentLocally(CONSENT_VERSION);
-      hideMsg();
-      setGoogleEnabled(true);                 // enable Google login button
-    } catch (e) {
-      console.warn("Anonymous consent POST failed:", e);
-      // Save locally + mark pending; user will login and we will sync with token.
-      saveConsentLocally(CONSENT_VERSION);
-      markPendingConsent();
-      showMsg("Consent saved locally. Login to finish.", "#f0ad4e");
-      setGoogleEnabled(true);
-    }
+    // TICK: DO NOT call backend now (would 403). Save pending and enable Google.
+    saveConsentLocally(CONSENT_VERSION);
+    markPendingConsent();
+    hideMsg();
+    setGoogleEnabled(true); // user can now click "Login with Google"
   });
 
-  // Block Google button until consent recorded locally
+  // Block Google button until ticked
   googleLink.addEventListener('click', function (e) {
     if (googleLink.classList.contains('disabled')) {
       e.preventDefault();
@@ -269,14 +247,13 @@
   const email  = urlParams.get("email");
   const role   = urlParams.get("role");
 
-  // If OAuth just returned, store token & verify consent on server before leaving this page.
   (async function handleOAuthReturn() {
     if (!token) return;
     localStorage.setItem("access_token", token);
     if (email) localStorage.setItem("email", email);
     if (role)  localStorage.setItem("role", role);
-    setGoogleEnabled(false);
-    await ensureConsentAfterAuth();   // <-- only here we may redirect to web.html
+    setGoogleEnabled(false); // we have a token now; proceed to consent check
+    await ensureConsentAfterAuth(); // may redirect to web.html
   })();
 
   // ===== Admin email/password login =====
@@ -303,7 +280,7 @@
         localStorage.setItem("access_token", data.access_token);
         if (data.email) localStorage.setItem("email", data.email);
         if (data.role)  localStorage.setItem("role", data.role);
-        await ensureConsentAfterAuth();      // <-- only here we may redirect to web.html
+        await ensureConsentAfterAuth(); // may redirect to web.html
       } else {
         const el = document.getElementById("error");
         el.textContent = "Invalid email or password.";
