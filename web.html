@@ -304,45 +304,51 @@
     </div>
   </section>
 
-  <!-- HISTORY SECTION (updated, owner/creator with project filter) -->
-  <section class="content-section history" id="history">
-    <div class="floating-elements">
-      <div class="floating-element"></div><div class="floating-element"></div>
-      <div class="floating-element"></div><div class="floating-element"></div>
-      <div class="floating-element"></div>
-    </div>
-    <div class="container">
-      <h2 class="section-title">History</h2>
-      <p class="section-content">
-        Project Owners can view history for their project (enter your Project ID). Creators can view all scans or filter by Project ID.
-      </p>
+  <!-- HISTORY SECTION (owner/creator only) -->
+<section class="content-section history" id="history">
+  <div class="floating-elements">
+    <div class="floating-element"></div><div class="floating-element"></div>
+    <div class="floating-element"></div><div class="floating-element"></div>
+    <div class="floating-element"></div>
+  </div>
+  <div class="container">
+    <h2 class="section-title">History</h2>
+    <p class="section-content">
+      Project Owners can view history for their project. Creators can view all scans (optionally filter by project).
+    </p>
 
-      <div class="inline-form" style="max-width:720px;margin-top:10px;">
-        <input type="text" class="pill-input" id="historyProjectId"
-               placeholder="Enter Project ID (required for Project Owner)"
-               aria-label="Project ID for history">
-        <button id="historyFetchBtn" type="button" class="cta-pink">Fetch</button>
-      </div>
-      <p id="historyHint" class="muted" style="text-align:center;margin-top:8px;"></p>
-
-      <div class="table-container" style="margin-top:18px;">
-        <table id="historyTable">
-          <thead>
-            <tr><th>Scan ID</th><th>Project ID</th><th>User Email</th><th>Timestamp</th><th>Result Summary</th></tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="5" style="text-align:center;">Waiting…</td></tr>
-          </tbody>
-        </table>
-      </div>
+    <div class="inline-form" style="max-width:720px;margin-top:10px;">
+      <input type="text" class="pill-input" id="historyProjectId"
+             placeholder="Enter Project ID (required for Project Owner)"
+             aria-label="Project ID for history">
+      <button id="historyFetchBtn" type="button" class="cta-pink">Fetch</button>
     </div>
-  </section>
+    <p id="historyHint" class="muted" style="text-align:center;margin-top:8px;"></p>
+
+    <div class="table-container" style="margin-top:18px;">
+      <table id="historyTable">
+        <thead>
+          <tr>
+            <th>Scan ID</th><th>Project ID</th><th>User Email</th><th>Timestamp</th><th>Result Summary</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="5" style="text-align:center;">Waiting…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
 
 <script>
 /* =========================
    CONFIG
 ========================= */
 var API_BASE = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app";
+var CONSENT_ME_ENDPOINT = API_BASE + "/consent/me";
+var CONSENT_ENDPOINT    = API_BASE + "/consent";
+var CONSENT_VERSION     = "pp-v1.0";
 
 /* Helpers */
 function scrollToSection(id){var el=document.getElementById(id);if(el)el.scrollIntoView({behavior:"smooth"});}
@@ -377,6 +383,56 @@ if(hamburgerMenu){
 
 /* Auth guard */
 (function(){var t=getToken();if(!t)window.location.href="signup.html";})();
+
+/* =========================
+   CONSENT GUARD (NEW)
+========================= */
+async function requireAuth(){
+  var tok=getToken();
+  if(!tok) throw new Error("No session. Please login again.");
+  return tok;
+}
+
+async function getConsentMe(){
+  var tok=await requireAuth();
+  var r=await fetch(CONSENT_ME_ENDPOINT,{headers:{"Accept":"application/json","Authorization":"Bearer "+tok}});
+  if(r.status===401) throw new Error("Session expired. Please login again.");
+  if(!r.ok) throw new Error("Consent check failed: "+r.status);
+  return r.json();
+}
+
+async function syncConsentIfLocal(){
+  // If user previously ticked on the login page, we stored the version locally.
+  if(localStorage.getItem("consent_version")!==CONSENT_VERSION) return false;
+  var tok=await requireAuth();
+  var res=await fetch(CONSENT_ENDPOINT,{
+    method:"POST",
+    headers:{"Content-Type":"application/json","Accept":"application/json","Authorization":"Bearer "+tok},
+    body: JSON.stringify({version: CONSENT_VERSION})
+  });
+  return res.ok;
+}
+
+async function requireConsent(){
+  // 1) Ask backend
+  try{
+    var data=await getConsentMe();
+    if(data && data.consent_given===true && data.consent_version===CONSENT_VERSION) return;
+  }catch(e){
+    // if network/401, bubble up
+    if(!/Consent check failed/.test(String(e.message||e))) throw e;
+  }
+  // 2) Try to sync from local to backend
+  var synced=false;
+  try{ synced = await syncConsentIfLocal(); } catch(_){}
+  if(synced){
+    // Recheck quickly
+    var data2=await getConsentMe();
+    if(data2 && data2.consent_given===true && data2.consent_version===CONSENT_VERSION) return;
+  }
+  // 3) Hard stop
+  throw new Error("Consent not recorded for this account. Please log out and accept the Terms on the sign-in page, then log in again.");
+}
 
 /* =========================
    PROJECT PICKER
@@ -427,7 +483,7 @@ if(hamburgerMenu){
     if(!els.ethicalToggle)return;
     if(!isOwner)els.ethicalToggle.checked=false;
     els.ethicalToggle.disabled=!isOwner;
-    els.ethicalToggle.title=isOwner?"You are Owner for this project":"Ethical Mode requires Owner access.";
+    els.ethicalToggle.title=isOwner?"You are Owner for this project":"Full Access Scan requires Owner access.";
   }
   function selectProject(sel){
     state.selected={id:sel.id,name:sel.name,access:sel.access};
@@ -550,85 +606,75 @@ function renderResultsTable(opts){
 }
 
 /* =========================
-   SCAN FLOW
+   SCAN FLOW (UPDATED)
 ========================= */
-// UPDATED: better error text + ethical-mode guard happens in click handler below
+function requireEthicalGate(ethicalMode){
+  if(!ethicalMode) return;
+  var access = localStorage.getItem("selected_project_access");
+  if(access!=="owner"){
+    throw new Error("Full Access Scan requires Owner access on the selected project.");
+  }
+}
+
 async function runScan(projectId, ethicalMode){
   var token=getToken();
-  if(!token){ window.location.href="signup.html"; return; }
-
   var resultsSummary=document.getElementById("results-summary");
   var resultsTools=document.getElementById("results-tools");
   var resultsTable=document.getElementById("results-table");
   var resultsFilter=document.getElementById("results-filter");
   var resultsCount=document.getElementById("results-count");
 
-  resultsSummary.innerHTML="<p>🔍 Scanning in progress...</p>";
+  resultsSummary.innerHTML="<p>🔍 Preparing scan…</p>";
   resultsTools.style.display="none";resultsTable.style.display="none";
 
-  var apiUrl=API_BASE+"/scan?project_id="+encodeURIComponent(projectId)+"&ethical_mode="+(ethicalMode?"true":"false");
-  var response=await fetch(apiUrl,{
-    method:"GET",
-    headers:{
-      "Authorization":"Bearer "+token,
-      "Accept":"application/json"
+  try{
+    // Hard gates: JWT + Consent + Ethical role
+    await requireAuth();
+    await requireConsent();
+    requireEthicalGate(ethicalMode);
+
+    // Call your scan API (kept as GET since that's what you have)
+    var apiUrl=API_BASE+"/scan?project_id="+encodeURIComponent(projectId)+"&ethical_mode="+ethicalMode;
+    var response=await fetch(apiUrl,{method:"GET",headers:{"Authorization":"Bearer "+token,"Accept":"application/json"}});
+    if(response.status===401) throw new Error("Unauthorized (401). Please login again.");
+    if(response.status===403){
+      // Try to extract backend reason
+      var detail="Forbidden (403)";
+      try{ detail=(await response.json()).detail || detail; }catch(_){}
+      throw new Error(detail);
     }
-  });
+    if(!response.ok) throw new Error("Scan failed: "+response.status);
 
-  if(!response.ok){
-    // Surface backend "detail" if available
-    var detail="";
-    try{
-      var err=await response.json();
-      if(err && err.detail){
-        detail = typeof err.detail==="string" ? " ("+err.detail+")" : " ("+JSON.stringify(err.detail)+")";
-      }
-    }catch(_){}
-    throw new Error("Scan failed: "+response.status+detail);
+    var apiData=await response.json();
+
+    resultsSummary.innerHTML="<div class='result-card'><h3>Scan Summary</h3>"+
+      "<p><strong>Scan ID:</strong> "+apiData.scan_id+"</p>"+
+      "<p><strong>Detected Role:</strong> "+(apiData.project_role||"N/A")+"</p>"+
+      "<p><strong>Bucket Count:</strong> "+(Array.isArray(apiData.buckets)?apiData.buckets.length:0)+"</p></div>";
+
+    renderResultsTable({
+      buckets:Array.isArray(apiData.buckets)?apiData.buckets:[],
+      ethicalMode:ethicalMode,
+      tableEl:resultsTable,
+      toolsEl:resultsTools,
+      countEl:resultsCount,
+      filterInput:resultsFilter
+    });
+    document.getElementById("results").scrollIntoView({behavior:"smooth"});
+  }catch(e){
+    resultsSummary.innerHTML="<p style='color:#ff6b6b;'>Error: "+(e.message||e)+"</p>";
   }
-  var apiData=await response.json();
-
-  resultsSummary.innerHTML="<div class='result-card'><h3>Scan Summary</h3>"+
-    "<p><strong>Scan ID:</strong> "+apiData.scan_id+"</p>"+
-    "<p><strong>Detected Role:</strong> "+(apiData.project_role||"N/A")+"</p>"+
-    "<p><strong>Bucket Count:</strong> "+(Array.isArray(apiData.buckets)?apiData.buckets.length:0)+"</p></div>";
-
-  renderResultsTable({
-    buckets:Array.isArray(apiData.buckets)?apiData.buckets:[],
-    ethicalMode:ethicalMode,
-    tableEl:resultsTable,
-    toolsEl:resultsTools,
-    countEl:resultsCount,
-    filterInput:resultsFilter
-  });
-  document.getElementById("results").scrollIntoView({behavior:"smooth"});
 }
 
 /* Scan button: prefer selected project from picker, else typed input */
-// UPDATED: guard ethical mode to only allow when SELECTED project access = owner
 document.addEventListener("DOMContentLoaded",function(){
   document.getElementById("learn-more").addEventListener("click",function(){
-    var ethicalToggleEl=document.getElementById("ethicalModeToggle");
-    var ethicalMode=ethicalToggleEl.checked;
-
-    var picked=window.ProjectPicker&&window.ProjectPicker.getSelected?window.ProjectPicker.getSelected():{id:null,access:null};
+    var ethicalMode=document.getElementById("ethicalModeToggle").checked;
+    var picked=window.ProjectPicker&&window.ProjectPicker.getSelected?window.ProjectPicker.getSelected():{id:null};
     var typed=(document.getElementById("projectId").value||"").trim();
     var projectId=picked.id||typed;
-
     if(!projectId){alert("Please select a project (or type one).");return;}
-
-    // Allow ethical mode only if a project is SELECTED and you are Owner
-    var selectedAccess=(picked && picked.access)?String(picked.access).toLowerCase():null;
-    var isOwner=(selectedAccess==="owner");
-    if(ethicalMode && !isOwner){
-      ethicalMode=false;
-      ethicalToggleEl.checked=false;
-      alert("Full Access Scan requires Owner access on the SELECTED project. It has been turned off.");
-    }
-
-    runScan(projectId,ethicalMode).catch(function(e){
-      document.getElementById("results-summary").innerHTML="<p style='color:red;'>Error: "+(e.message||e)+"</p>";
-    });
+    runScan(projectId,ethicalMode);
   });
 });
 
@@ -734,96 +780,106 @@ async function fetchDetailedScan(){
 document.addEventListener("DOMContentLoaded",loadPreviousScans);
 
 /* =========================
-   HISTORY (owner/creator) — UPDATED ONLY THIS PART
+   HISTORY (owner/creator)
 ========================= */
 function normalizeRole(r){
-  var s=String(r||"").trim().toLowerCase();
-  if(["project_owner","project owner","owner"].indexOf(s)!==-1)return "project_owner";
-  if(s==="creator")return "creator";
+  const s = String(r||"").trim().toLowerCase();
+  if (["project_owner","project owner","owner"].includes(s)) return "project_owner";
+  if (s === "creator") return "creator";
   return "user";
 }
 
 async function loadHistory(projectId, limit=100, offset=0){
-  var token=getToken();
-  var tbody=document.querySelector("#historyTable tbody");
-  if(!token){
-    tbody.innerHTML="<tr><td colspan='5' style='text-align:center;'>Please log in</td></tr>";
+  const token = getToken();
+  const tbody = document.querySelector("#historyTable tbody");
+  if (!token) {
+    tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Please log in</td></tr>";
     return;
   }
 
-  var params=new URLSearchParams();
-  if(projectId) params.set("project_id", projectId);
+  const params = new URLSearchParams();
+  if (projectId) params.set("project_id", projectId);
   params.set("limit", String(limit));
   params.set("offset", String(offset));
 
-  tbody.innerHTML="<tr><td colspan='5' style='text-align:center;'>Loading…</td></tr>";
+  tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Loading…</td></tr>";
 
   try{
-    var resp=await fetch(API_BASE+"/history?"+params.toString(), {
-      headers:{ "Accept":"application/json", "Authorization":"Bearer "+token }
+    const resp = await fetch(API_BASE + "/history?" + params.toString(), {
+      headers: { "Accept": "application/json", "Authorization": "Bearer " + token }
     });
 
-    if(resp.status===403){
-      tbody.innerHTML="<tr><td colspan='5' style='text-align:center;color:#ff6b6b;'>403: Not authorized. Project Owner must supply a valid project ID and be GCP Owner of that project.</td></tr>";
+    if (resp.status === 403) {
+      tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;color:#ff6b6b;'>403: Not authorized for this request. " +
+                        "Project Owner must supply a valid project ID and be GCP Owner of that project.</td></tr>";
       return;
     }
-    if(!resp.ok) throw new Error("Failed ("+resp.status+")");
+    if (!resp.ok) throw new Error("Failed (" + resp.status + ")");
 
-    var data=await resp.json();
-    var rows=Array.isArray(data&&data.history)?data.history:[];
-    if(!rows.length){
-      tbody.innerHTML="<tr><td colspan='5' style='text-align:center;'>No history found.</td></tr>";
+    const data = await resp.json();
+    const rows = Array.isArray(data?.history) ? data.history : [];
+
+    if (!rows.length) {
+      tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No history found.</td></tr>";
       return;
     }
 
-    tbody.innerHTML="";
-    rows.forEach(function(item){
-      var tr=document.createElement("tr");
-      tr.innerHTML="<td>"+(item.scan_id||"")+"</td>"+
-                   "<td>"+(item.project_id||"")+"</td>"+
-                   "<td>"+(item.user_email||"")+"</td>"+
-                   "<td>"+formatDate(item.timestamp)+"</td>"+
-                   "<td>"+(item.result_summary||"")+"</td>";
+    tbody.innerHTML = "";
+    rows.forEach(item => {
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>"+ (item.scan_id||"") +"</td>"+
+        "<td>"+ (item.project_id||"") +"</td>"+
+        "<td>"+ (item.user_email||"") +"</td>"+
+        "<td>"+ formatDate(item.timestamp) +"</td>"+
+        "<td>"+ (item.result_summary||"") +"</td>";
       tbody.appendChild(tr);
     });
   }catch(err){
-    console.error("History error:",err);
-    tbody.innerHTML="<tr><td colspan='5' style='text-align:center;color:#ff6b6b;'>Error loading history: "+(err.message||err)+"</td></tr>";
+    console.error("History error:", err);
+    tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;color:#ff6b6b;'>Error loading history: "
+                      + (err.message||err) + "</td></tr>";
   }
 }
 
-document.addEventListener("DOMContentLoaded",function(){
-  var role=normalizeRole(localStorage.getItem("role"));
-  var projectInput=document.getElementById("historyProjectId");
-  var fetchBtn=document.getElementById("historyFetchBtn");
-  var hint=document.getElementById("historyHint");
-  var tbody=document.querySelector("#historyTable tbody");
+document.addEventListener("DOMContentLoaded", function(){
+  const role = normalizeRole(localStorage.getItem("role"));
+  const projectInput = document.getElementById("historyProjectId");
+  const fetchBtn = document.getElementById("historyFetchBtn");
+  const hint = document.getElementById("historyHint");
+  const tbody = document.querySelector("#historyTable tbody");
 
-  // Prefill from the selected project in picker, if any
-  var prefill=localStorage.getItem("selected_project_id")||"";
-  projectInput.value=prefill;
+  // Prefill with the selected project from the picker if available
+  const prefill = localStorage.getItem("selected_project_id") || "";
+  projectInput.value = prefill;
 
-  if(role==="user"){
-    projectInput.disabled=true;
-    fetchBtn.disabled=true;
-    hint.textContent="History is restricted to Project Owners and Creators.";
-    tbody.innerHTML="<tr><td colspan='5' style='text-align:center;'>Not authorized (Owner/Creator only)</td></tr>";
+  if (role === "user") {
+    // Not allowed to use history
+    projectInput.disabled = true;
+    fetchBtn.disabled = true;
+    hint.textContent = "History is restricted to Project Owners and Creators.";
+    tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Not authorized (Owner/Creator only)</td></tr>";
     return;
   }
 
-  if(role==="project_owner"){
-    hint.textContent="Enter your Project ID and click Fetch. (You must be the GCP Owner of that project.)";
-    tbody.innerHTML="<tr><td colspan='5' style='text-align:center;'>Enter a Project ID to view history.</td></tr>";
-    fetchBtn.addEventListener("click",function(){
-      var pid=projectInput.value.trim();
-      if(!pid){ alert("Project ID is required for Project Owners."); return; }
-      loadHistory(pid,100,0);
+  if (role === "project_owner") {
+    hint.textContent = "Enter your Project ID and click Fetch. (You must be the GCP Owner of that project.)";
+    // Don't auto-load; require project_id
+    tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Enter a Project ID to view history.</td></tr>";
+    fetchBtn.addEventListener("click", function(){
+      const pid = projectInput.value.trim();
+      if (!pid) {
+        alert("Project ID is required for Project Owners.");
+        return;
+      }
+      loadHistory(pid, 100, 0);
     });
-  }else if(role==="creator"){
-    hint.textContent="As Creator, you can fetch all scans or filter by Project ID.";
-    loadHistory("",100,0); // auto-load all
-    fetchBtn.addEventListener("click",function(){
-      loadHistory(projectInput.value.trim(),100,0);
+  } else if (role === "creator") {
+    hint.textContent = "As Creator, you can fetch all scans or filter by Project ID.";
+    // Auto-load all history (no project filter)
+    loadHistory("", 100, 0);
+    fetchBtn.addEventListener("click", function(){
+      loadHistory(projectInput.value.trim(), 100, 0);
     });
   }
 });
