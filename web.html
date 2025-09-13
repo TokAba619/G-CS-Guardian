@@ -552,8 +552,11 @@ function renderResultsTable(opts){
 /* =========================
    SCAN FLOW
 ========================= */
+// UPDATED: better error text + ethical-mode guard happens in click handler below
 async function runScan(projectId, ethicalMode){
   var token=getToken();
+  if(!token){ window.location.href="signup.html"; return; }
+
   var resultsSummary=document.getElementById("results-summary");
   var resultsTools=document.getElementById("results-tools");
   var resultsTable=document.getElementById("results-table");
@@ -563,9 +566,26 @@ async function runScan(projectId, ethicalMode){
   resultsSummary.innerHTML="<p>🔍 Scanning in progress...</p>";
   resultsTools.style.display="none";resultsTable.style.display="none";
 
-  var apiUrl=API_BASE+"/scan?project_id="+encodeURIComponent(projectId)+"&ethical_mode="+ethicalMode;
-  var response=await fetch(apiUrl,{method:"GET",headers:{"Authorization":"Bearer "+token}});
-  if(!response.ok){throw new Error("Scan failed: "+response.status);}
+  var apiUrl=API_BASE+"/scan?project_id="+encodeURIComponent(projectId)+"&ethical_mode="+(ethicalMode?"true":"false");
+  var response=await fetch(apiUrl,{
+    method:"GET",
+    headers:{
+      "Authorization":"Bearer "+token,
+      "Accept":"application/json"
+    }
+  });
+
+  if(!response.ok){
+    // Surface backend "detail" if available
+    var detail="";
+    try{
+      var err=await response.json();
+      if(err && err.detail){
+        detail = typeof err.detail==="string" ? " ("+err.detail+")" : " ("+JSON.stringify(err.detail)+")";
+      }
+    }catch(_){}
+    throw new Error("Scan failed: "+response.status+detail);
+  }
   var apiData=await response.json();
 
   resultsSummary.innerHTML="<div class='result-card'><h3>Scan Summary</h3>"+
@@ -585,15 +605,29 @@ async function runScan(projectId, ethicalMode){
 }
 
 /* Scan button: prefer selected project from picker, else typed input */
+// UPDATED: guard ethical mode to only allow when SELECTED project access = owner
 document.addEventListener("DOMContentLoaded",function(){
   document.getElementById("learn-more").addEventListener("click",function(){
-    var ethicalMode=document.getElementById("ethicalModeToggle").checked;
-    var picked=window.ProjectPicker&&window.ProjectPicker.getSelected?window.ProjectPicker.getSelected():{id:null};
+    var ethicalToggleEl=document.getElementById("ethicalModeToggle");
+    var ethicalMode=ethicalToggleEl.checked;
+
+    var picked=window.ProjectPicker&&window.ProjectPicker.getSelected?window.ProjectPicker.getSelected():{id:null,access:null};
     var typed=(document.getElementById("projectId").value||"").trim();
     var projectId=picked.id||typed;
+
     if(!projectId){alert("Please select a project (or type one).");return;}
+
+    // Allow ethical mode only if a project is SELECTED and you are Owner
+    var selectedAccess=(picked && picked.access)?String(picked.access).toLowerCase():null;
+    var isOwner=(selectedAccess==="owner");
+    if(ethicalMode && !isOwner){
+      ethicalMode=false;
+      ethicalToggleEl.checked=false;
+      alert("Full Access Scan requires Owner access on the SELECTED project. It has been turned off.");
+    }
+
     runScan(projectId,ethicalMode).catch(function(e){
-      document.getElementById("results-summary").innerHTML="<p style='color:red;'>Error: "+e.message+"</p>";
+      document.getElementById("results-summary").innerHTML="<p style='color:red;'>Error: "+(e.message||e)+"</p>";
     });
   });
 });
