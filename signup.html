@@ -61,7 +61,7 @@
           <div id="tncError" class="error" style="display:none;">Please agree to the Terms &amp; Conditions to continue.</div>
         </div>
 
-        <!-- Google OAuth button (disabled until server confirms consent OR user ticks & records) -->
+        <!-- Google OAuth button (disabled until user agrees) -->
         <a
           id="googleLogin"
           class="btn btn-google disabled"
@@ -112,11 +112,15 @@
     localStorage.removeItem("consent_given");
     localStorage.removeItem("consent_at");
     localStorage.removeItem("consent_version");
+    localStorage.removeItem("consent_pending");
   }
-  function hasValidStoredConsent() {
+  function hasLocalConsent() {
     return localStorage.getItem("consent_given") === "true" &&
            localStorage.getItem("consent_version") === CONSENT_VERSION;
   }
+  function markPendingConsent() { localStorage.setItem("consent_pending", "true"); }
+  function clearPendingConsent() { localStorage.removeItem("consent_pending"); }
+  function isPendingConsent() { return localStorage.getItem("consent_pending") === "true"; }
   function getToken() { return localStorage.getItem("access_token"); }
 
   // ===== API calls =====
@@ -170,32 +174,43 @@
 
   // After we have a token, ensure backend confirms consent for this version.
   async function ensureConsentAfterAuth() {
+    // 1) If backend already has valid consent → proceed.
     try {
       const data = await getConsentMe();
-      const ok = data?.consent_given === true && data?.consent_version === CONSENT_VERSION;
-      if (ok) {
-        // Server confirms consent -> proceed to app
+      if (data?.consent_given === true && data?.consent_version === CONSENT_VERSION) {
         hideMsg();
         window.location.href = "/G-CS-Guardian/web.html";
         return;
       }
-      // Not ok: require user to tick now (with token, so POST will be attached to account)
-      setGoogleEnabled(false);
-      tncCheck.checked = false;
-      showMsg("Please agree to the Terms & Conditions to continue.", "#d9534f");
     } catch (e) {
-      // Could be 401/expired token or network. Keep user here with a helpful message.
-      console.warn("ensureConsentAfterAuth:", e);
-      setGoogleEnabled(false);
-      tncCheck.checked = false;
-      showMsg("We couldn't verify your consent. Please tick the box to continue.", "#f0ad4e");
+      // ignore here; we try to sync below
     }
+
+    // 2) If we have local/pending consent, sync it WITH TOKEN
+    if (hasLocalConsent() || isPendingConsent()) {
+      try {
+        await postConsent({ withAuth: true });
+        clearPendingConsent();
+        const recheck = await getConsentMe();
+        if (recheck?.consent_given === true && recheck?.consent_version === CONSENT_VERSION) {
+          window.location.href = "/G-CS-Guardian/web.html";
+          return;
+        }
+      } catch (e) {
+        console.warn("Sync consent after auth failed:", e);
+      }
+    }
+
+    // 3) Otherwise, require ticking again (now authenticated)
+    setGoogleEnabled(false);
+    tncCheck.checked = false;
+    showMsg("Please agree to the Terms & Conditions to continue.", "#d9534f");
   }
 
   // ===== Bootstrap (pre-login UX) =====
   (function bootstrapConsent() {
-    // Before login, only enable Google if *local* consent exists (prevents confusion).
-    if (hasValidStoredConsent()) {
+    // Before login, only enable Google if local consent exists.
+    if (hasLocalConsent()) {
       tncCheck.checked = true;
       setGoogleEnabled(true);
       hideMsg();
@@ -220,32 +235,26 @@
       return;
     }
 
-    // TICK → record consent
+    // TICK → record consent (ANONYMOUS). Never redirect from here.
     setGoogleEnabled(false);
-    // If logged-in, send with token so it’s attached to the account
-    const withAuth = !!getToken();
     showMsg("Recording your consent…", "#f0ad4e");
 
     try {
-      await postConsent({ withAuth });
+      await postConsent({ withAuth: false }); // always without auth on this page
       saveConsentLocally(CONSENT_VERSION);
       hideMsg();
-      // If logged-in, go straight to app; if not, just enable Google button
-      if (withAuth) {
-        window.location.href = "/G-CS-Guardian/web.html";
-      } else {
-        setGoogleEnabled(true);
-      }
+      setGoogleEnabled(true);                 // enable Google login button
     } catch (e) {
-      console.warn("Consent POST failed:", e);
-      tncCheck.checked = false;
-      clearConsentLocally();
-      setGoogleEnabled(false);
-      showMsg("Could not record consent. Please try again.", "#d9534f");
+      console.warn("Anonymous consent POST failed:", e);
+      // Save locally + mark pending; user will login and we will sync with token.
+      saveConsentLocally(CONSENT_VERSION);
+      markPendingConsent();
+      showMsg("Consent saved locally. Login to finish.", "#f0ad4e");
+      setGoogleEnabled(true);
     }
   });
 
-  // Block Google button until consent recorded (either local pre-login or server-confirmed after login)
+  // Block Google button until consent recorded locally
   googleLink.addEventListener('click', function (e) {
     if (googleLink.classList.contains('disabled')) {
       e.preventDefault();
@@ -260,18 +269,14 @@
   const email  = urlParams.get("email");
   const role   = urlParams.get("role");
 
-  // If OAuth just returned, store token & **verify consent on server** before leaving this page.
+  // If OAuth just returned, store token & verify consent on server before leaving this page.
   (async function handleOAuthReturn() {
     if (!token) return;
     localStorage.setItem("access_token", token);
     if (email) localStorage.setItem("email", email);
     if (role)  localStorage.setItem("role", role);
-
-    // Make Google button irrelevant now; we have a token.
     setGoogleEnabled(false);
-
-    // Ensure backend consent is valid for this version before proceeding
-    await ensureConsentAfterAuth();
+    await ensureConsentAfterAuth();   // <-- only here we may redirect to web.html
   })();
 
   // ===== Admin email/password login =====
@@ -298,9 +303,7 @@
         localStorage.setItem("access_token", data.access_token);
         if (data.email) localStorage.setItem("email", data.email);
         if (data.role)  localStorage.setItem("role", data.role);
-
-        // After admin login, verify consent on the server first
-        await ensureConsentAfterAuth();
+        await ensureConsentAfterAuth();      // <-- only here we may redirect to web.html
       } else {
         const el = document.getElementById("error");
         el.textContent = "Invalid email or password.";
