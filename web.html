@@ -146,6 +146,41 @@
 /* (optional) also tint the whole selected row slightly */
 .project-table tr.is-selected { background:#0f1a12; }
 
+/* keep the table stable and prevent one long cell from stretching it */
+.dashboard-table { table-layout: fixed; width: 100%; }
+
+/* give the Sample Files column a fixed width */
+.dashboard-table th[data-key="sample_files"],
+.dashboard-table td.sample-col {
+  width: 260px;        /* adjust to taste (e.g., 300px) */
+  max-width: 260px;
+}
+
+/* only the Sample Files cells will scroll horizontally */
+.sample-col .cell-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;        /* keep filenames on a single line */
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;        /* a bit of room for the scrollbar */
+}
+
+/* optional: a slim, colored scrollbar just for that cell */
+.sample-col .cell-scroll::-webkit-scrollbar { height: 6px; }
+.sample-col .cell-scroll::-webkit-scrollbar-track { background: transparent; }
+.sample-col .cell-scroll::-webkit-scrollbar-thumb {
+  background: var(--cyan);
+  border-radius: 6px;
+}
+
+/* make sure links themselves don’t wrap; they’ll scroll */
+.sample-col a {
+  display: inline-block;
+  white-space: nowrap;
+  text-overflow: clip;
+  overflow: visible;
+}
+
   </style>
 </head>
 <body>
@@ -604,9 +639,12 @@ function renderResultsTable(opts){
     filtered.forEach(function(b){
       var level=riskLevelFromScore(b.risk_score);
       var sens=Array.isArray(b.sensitive_keywords_detected)?b.sensitive_keywords_detected.join(", "):(b.sensitive_keywords_detected||"None");
-      var samplesHtml=(ethicalMode&&b.sample_files)?buildSampleLinks(b.sample_files):"";
+      var samplesHtml = (ethicalMode && b.sample_files)
+  ? "<div class='cell-scroll'>" + buildSampleLinks(b.sample_files) + "</div>"
+  : "";
       var tr=document.createElement("tr");
-      tr.innerHTML="<td>"+(b.bucket_name||"Unknown")+"</td>"+
+      tr.innerHTML=
+        "<td>"+(b.bucket_name||"Unknown")+"</td>"+
         "<td>"+(b.public?"<span class='badge badge-public'>Public</span>":"<span class='badge badge-private'>Private</span>")+"</td>"+
         "<td>"+(b.risk_score||"0")+"</td>"+
         "<td><span class='badge "+riskClass(level)+"'>"+level+"</span></td>"+
