@@ -122,6 +122,30 @@
     .badge.viewer { background:#223; color:#ddf; }
     .badge.no_access { background:#311; color:#fdd; }
     .callout { margin-top:10px; padding:10px 12px; border-radius:10px; background:#2a1a1a; color:#ffd3d3; border:1px solid #5a2a2a; display:none; }
+
+    /* Project picker "Select" button styles */
+.project-table button.select-btn{
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #1a1a1a;
+  color: #ddd;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease;
+}
+.project-table button.select-btn:hover { background:#222; }
+
+.project-table button.select-btn.selected{
+  background: #22c55e;           /* green */
+  border-color: #22c55e;
+  color: #0b1a0b;
+  box-shadow: 0 0 0 3px rgba(34,197,94,.25);
+}
+
+/* (optional) also tint the whole selected row slightly */
+.project-table tr.is-selected { background:#0f1a12; }
+
   </style>
 </head>
 <body>
@@ -319,7 +343,7 @@
         <input type="text" class="pill-input" id="historyProjectId"
                placeholder="Enter Project ID (required for Project Owner)"
                aria-label="Project ID for history">
-        <button id="historyFetchBtn" type="button" class="cta-pink">Fetch</button>
+        <button id="historyFetchBtn" type="button" class="cta-pink">Filter</button>
       </div>
       <p id="historyHint" class="muted" style="text-align:center;margin-top:8px;"></p>
 
@@ -394,79 +418,134 @@ if(hamburgerMenu){
     selectedLabel:document.getElementById("selectedProjectLabel"),
     ethicalToggle:document.getElementById("ethicalModeToggle")
   };
-  var state={projects:[],filtered:[],selected:{
-    id:localStorage.getItem("selected_project_id")||null,
-    access:localStorage.getItem("selected_project_access")||null,
-    name:localStorage.getItem("selected_project_name")||null
-  }};
+
+  var state={
+    projects:[],
+    filtered:[],
+    selected:{
+      id:localStorage.getItem("selected_project_id")||null,
+      access:localStorage.getItem("selected_project_access")||null,
+      name:localStorage.getItem("selected_project_name")||null
+    }
+  };
 
   function fetchJSON(path){
-    var token=getToken();if(!token)return Promise.reject(new Error("Missing access token."));
+    var token=getToken(); if(!token) return Promise.reject(new Error("Missing access token."));
     return fetch(API_BASE+path,{headers:{"Authorization":"Bearer "+token}})
-      .then(function(res){if(!res.ok)return res.text().then(function(t){throw new Error(t||("HTTP "+res.status));});return res.json();});
+      .then(function(res){ if(!res.ok) return res.text().then(function(t){throw new Error(t||("HTTP "+res.status));}); return res.json();});
   }
-  function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+  function escapeHtml(s){return String(s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+
+  function applySelectionLabel(){
+    var s=state.selected;
+    els.selectedLabel.textContent = s.id ? ((s.name||"")+" ("+s.id+") — "+s.access) : "—";
+  }
+
+  function applyEthicalToggleState(){
+    var isOwner = state.selected.access === "owner";
+    if(!els.ethicalToggle) return;
+    if(!isOwner) els.ethicalToggle.checked = false;
+    els.ethicalToggle.disabled = !isOwner;
+    els.ethicalToggle.title = isOwner ? "You are Owner for this project" : "Full Access Scan requires Owner access.";
+  }
+
+  /* highlight the chosen row/button */
+  function updateButtons(){
+    var current = state.selected && state.selected.id;
+    els.tbody.querySelectorAll("tr").forEach(function(tr){
+      var id = tr.getAttribute("data-id");
+      var isSel = current && id === current;
+      tr.classList.toggle("is-selected", !!isSel);
+      var btn = tr.querySelector("button.select-btn");
+      if(btn){
+        btn.classList.toggle("selected", !!isSel);
+        btn.textContent = isSel ? "Selected" : "Select";
+        btn.setAttribute("aria-pressed", isSel ? "true" : "false");
+      }
+    });
+  }
 
   function renderTable(rows){
     els.tbody.innerHTML="";
-    if(!rows.length){els.tbody.innerHTML="<tr><td colspan='4' class='muted'>No projects found.</td></tr>";return;}
+    if(!rows.length){
+      els.tbody.innerHTML="<tr><td colspan='4' class='muted'>No projects found.</td></tr>";
+      return;
+    }
+
     rows.forEach(function(p){
+      var isSel = state.selected && state.selected.id === p.id;
       var tr=document.createElement("tr");
-      tr.innerHTML="<td>"+escapeHtml(p.name||"—")+"</td>"+
+      tr.setAttribute("data-id", p.id);
+
+      tr.innerHTML =
+        "<td>"+escapeHtml(p.name||"—")+"</td>"+
         "<td><code>"+escapeHtml(p.id)+"</code></td>"+
         "<td><span class='badge "+p.access_level+"'>"+p.access_level+"</span></td>"+
-        "<td style='text-align:right'><button type='button' data-id='"+p.id+"' data-name='"+escapeHtml(p.name||"")+"' data-access='"+p.access_level+"'>Select</button></td>";
+        "<td style='text-align:right'>" +
+          "<button type='button' class='select-btn "+(isSel?"selected":"")+"' aria-pressed='"+(isSel?"true":"false")+"' " +
+          "data-id='"+p.id+"' data-name='"+escapeHtml(p.name||"")+"' data-access='"+p.access_level+"'>" +
+          (isSel ? "Selected" : "Select") +
+          "</button>" +
+        "</td>";
+
+      if(isSel) tr.classList.add("is-selected");
       els.tbody.appendChild(tr);
     });
+
+    updateButtons();
   }
-  function applySelectionLabel(){
-    var s=state.selected;
-    els.selectedLabel.textContent=s.id?((s.name||"")+" ("+s.id+") — "+s.access):"—";
-  }
-  function applyEthicalToggleState(){
-    var isOwner=state.selected.access==="owner";
-    if(!els.ethicalToggle)return;
-    if(!isOwner)els.ethicalToggle.checked=false;
-    els.ethicalToggle.disabled=!isOwner;
-    els.ethicalToggle.title=isOwner?"You are Owner for this project":"Ethical Mode requires Owner access.";
-  }
+
   function selectProject(sel){
-    state.selected={id:sel.id,name:sel.name,access:sel.access};
-    localStorage.setItem("selected_project_id",sel.id);
-    localStorage.setItem("selected_project_name",sel.name||"");
-    localStorage.setItem("selected_project_access",sel.access);
-    applySelectionLabel();applyEthicalToggleState();
+    state.selected = { id:sel.id, name:sel.name, access:sel.access };
+    localStorage.setItem("selected_project_id", sel.id);
+    localStorage.setItem("selected_project_name", sel.name||"");
+    localStorage.setItem("selected_project_access", sel.access);
+    applySelectionLabel();
+    applyEthicalToggleState();
+    updateButtons();
     window.dispatchEvent(new CustomEvent("gcs_project_selected",{detail:state.selected}));
   }
-  els.tbody.addEventListener("click",function(e){
-    var btn=e.target.closest("button[data-id]");if(!btn)return;
-    selectProject({id:btn.dataset.id,name:btn.dataset.name,access:btn.dataset.access});
+
+  els.tbody.addEventListener("click", function(e){
+    var btn = e.target.closest("button.select-btn");
+    if(!btn) return;
+    selectProject({ id:btn.dataset.id, name:btn.dataset.name, access:btn.dataset.access });
   });
+
   function filterRows(){
     var q=(els.search.value||"").toLowerCase().trim();
-    state.filtered=!q?state.projects.slice():state.projects.filter(function(p){
-      return (p.name||"").toLowerCase().includes(q)||(p.id||"").toLowerCase().includes(q);
+    state.filtered = !q ? state.projects.slice() : state.projects.filter(function(p){
+      return (p.name||"").toLowerCase().includes(q) || (p.id||"").toLowerCase().includes(q);
     });
     renderTable(state.filtered);
   }
+
   function loadProjects(){
-    els.error.style.display="none";els.callout.style.display="none";els.loading.style.display="block";
+    els.error.style.display="none"; els.callout.style.display="none"; els.loading.style.display="block";
     fetchJSON("/projects").then(function(data){
-      state.projects=data.projects||[];state.filtered=state.projects.slice();renderTable(state.filtered);
-      if(state.selected.id){applySelectionLabel();applyEthicalToggleState();}
+      state.projects = data.projects || [];
+      state.filtered = state.projects.slice();
+      renderTable(state.filtered);
+      if(state.selected.id){ applySelectionLabel(); applyEthicalToggleState(); updateButtons(); }
     }).catch(function(err){
-      var msg=String(err.message||err);els.error.textContent=msg;els.error.style.display="block";
-      if(/ACCESS_TOKEN_SCOPE_INSUFFICIENT|cloudresourcemanager/.test(msg)){els.callout.style.display="block";}
-    }).finally(function(){els.loading.style.display="none";});
+      var msg=String(err.message||err);
+      els.error.textContent=msg; els.error.style.display="block";
+      if(/ACCESS_TOKEN_SCOPE_INSUFFICIENT|cloudresourcemanager/.test(msg)){ els.callout.style.display="block"; }
+    }).finally(function(){ els.loading.style.display="none"; });
   }
 
   // expose getter for scan button
-  window.ProjectPicker={getSelected:function(){return {id:state.selected.id,name:state.selected.name,access:state.selected.access};}};
+  window.ProjectPicker = { getSelected:function(){ return { id:state.selected.id, name:state.selected.name, access:state.selected.access }; } };
 
-  els.refresh.addEventListener("click",loadProjects);
-  els.search.addEventListener("input",function(){filterRows();});
-  loadProjects();applySelectionLabel();applyEthicalToggleState();
+  els.refresh.addEventListener("click", loadProjects);
+  els.search.addEventListener("input", filterRows);
+
+  loadProjects();
+  applySelectionLabel();
+  applyEthicalToggleState();
 })();
+
 
 /* =========================
    RESULTS TABLE RENDER
