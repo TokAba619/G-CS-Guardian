@@ -22,7 +22,17 @@
     .toggle input:disabled + .slider { background:#666; cursor:not-allowed; }
     .toggle-label { color: white; }
 
-    .navbar-brand { display: flex, align-items: center; gap: 12px; color: var(--cyan); font-size: 1.8rem; font-weight: 800; text-decoration: none; letter-spacing: 1px; text-shadow: 1px 1px 3px #000; }
+    .navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--cyan);
+  font-size: 1.8rem;
+  font-weight: 800;
+  text-decoration: none;
+  letter-spacing: 1px;
+  text-shadow: 1px 1px 3px #000;
+}
     .navbar-brand .brand-logo { width: 34px; height: 34px; border-radius: 6px; object-fit: contain; display: block; background: transparent; }
 
     .nav-links a { color:#fff; text-decoration:none; font-size:1.1rem; font-weight:600; padding:5px 0; position:relative; transition:color .3s; }
@@ -300,6 +310,32 @@
       </div>
     </div>
   </section>
+
+  <!-- HISTORY (NEW: visible to Owners/Creators; owners must enter Project ID) -->
+  <section class="content-section history" id="history">
+    <div class="container">
+      <h2 class="section-title">History</h2>
+      <p class="section-content">Project Owners can view their project’s scans by entering a Project ID. Creators can view all scans or filter by Project ID.</p>
+
+      <div class="inline-form" role="group" aria-label="History controls">
+        <input type="text" id="historyProjectId" class="pill-input" placeholder="Project ID (required for Project Owners)" autocomplete="off">
+        <button id="historyFetchBtn" type="button" class="cta-pink">Fetch</button>
+      </div>
+      <p id="historyHint" class="muted" style="text-align:center;margin-top:6px;"></p>
+
+      <div class="table-container" style="margin-top:16px;">
+        <table id="historyTable">
+          <thead>
+            <tr><th>Scan ID</th><th>Project ID</th><th>User Email</th><th>Timestamp</th><th>Result Summary</th></tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="5" style="text-align:center;">Enter a Project ID and click Fetch.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
 
 <script>
 /* =========================
