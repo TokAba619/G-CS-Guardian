@@ -658,8 +658,11 @@ document.addEventListener("DOMContentLoaded",function(){
     var ethicalMode=ethicalToggleEl.checked;
 
     var picked=window.ProjectPicker&&window.ProjectPicker.getSelected?window.ProjectPicker.getSelected():{id:null,access:null};
-    var typed=(document.getElementById("projectId").value||"").trim();
-    var projectId=picked.id||typed;
+
+    // SAFE: guard if #projectId input doesn't exist
+    var projectIdInputEl = document.getElementById("projectId");
+    var typed = projectIdInputEl ? (projectIdInputEl.value||"").trim() : "";
+    var projectId = picked.id || typed;
 
     if(!projectId){alert("Please select a project (or type one).");return;}
 
@@ -780,7 +783,7 @@ async function fetchDetailedScan(){
 document.addEventListener("DOMContentLoaded",loadPreviousScans);
 
 /* =========================
-   HISTORY (owner/creator) — UPDATED ONLY THIS PART
+   HISTORY (owner/creator) — GUARDED INIT
 ========================= */
 function normalizeRole(r){
   var s=String(r||"").trim().toLowerCase();
@@ -792,6 +795,7 @@ function normalizeRole(r){
 async function loadHistory(projectId, limit=100, offset=0){
   var token=getToken();
   var tbody=document.querySelector("#historyTable tbody");
+  if(!tbody){ return; } // no UI present
   if(!token){
     tbody.innerHTML="<tr><td colspan='5' style='text-align:center;'>Please log in</td></tr>";
     return;
@@ -839,11 +843,14 @@ async function loadHistory(projectId, limit=100, offset=0){
 }
 
 document.addEventListener("DOMContentLoaded",function(){
-  var role=normalizeRole(localStorage.getItem("role"));
+  // If the History UI isn't present, exit early (prevents runtime errors)
   var projectInput=document.getElementById("historyProjectId");
   var fetchBtn=document.getElementById("historyFetchBtn");
   var hint=document.getElementById("historyHint");
   var tbody=document.querySelector("#historyTable tbody");
+  if(!projectInput || !fetchBtn || !hint || !tbody){ return; }
+
+  var role=normalizeRole(localStorage.getItem("role"));
 
   // Prefill from the selected project in picker, if any
   var prefill=localStorage.getItem("selected_project_id")||"";
