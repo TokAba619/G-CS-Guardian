@@ -206,8 +206,8 @@
               <strong id="selectedProjectLabel">—</strong>
             </div>
           </section>
-<br><br>
-           <button id="scanBtn" type="button" class="btn-pill-primary" disabled>Scan</button>
+
+            <button id="learn-more" type="button" class="cta-pink" aria-label="Scan">Scan</button>
           </div>
         </form>
       </div>
@@ -880,52 +880,6 @@ document.addEventListener("DOMContentLoaded", function(){
     });
   }
 });
-
-(() => {
-  const table = document.getElementById('projectTable');
-  const selectedLabel = document.getElementById('selectedProjectLabel');
-  const scanBtn = document.getElementById('scanBtn');
-
-  // If you render rows dynamically, ensure each Select button looks like:
-  // <button type="button" class="select-btn"
-  //         data-project-id="my-project-id"
-  //         data-project-name="My Project">Select</button>
-
-  // Use event delegation so it works for dynamically injected rows
-  table.addEventListener('click', (e) => {
-    const btn = e.target.closest('.select-btn');
-    if (!btn) return;
-
-    // clear previous selection (buttons + row highlight)
-    table.querySelectorAll('.select-btn.is-selected').forEach(b => b.classList.remove('is-selected'));
-    table.querySelectorAll('tbody tr.is-selected').forEach(r => r.classList.remove('is-selected'));
-
-    // mark this one as selected
-    btn.classList.add('is-selected');
-    const row = btn.closest('tr');
-    if (row) row.classList.add('is-selected');
-
-    // update label and enable Scan
-    const pid  = btn.dataset.projectId || '';
-    const pname = btn.dataset.projectName || '';
-    selectedLabel.textContent = pname && pid ? `${pname} (${pid}) — owner` : (pname || pid || '—');
-    scanBtn.disabled = false;
-
-    // stash selection for your Scan handler
-    scanBtn.dataset.projectId = pid;
-    scanBtn.dataset.projectName = pname;
-  });
-
-  // example Scan click (keep your existing logic; this just shows where to read the selection)
-  scanBtn.addEventListener('click', () => {
-    const pid = scanBtn.dataset.projectId;
-    if (!pid) return; // should be enabled only when set
-    // call your existing scan function here
-    // startScan({ projectId: pid, fullAccess: document.getElementById('ethicalModeToggle').checked })
-    console.log('Scanning project:', pid);
-  });
-})();
-
 </script>
 
   <script src="web.js"></script>
