@@ -180,38 +180,69 @@
   text-overflow: clip;
   overflow: visible;
 }
-/* Keep table widths stable */
-.dashboard-table { table-layout: fixed; width: 100%; }
 
-/* Make Risk Reason much wider (both tables) */
+/* Let the browser size columns naturally again */
+.dashboard-table { table-layout: auto; width: 100%; }
+
+/* Keep header labels on one line so they don't break into letters */
+.dashboard-table th { white-space: nowrap; }
+
+/* Reason column: bigger and readable */
 #results-table th[data-key="risk_reason"],
 #detailed-table th[data-key="risk_reason"],
 #results-table td.risk-reason,
 #detailed-table td.risk-reason {
-  width: 40%;
-  min-width: 420px;
-  white-space: normal;
+  width: 36%;
+  min-width: 360px;
+  white-space: normal;           /* allow multi-line reason text */
+  word-break: break-word;
 }
 
-/* Slightly narrower Sensitive Keywords to make room */
+/* Bucket name: give it room to avoid vertical wrapping */
+#results-table th[data-key="bucket_name"],
+#detailed-table th[data-key="bucket_name"] {
+  width: 18%;
+  min-width: 180px;
+}
+
+/* Compact numeric/status columns */
+#results-table th[data-key="public"],
+#detailed-table th[data-key="public"] { width: 8%;  min-width: 90px; }
+
+#results-table th[data-key="risk_score"],
+#detailed-table th[data-key="risk_score"] { width: 8%;  min-width: 90px; }
+
+#results-table th[data-key="risk_level"],
+#detailed-table th[data-key="risk_level"] { width: 10%; min-width: 110px; }
+
+/* Sensitive keywords: moderate width, wrap nicely */
 #results-table th[data-key="sensitive_keywords_detected"],
-#detailed-table th[data-key="sensitive_keywords_detected"],
+#detailed-table th[data-key="sensitive_keywords_detected"] {
+  width: 10%;
+  min-width: 140px;
+}
 #results-table td:nth-child(6),
 #detailed-table td:nth-child(6) {
-  width: 16%;
+  white-space: normal;
+  word-break: break-word;
 }
 
-/* Constrain Sample Files column (works with your cell-scroll) */
+/* Sample files: fixed cell with its own horizontal scroller */
+#results-table th[data-key="sample_files"],
+#detailed-table th[data-key="sample_files"],
 .sample-col {
-  width: 22%;
-  max-width: 22%;
-  overflow: hidden; /* pairs nicely with .cell-scroll inside */
+  width: 10%;
+  min-width: 180px;
+  overflow: hidden;              /* hide overflow; inner .cell-scroll handles it */
 }
 
-/* Optional: better readability inside Risk Reason list */
-.risk-reason-list { margin: .25rem 0; padding-left: 1.1rem; }
-.risk-reason-list li { line-height: 1.5; white-space: normal; }
-
+/* If you added the inner scroller earlier, keep this: */
+.cell-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+}
 
   </style>
 </head>
@@ -680,7 +711,7 @@ function renderResultsTable(opts){
         "<td>"+(b.public?"<span class='badge badge-public'>Public</span>":"<span class='badge badge-private'>Private</span>")+"</td>"+
         "<td>"+(b.risk_score||"0")+"</td>"+
         "<td><span class='badge "+riskClass(level)+"'>"+level+"</span></td>"+
-        "<td class='risk-reason'>"+formatRiskReasonHTML(b.risk_reason)+"</td>"+
+        "<td class='risk-reason'>" + formatRiskReasonHTML(b.risk_reason) + "</td>"
         "<td>"+htmlEscape(sens)+"</td>"+
         "<td class='sample-col' style='"+(ethicalMode?"":"display:none;")+"'>"+samplesHtml+"</td>";
       tbody.appendChild(tr);
