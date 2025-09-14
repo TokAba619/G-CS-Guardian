@@ -180,6 +180,38 @@
   text-overflow: clip;
   overflow: visible;
 }
+/* Keep table widths stable */
+.dashboard-table { table-layout: fixed; width: 100%; }
+
+/* Make Risk Reason much wider (both tables) */
+#results-table th[data-key="risk_reason"],
+#detailed-table th[data-key="risk_reason"],
+#results-table td.risk-reason,
+#detailed-table td.risk-reason {
+  width: 40%;
+  min-width: 420px;
+  white-space: normal;
+}
+
+/* Slightly narrower Sensitive Keywords to make room */
+#results-table th[data-key="sensitive_keywords_detected"],
+#detailed-table th[data-key="sensitive_keywords_detected"],
+#results-table td:nth-child(6),
+#detailed-table td:nth-child(6) {
+  width: 16%;
+}
+
+/* Constrain Sample Files column (works with your cell-scroll) */
+.sample-col {
+  width: 22%;
+  max-width: 22%;
+  overflow: hidden; /* pairs nicely with .cell-scroll inside */
+}
+
+/* Optional: better readability inside Risk Reason list */
+.risk-reason-list { margin: .25rem 0; padding-left: 1.1rem; }
+.risk-reason-list li { line-height: 1.5; white-space: normal; }
+
 
   </style>
 </head>
@@ -648,7 +680,7 @@ function renderResultsTable(opts){
         "<td>"+(b.public?"<span class='badge badge-public'>Public</span>":"<span class='badge badge-private'>Private</span>")+"</td>"+
         "<td>"+(b.risk_score||"0")+"</td>"+
         "<td><span class='badge "+riskClass(level)+"'>"+level+"</span></td>"+
-        "<td>"+formatRiskReasonHTML(b.risk_reason)+"</td>"+
+        "<td class='risk-reason'>"+formatRiskReasonHTML(b.risk_reason)+"</td>"+
         "<td>"+htmlEscape(sens)+"</td>"+
         "<td class='sample-col' style='"+(ethicalMode?"":"display:none;")+"'>"+samplesHtml+"</td>";
       tbody.appendChild(tr);
