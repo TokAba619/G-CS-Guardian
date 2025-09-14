@@ -5,7 +5,7 @@
 /* Theme & surfaces */
 :root{
   --bg-brightness: 100%;
-  --accent: #E91E63;
+  --accent: #ff0055;
   --cyan: var(--accent);
 
   --bg-dark: #0b0b0b;
@@ -199,7 +199,7 @@ th, td, button, input, textarea, select,
   background: rgba(0,0,0,.45);
 }
 .cta-pink{
-  height: 52px; padding: 0 22px; border-radius: 999px; border: none;
+  height: 52px; padding: 0 22px; border-radius: 999px; border: none; width: 200px;
   background: var(--accent); color: #fff; font-weight: 800; letter-spacing: .2px;
   cursor: pointer; white-space: nowrap; transition: transform .06s ease, box-shadow .2s ease, background .15s ease;
   box-shadow: 0 8px 24px rgba(233,30,99,.28);
