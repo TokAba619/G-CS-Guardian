@@ -146,6 +146,44 @@
 /* (optional) also tint the whole selected row slightly */
 .project-table tr.is-selected { background:#0f1a12; }
 
+/* 1) Make Sample Files column slimmer */
+#results-table th[data-key="sample_files"],
+#detailed-table th[data-key="sample_files"],
+.sample-col {
+  width: 10%;          /* you can tweak: 8–14% */
+  min-width: 140px;    /* don’t let it get too tiny */
+  max-width: 200px;    /* keeps it narrow */
+  overflow: hidden;    /* content will scroll inside .cell-scroll */
+}
+
+/* 2) Only the content in that cell can scroll horizontally */
+.sample-col .cell-scroll {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;    /* <-- gives you the little left-right scroller */
+  overflow-y: hidden;
+  white-space: nowrap; /* keeps long filenames on one line */
+}
+
+/* Wider Risk Reason for readability */
+.risk-reason-col {
+  width: 36%;
+  min-width: 420px;
+}
+
+/* If something else overrides widths, add !important as a last resort */
+/* .risk-reason-col { width: 36% !important; min-width: 420px !important; } */
+
+/* Optional: be kind to small screens */
+@media (max-width: 900px) {
+  .risk-reason-col { width: 30%; min-width: 340px; }
+}
+
+/* Ensure the table can scroll horizontally if columns get wide */
+.table-container,
+.project-table-wrap { /* or whatever wrapper you use */
+  overflow-x: auto;
+}
 
   </style>
 </head>
@@ -605,13 +643,16 @@ function renderResultsTable(opts){
     filtered.forEach(function(b){
       var level=riskLevelFromScore(b.risk_score);
       var sens=Array.isArray(b.sensitive_keywords_detected)?b.sensitive_keywords_detected.join(", "):(b.sensitive_keywords_detected||"None");
-      var samplesHtml=(ethicalMode&&b.sample_files)?buildSampleLinks(b.sample_files):"";
+      var samplesHtml = (ethicalMode && b.sample_files && b.sample_files.length)
+  ? "<div class='cell-scroll'>" + buildSampleLinks(b.sample_files) + "</div>"
+  : "";
       var tr=document.createElement("tr");
-      tr.innerHTML="<td>"+(b.bucket_name||"Unknown")+"</td>"+
+      tr.innerHTML=
+        "<td>"+(b.bucket_name||"Unknown")+"</td>"+
         "<td>"+(b.public?"<span class='badge badge-public'>Public</span>":"<span class='badge badge-private'>Private</span>")+"</td>"+
         "<td>"+(b.risk_score||"0")+"</td>"+
         "<td><span class='badge "+riskClass(level)+"'>"+level+"</span></td>"+
-        "<td>"+formatRiskReasonHTML(b.risk_reason)+"</td>"+
+        "<td class='risk-reason-col'>"+formatRiskReasonHTML(b.risk_reason)+"</td>"+
         "<td>"+htmlEscape(sens)+"</td>"+
         "<td class='sample-col' style='"+(ethicalMode?"":"display:none;")+"'>"+samplesHtml+"</td>";
       tbody.appendChild(tr);
