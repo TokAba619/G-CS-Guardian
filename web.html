@@ -195,6 +195,27 @@
   margin:.15rem .25rem .15rem 0;
 }
 
+/* Make Risk Reason column wider and easy to read */
+#results-table .risk-reason-col,
+#detailed-table .risk-reason-col {
+  width: 36%;
+  min-width: 420px;
+}
+
+/* Keep the bullet list pleasant */
+.risk-reason-list {
+  margin: .25rem 0;
+  padding-left: 1.2rem;
+}
+
+/* Optional: on smaller screens, shrink a little */
+@media (max-width: 1024px){
+  #results-table .risk-reason-col,
+  #detailed-table .risk-reason-col {
+    width: 32%;
+    min-width: 360px;
+  }
+}
   </style>
 </head>
 <body>
@@ -308,7 +329,7 @@
             <th data-key="public" class="nowrap">Status<span class="sort-ind">↕</span></th>
             <th data-key="risk_score" class="nowrap">Risk Score<span class="sort-ind">↕</span></th>
             <th data-key="risk_level" class="nowrap">Risk Level<span class="sort-ind">↕</span></th>
-            <th data-key="risk_reason">Risk Reason<span class="sort-ind">↕</span></th>
+            <th data-key="risk_reason" class="risk-reason-col">Risk Reason <span class="sort-ind">↕</span></th>
             <th data-key="sensitive_keywords_detected">Sensitive Keywords<span class="sort-ind">↕</span></th>
             <th data-key="sample_files" class="sample-col" style="display:none;">Sample Files<span class="sort-ind">↕</span></th>
           </tr>
@@ -364,7 +385,7 @@
               <th data-key="public" class="nowrap">Status<span class="sort-ind">↕</span></th>
               <th data-key="risk_score" class="nowrap">Risk Score<span class="sort-ind">↕</span></th>
               <th data-key="risk_level" class="nowrap">Risk Level<span class="sort-ind">↕</span></th>
-              <th data-key="risk_reason">Risk Reason<span class="sort-ind">↕</span></th>
+              <th data-key="risk_reason" class="risk-reason-col">Risk Reason <span class="sort-ind">↕</span></th>
               <th data-key="sensitive_keywords_detected">Sensitive Keywords<span class="sort-ind">↕</span></th>
               <th data-key="sample_files" class="sample-col" style="display:none;">Sample Files<span class="sort-ind">↕</span></th>
             </tr>
@@ -599,13 +620,36 @@ if(hamburgerMenu){
 /* =========================
    RESULTS TABLE RENDER
 ========================= */
-function htmlEscape(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-function formatRiskReasonHTML(reason){
-  if(!reason)return"N/A";
-  var parts=String(reason).split(/\s*\|\s*/g).map(function(s){return s.trim().replace(/\s*\.+$/,"");}).filter(Boolean);
-  var items=parts.map(function(p){return"<li>"+htmlEscape(p)+"</li>";}).join("");
-  return"<ul class='risk-reason-list'>"+items+"</ul>";
+function htmlEscape(s){
+  return String(s).replace(/[&<>"']/g, c => (
+    { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]
+  ));
 }
+
+function formatRiskReasonHTML(reason){
+  if (!reason) return "N/A";
+
+  // Drop the keywords sentence (shown in the next column)
+  const text = String(reason)
+    .replace(/Sensitive keywords detected:[^|.]+[|.]?/ig, "")
+    .trim();
+
+  // Split into bullets on "., ", sentence end + capital, or pipe
+  const parts = text
+    .split(/(?:\.,\s*|\. (?=[A-Z])|\s*\|\s*)/g)
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  // Light emphasis
+  const emphasize = (s) => s
+    .replace(/\b(public|private)\b/gi, '<strong>$1</strong>')
+    .replace(/\bIAM\b/g, '<strong>IAM</strong>')
+    .replace(/\bexposed_objects\b/g, '<strong>exposed_objects</strong>');
+
+  const items = parts.map(p => `<li>${emphasize(p)}</li>`).join("");
+  return `<ul class="risk-reason-list">${items}</ul>`;
+}
+
 /* NEW: sample files -> clickable list */
 function buildSampleLinks(samples){
   if(!samples||!samples.length) return "";
