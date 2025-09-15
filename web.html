@@ -185,6 +185,16 @@
   overflow-x: auto;
 }
 
+.kw-chip{
+  display:inline-block;
+  padding:.2rem .5rem;
+  border-radius:999px;
+  background:#1a1a1a;
+  border:1px solid rgba(255,255,255,.14);
+  white-space:nowrap;
+  margin:.15rem .25rem .15rem 0;
+}
+
   </style>
 </head>
 <body>
@@ -642,7 +652,17 @@ function renderResultsTable(opts){
     var filtered=sortData(applyFilter());tbody.innerHTML="";
     filtered.forEach(function(b){
       var level=riskLevelFromScore(b.risk_score);
-      var sens=Array.isArray(b.sensitive_keywords_detected)?b.sensitive_keywords_detected.join(", "):(b.sensitive_keywords_detected||"None");
+      let kwList = b.sensitive_keywords_detected;
+// allow string or array from backend
+if (typeof kwList === "string") {
+  kwList = kwList.split(/\s*,\s*/).filter(Boolean);
+}
+const sens = (Array.isArray(kwList) && kwList.length)
+  ? kwList.map(prettyKeyword)
+          .map(kw => `<span class="kw-chip">${htmlEscape(kw)}</span>`)
+          .join(" ")
+  : `<span class="kw-chip">None</span>`;
+
       var samplesHtml = (ethicalMode && b.sample_files && b.sample_files.length)
   ? "<div class='cell-scroll'>" + buildSampleLinks(b.sample_files) + "</div>"
   : "";
@@ -653,7 +673,7 @@ function renderResultsTable(opts){
         "<td>"+(b.risk_score||"0")+"</td>"+
         "<td><span class='badge "+riskClass(level)+"'>"+level+"</span></td>"+
         "<td class='risk-reason-col'>"+formatRiskReasonHTML(b.risk_reason)+"</td>"+
-        "<td>"+htmlEscape(sens)+"</td>"+
+        "<td>"+ sens +"</td>"+
         "<td class='sample-col' style='"+(ethicalMode?"":"display:none;")+"'>"+samplesHtml+"</td>";
       tbody.appendChild(tr);
     });
@@ -714,6 +734,23 @@ async function ensureConsentBeforeScan(){
   document.getElementById("results-summary").innerHTML =
     "<p style='color:red;'>" + msg + " <a href='signup.html'>Go to login</a></p>";
   return false;
+}
+
+function prettyKeyword(s) {
+  if (!s) return "";
+  // split optional source prefix like "bucket:" or "file:"
+  let prefix = "", pattern = s;
+  const i = s.indexOf(":");
+  if (i > -1) { prefix = s.slice(0, i); pattern = s.slice(i + 1); }
+
+  // remove common regex tokens and escapes
+  pattern = pattern
+    .replace(/\\b/g, "")          // word boundaries
+    .replace(/^\^|\$$/g, "")      // anchors
+    .replace(/\\([\\/.])/g, "$1") // unescape \. and \/
+    .trim();
+
+  return (prefix ? `${prefix}: ` : "") + pattern;
 }
 
 /* =========================
@@ -1001,6 +1038,7 @@ document.addEventListener("DOMContentLoaded",function(){
     });
   }
 });
+
 </script>
 
   <script src="web.js"></script>
