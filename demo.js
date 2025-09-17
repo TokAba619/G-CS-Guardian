@@ -126,3 +126,15 @@ const observer = new IntersectionObserver(entries => {
 document.querySelectorAll(".card, .items, .title, .slide").forEach(el => {
   observer.observe(el);
 });
+
+
+ function copyEmail() {
+  const email = "support@gcsguardian.com";
+  navigator.clipboard.writeText(email).then(() => {
+    // Instead of alert, show temporary tooltip
+    const btn = document.querySelector(".copy-btn");
+    const oldText = btn.innerText;
+    btn.innerText = "Copied!";
+    setTimeout(() => btn.innerText = oldText, 2000);
+  });
+}
