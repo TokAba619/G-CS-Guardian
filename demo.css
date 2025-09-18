@@ -11,6 +11,14 @@
   --aud: "Audiowide", sans-serif; /* kept for compatibility but not used */
 }
 
+html, body {
+  font-family: "Inter", sans-serif !important;
+}
+
+h1, h2, h3, h4, h5, h6, p, a, button {
+  font-family: "Inter", sans-serif !important;
+}
+
 * {
   padding: 0;
   margin: 0;
@@ -94,7 +102,7 @@ header .container .content .logo img {
 }
 
 header .container .content .logo a {
-  font-family: 'Segoe UI', sans-serif;     /* was Audiowide */
+  font-family: "Inter", sans-serif;     /* was Audiowide */
   font-weight: 800;                      /* bold for title look */
   font-size: 35px;
   text-decoration: none;
@@ -135,15 +143,23 @@ header .container .content .extra-nav button {
   font-family: "Inter", sans-serif;     /* ensure consistency */
   font-weight: 600;
 }
-header .container .content .extra-nav button:hover { background: var(--gray); transition: .1s linear; }
+header .container .content .extra-nav button:hover { background: var(--black); transition: .1s linear; }
 header .container .content .extra-nav button .icon {
   padding: 4px;
   display: block;
-  background: var(--gray);
+  background: var(--black);
   border-radius: 4px;
   transition: .1s linear;
 }
-header .container .content .extra-nav button:hover .icon { background: var(--lightgray); transition: .1s linear; }
+header .container .content .extra-nav button:hover .icon { background: var(--black); transition: .1s linear; }
+
+.site-nav .title {
+  font-family: "Inter", sans-serif !important; /* or any font you want */
+  font-size: 1.4rem;                 /* adjust size */
+  font-weight: 700;                  /* bold */
+  letter-spacing: 0.5px;             /* optional spacing */
+}
+
 
 /* =========================
    HERO
@@ -197,13 +213,19 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
 }
 
 .hero .container .content .text p {
-  font-weight: 600;
+  font-weight: 1000;
   text-align: center;
   width: 53%;
-  font-size: 1.2rem;
+  font-size: 1rem;
   margin-bottom: 1rem;
   color: var(--lightgray);
   font-family: "Inter", sans-serif;
+  text-shadow:
+    -1px -1px 0 black,
+     1px -1px 0 black,
+    -1px  1px 0 black,
+     1px  1px 0 black;
+  
 }
 
 .hero .container .content .text p span {
@@ -212,6 +234,55 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
   animation: color 1s linear forwards;
   font-family: "Inter", sans-serif;
 }
+
+button,
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  background: #fff;
+  color: #111;
+  font-weight: 600;
+  border: 2px solid #111;
+  cursor: pointer;
+  text-decoration: none;    /* for <a> */
+  transition: 0.3s;
+  font-size: 18px;
+}
+
+button:hover,
+.btn-pill:hover {
+  background: #111;
+  color: #fff;
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px; /* space between text and logo */
+  padding: 5px 10px;
+  border-radius: 13px;
+  background: #fff;
+  color: #111;
+  font-weight: 600;
+  border: 2px solid #111;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: #111;
+  color: #fff;
+}
+
+button .btn-logo {
+  width: 40px;   /* adjust size */
+  height: auto;
+}
+
+
 
 /* ✅ White CTA buttons only (no global color changes) */
 .hero .container .content .text a {
@@ -505,7 +576,7 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
   border-radius: 24px;
   font-family: "Inter", sans-serif;
   color: #fff;
-  max-width: 560px;
+  max-width: 450px;
   width: 100%;
   box-shadow: 0 12px 40px rgba(0,0,0,0.35);
 }
@@ -544,7 +615,7 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
 .contact-email:hover { text-decoration: underline; }
 
 .copy-btn {
-  background: var(--cyan, #E91E63);
+  background: var(--cyan, #ffffff);
   color: #000;
   font-weight: 700;
   border: none;
@@ -553,7 +624,7 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
   cursor: pointer;
   transition: transform .08s ease, opacity .2s ease, background .2s ease;
 }
-.copy-btn:hover { background: #fff; }
+.copy-btn:hover { background: #E91E63; }
 .copy-btn:active { transform: scale(0.98); }
 
 /* ---------- RESPONSIVE ---------- */
@@ -654,6 +725,10 @@ header .container .content .extra-nav button:hover .icon { background: var(--lig
   font-size: 2rem;
   margin-bottom: 2rem; letter-spacing: 2px;
   transform: translateY(50px); opacity: 0; transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+
+.slide-description p {
   text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
 }
 .slide-description {
@@ -772,6 +847,7 @@ header .container .content .logo img{
 
 /* Title + subtitle */
 .section-title {
+  font-family: "Inter", sans-serif !important;
   font-size: 3.2rem;
   text-align: center;
   margin-bottom: 3rem;
@@ -874,4 +950,140 @@ header .container .content .logo img{
   font-size: 1rem;
   line-height: 1.4;
   text-align: center;
+}
+
+.slide-title,
+.slide-description,
+.slide-description h6{
+  color: white; /* keep the text white */
+  text-shadow: 
+    -1px -1px 0 #000,  
+     1px -1px 0 #000,  
+    -1px  1px 0 #000,  
+     1px  1px 0 #000; /* black outline */
+}
+
+/* ===== SLIDER TEXT OUTLINE ===== */
+.slide-title,
+.slide-description,
+.slide-description h6 {
+  color: white; /* text stays white */
+  text-shadow: 
+    -1px -1px 0 #000,
+     1px -1px 0 #000,
+    -1px  1px 0 #000,
+     1px  1px 0 #000; /* creates a black outline */
+}
+
+.btn {
+  display: inline-flex;          /* flex so icon aligns nicely */
+  align-items: center;           /* center text + icon */
+  gap: 8px;                      /* space between text and icon */
+  padding: 10px 22px;
+  background: white;
+  color: black;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 30px;
+  border: 2px solid black;
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  background: black;
+  color: white;
+}
+
+.slide-content h6 {
+  font-size: 0.8rem;            /* increase size (default h6 ~0.67rem) */
+  font-weight: 600;           /* make it bolder */
+  color: white;               /* keep main text white */
+  margin-top: 10px;
+
+  /* black outline using text-shadow */
+  text-shadow: 
+    -1px -1px 0 #000,
+     1px -1px 0 #000,
+    -1px  1px 0 #000,
+     1px  1px 0 #000;
+}
+
+/* Container */
+.scroll-indicator {
+  text-align: center;
+  margin-top: 20px;
+  color: #ccc;
+  font-family: "Inter", sans-serif;
+}
+
+/* Circle with arrow */
+.scroll-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.scroll-circle:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Arrow icon */
+.scroll-circle i {
+  color: #fff;
+  font-size: 18px;
+  animation: bounce 1.5s infinite;
+}
+
+/* Text */
+.scroll-indicator p {
+  font-size: 14px;
+  color: #aaa;
+  margin: 0;
+}
+
+/* Bouncing animation */
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+.scroll-indicator {
+  position: absolute;   /* take out of normal flow */
+  bottom: 40px;         /* adjust upward/downward */
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  color: #ccc;
+  font-family: "Inter", sans-serif;
+}
+
+.nav-cta button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 10px 20px;
+  border-radius: 9999px;   /* pill shape */
+  background: #fff;
+  color: #111;
+  font-weight: 600;
+  border: 2px solid #111;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-cta button:hover {
+  background: #111;  /* dark background */
+  color: #fff;       /* white text */
+}
+
+.nav-cta button:hover .icon {
+  stroke: #fff;      /* make Feather icon turn white */
 }
