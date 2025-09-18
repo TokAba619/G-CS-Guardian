@@ -138,3 +138,10 @@ document.querySelectorAll(".card, .items, .title, .slide").forEach(el => {
     setTimeout(() => btn.innerText = oldText, 2000);
   });
 }
+
+document.querySelector('.scroll-circle').addEventListener('click', () => {
+  const nextSection = document.querySelector('#about'); // replace with your next section ID
+  if(nextSection){
+    nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+});
