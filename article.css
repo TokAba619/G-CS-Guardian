@@ -31,15 +31,50 @@ body{
 /* =========================
    Header
    ========================= */
-header{position:relative;z-index:2}
-header .container{max-width:1200px;margin:0 auto;padding:12px 16px}
-header .content .logo{display:flex;align-items:center;gap:12px;padding:12px 0}
-header .content .logo img{width:100px;height:auto;position:relative;z-index:10}
-header .content .logo a{
-  font:700 35px/1 "Audiowide",sans-serif;color:#fff;text-decoration:none;
-  text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000
+header {
+  position: relative;
+  z-index: 2;
 }
-header:hover .content .logo a{color:var(--accent)}
+
+header .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 16px;
+}
+
+header .content .logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
+}
+
+/* Move logo image upward */
+header .content .logo img {
+  width: 100px;
+  height: auto;
+  position: relative;
+  z-index: 10;
+  top: -20px;          /* nudge upward */
+}
+
+/* Move logo text upward */
+header .content .logo a {
+  font: 700 35px/1 "Audiowide", sans-serif;
+  color: #fff;
+  text-decoration: none;
+  text-shadow: -1px -1px 0 #000,
+                1px -1px 0 #000,
+               -1px  1px 0 #000,
+                1px  1px 0 #000;
+  position: relative;
+  top: -20px;          /* nudge upward same as image */
+}
+
+header:hover .content .logo a {
+  color: var(--accent);
+}
+
 
 /* =========================
    Page wrapper
@@ -89,12 +124,26 @@ header:hover .content .logo a{color:var(--accent)}
 }
 .textbox:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(0,0,0,.55)}
 /* gradient border ring */
-.textbox::before{
-  content:"";position:absolute;inset:0;padding:1px;border-radius:inherit;
-  background:linear-gradient(135deg,rgba(255, 0, 140, 0.5),rgba(255,255,255,.12) 40%,rgba(0,225,255,.35));
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.6;
+.textbox:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg,
+              rgba(255, 0, 140, 0.5),
+              rgba(255, 255, 255, 0.12) 40%,
+              rgba(0, 225, 255, 0.35));
+  -webkit-mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+-webkit-mask-repeat: no-repeat, no-repeat;
+-webkit-mask-origin: content-box, border-box;
+-webkit-mask-clip: content-box, border-box;
+-webkit-mask-composite: xor;
+mask-composite: exclude;
+  pointer-events: none;
+  opacity: .6;
 }
+
 .textbox:hover::before{opacity:1}
 
 .textbox h2{
@@ -211,7 +260,6 @@ header .content .logo img { width: 90px; } /* was 100px */
 .page-hero .hero-net{
   position:absolute; inset:0;
   width:100%; height:100%;
-  background:rgba(120,120,120,.68);   /* grey overlay like screenshot */
 }
 .page-hero .hero-inner{
   position:relative; z-index:1;
