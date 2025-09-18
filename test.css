@@ -21,7 +21,7 @@ body{
 /* --- Top-left brand only (no navbar) --- */
 .brandbar{
   position:fixed; top:0; left:0; right:0;
-  height:72px;
+  height:75px;
   display:flex; align-items:center;
   padding:0 22px;
   background:rgba(0,0,0,0.85);
@@ -30,11 +30,11 @@ body{
   z-index:1000;
 }
 .brandbar .brand{
-  display:flex; align-items:center; gap:12px;
+  display:flex; align-items:center; gap:10px;
   text-decoration:none; color:#fff;
 }
 .brandbar .brand img{
-  width: 130px;   /* was 175px */
+  width: 110px;   /* was 175px */
   height: auto;
 }
 .brandbar .brand .title{
@@ -164,4 +164,3 @@ input[type="email"]:focus, input[type="password"]:focus{
   .card{ border-radius:16px; }
   .card-title{ font-size:24px; }
 }
-
