@@ -318,3 +318,29 @@ document.getElementById("learn-more").addEventListener("click", function () {
     resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 });
+
+rows.forEach(function(p){
+  var isSel = state.selected && state.selected.id === p.id;
+  var tr=document.createElement("tr");
+  tr.setAttribute("data-id", p.id);
+  tr.setAttribute("data-name", p.name || "");
+  tr.setAttribute("data-access", p.access_level);
+
+  tr.innerHTML =
+    "<td>"+escapeHtml(p.name||"—")+"</td>"+
+    "<td><code>"+escapeHtml(p.id)+"</code></td>"+
+    "<td>"+p.access_level+"</td>";
+
+  if(isSel) tr.classList.add("is-selected");
+
+  // NEW: row click selects project
+  tr.addEventListener("click", function(){
+    selectProject({
+      id: tr.getAttribute("data-id"),
+      name: tr.getAttribute("data-name"),
+      access: tr.getAttribute("data-access")
+    });
+  });
+
+  els.tbody.appendChild(tr);
+});
