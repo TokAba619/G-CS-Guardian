@@ -1089,7 +1089,7 @@ document.addEventListener("DOMContentLoaded",function(){
 <script>
 (function activateSectionNav(){
   // 1) Collect only in-page nav items (won’t touch your #navLinks var)
-  const navItems = Array.from(document.querySelectorAll('.nav-link[href^="#"]'));
+  const navItems = Array.from(document.querySelectorAll('#navLinks a[href^="#"]'));
 
   // Build (sectionEl, linkEl) pairs safely
   const pairs = navItems.map(link => {
