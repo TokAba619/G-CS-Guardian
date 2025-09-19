@@ -1060,31 +1060,33 @@ async function loadPreviousScans(){
     tableBody.innerHTML = "";
     scans.forEach(function(scan){
       var row = document.createElement("tr");
-      row.innerHTML =
-        "<td>"+formatDate(scan.timestamp)+"</td>" +
-        "<td class='scan-id'>"+(scan.scan_id || "N/A")+"</td>" +
-        "<td>"+(scan.project_id || "N/A")+"</td>" +
-        "<td>" +
-          "<div class='download-actions'>" +
-            "<button class='btn-chip btn-pdf'  data-scan='"+scan.scan_id+"'>PDF</button>" +
-            "<button class='btn-chip btn-csv'  data-scan='"+scan.scan_id+"'>CSV</button>" +
-            "<button class='btn-chip btn-json' data-scan='"+scan.scan_id+"'>JSON</button>" +
-          "</div>" +
-        "</td>";
+     row.innerHTML =
+  "<td>"+formatDate(scan.timestamp)+"</td>" +
+  "<td class='scan-id'>"+(scan.scan_id || "N/A")+"</td>" +
+  "<td>"+(scan.project_id || "N/A")+"</td>" +
+  "<td>" +
+    "<div class='download-actions'>" +
+      "<button class='btn-chip btn-pdf'  data-scan='"+scan.scan_id+"'>PDF</button>" +
+      "<button class='btn-chip btn-csv'  data-scan='"+scan.scan_id+"'>CSV</button>" +
+      "<button class='btn-chip btn-json' data-scan='"+scan.scan_id+"'>JSON</button>" +
+    "</div>" +
+  "</td>";
 
-      // click ID to show details
-      row.querySelector(".scan-id").addEventListener("click", function(){
-        document.getElementById("scanIdInput").value = scan.scan_id;
-        fetchDetailedScan();
-      });
+row.querySelector(".scan-id").addEventListener("click", function(){
+  document.getElementById("scanIdInput").value = scan.scan_id;
+  fetchDetailedScan();
+});
 
-      // attach download handlers
-      row.querySelector(".btn-pdf").addEventListener("click",  function(){ downloadPdf(scan.scan_id,  this); });
-      row.querySelector(".btn-csv").addEventListener("click",  function(){ downloadCsv(scan.scan_id,  this); });
-      row.querySelector(".btn-json").addEventListener("click", function(){ downloadJson(scan.scan_id, this); });
+row.querySelector(".btn-pdf")
+   .addEventListener("click", function(){ downloadPdf(scan.scan_id, this); });
+row.querySelector(".btn-csv")
+   .addEventListener("click", function(){ downloadCsv(scan.scan_id, this); });
+row.querySelector(".btn-json")
+   .addEventListener("click", function(){ downloadJson(scan.scan_id, this); });
 
-      tableBody.appendChild(row);
-    });
+tableBody.appendChild(row);
+});
+
   }catch(error){
     console.error(error);
     tableBody.innerHTML = "<tr><td colspan='4'>Error: "+error.message+"</td></tr>";
