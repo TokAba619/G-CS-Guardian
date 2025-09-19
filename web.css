@@ -199,7 +199,7 @@ th, td, button, input, textarea, select,
   background: rgba(0,0,0,.45);
 }
 .cta-pink{
-  height: 52px; padding: 0 22px; border-radius: 999px; border: none; width: 200px;
+  height: 52px; padding: 0 22px; border-radius: 15px; border: none; width: 200px;
   background: var(--accent); color: #fff; font-weight: 800; letter-spacing: .2px;
   cursor: pointer; white-space: nowrap; transition: transform .06s ease, box-shadow .2s ease, background .15s ease;
   box-shadow: 0 8px 24px rgba(233,30,99,.28);
@@ -655,7 +655,7 @@ th, td, button, input, textarea, select,
 ==================================*/
 .inline-form{ display:flex; gap:12px; align-items:center; justify-content:center; max-width: 720px; margin: 18px auto 0; padding: 6px; }
 .pill-input{ flex: 1; height: 52px; padding: 0 18px; border-radius: 999px; border: 1.5px solid rgba(255,255,255,.25); background: rgba(0,0,0,.35); color: #fff; outline: none; font-size: 16px; }
-.cta-pink{ height: 52px; padding: 0 22px; border-radius: 999px; border: none; background: var(--accent); color: #fff; font-weight: 800; cursor: pointer; }
+.cta-pink{ height: 52px; padding: 0 22px; border-radius: 15px; border: none; background: var(--accent); color: #fff; font-weight: 800; cursor: pointer; }
 
 /* ===============================
    TOGGLE
@@ -782,4 +782,3 @@ section { scroll-margin-top: 80px; }
 
 /* if you use a fixed navbar, keep anchors from hiding under it */
 section{ scroll-margin-top: 80px; } /* adjust to your header height */
-
