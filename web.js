@@ -1,4 +1,4 @@
-/* ========= G-CS Guardian — Web UI Scripts (refined) =========
+/* ========= G‑CS Guardian — Web UI Scripts (refined) =========
    Features:
    - Navbar "scrolled" state (rAF-throttled)
    - Smooth in-page anchor navigation
@@ -74,11 +74,6 @@
   }
 
   // ===== Smooth anchor links (only same-page hashes) =====
-  const navAnchors = qsa(".nav-links a[href^='#']");
-  const setActiveNav = (id) => {
-    navAnchors.forEach(a => a.classList.toggle("active", a.getAttribute("href") === `#${id}`));
-  };
-
   qsa('a[href^="#"]').forEach((a) => {
     a.addEventListener("click", (e) => {
       const href = a.getAttribute("href");
@@ -86,7 +81,6 @@
       if (!id) return;
       e.preventDefault();
       smoothScrollTo(id);
-      setActiveNav(id); // ensure immediate highlight on click
       closeMenu();
     });
   });
@@ -112,6 +106,7 @@
 
   // ===== Scroll-Spy (active nav link while scrolling) =====
   const sections = qsa("section[id]");
+  const navAnchors = qsa(".nav-links a[href^='#']");
   const anchorFor = (id) => navAnchors.find(a => a.getAttribute("href") === `#${id}`);
 
   const spyIO = new IntersectionObserver(
@@ -293,3 +288,33 @@
     teamNext?.addEventListener("click", () => scrollByAmount(1));
   }
 })();
+
+(function(){
+  const btn = document.querySelector('.scroll-top');
+  if(!btn) return;
+
+  const header = document.getElementById('navbar');
+  const offset = (header?.offsetHeight || 80);
+
+  function toggle(){
+    if(window.scrollY > offset*2){ btn.classList.add('show'); }
+    else { btn.classList.remove('show'); }
+  }
+
+  window.addEventListener('scroll', toggle, {passive:true});
+  window.addEventListener('load', toggle);
+
+  // re-render feather icon if needed
+  if(window.feather) feather.replace();
+})();
+
+
+document.getElementById("learn-more").addEventListener("click", function () {
+  // Run your scan logic here (if you already have it)
+  
+  // Auto scroll to results section
+  const resultsSection = document.getElementById("results");
+  if (resultsSection) {
+    resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+});
