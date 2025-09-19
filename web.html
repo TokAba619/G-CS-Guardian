@@ -315,8 +315,8 @@
       <h2 class="section-title">Your Scan is Complete!</h2>
       <p class="section-content">This report provides detailed insights into the configuration status of your scanned Google Cloud Storage buckets.</p>
 
-      <!-- Loader shown while scanning -->
-<div id="scan-loader" class="scan-loader" aria-live="polite" aria-busy="true" hidden>
+<!-- Loader (hidden by default) -->
+<div id="loader-wrapper" class="loader-wrapper" aria-live="polite" hidden>
   <div class="loader-wrapper">
     <span class="loader-letter">S</span>
     <span class="loader-letter">C</span>
@@ -332,6 +332,7 @@
     <div class="loader"></div>
   </div>
 </div>
+
 
       <div id="results-summary" class="results-container"></div>
 
@@ -837,7 +838,7 @@ async function runScan(projectId, ethicalMode){
   var resultsTable   = document.getElementById("results-table");
   var resultsFilter  = document.getElementById("results-filter");
   var resultsCount   = document.getElementById("results-count");
-  var scanLoader     = document.getElementById("scan-loader"); // 👈 our loader div
+  var scanLoader     = document.getElementById("loader-wrapper"); // 👈 our loader div
 
   // reset + show loader
   resultsSummary.innerHTML = "";
