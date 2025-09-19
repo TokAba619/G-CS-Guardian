@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Industry Advisors G-CS Guardian</title>
+
+  <!-- Inter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- Styles -->
+  <link rel="stylesheet" href="industryadvisor.css">
+</head>
+<body>
+
+    <header class="advisor-header">
+  <a href="index.html" class="brand">
+    <img src="logo.png" alt="G-CS Guardian logo">
+    <span class="brand-text">G-CS Guardian</span>
+  </a>
+</header>
+
+  <main class="page">
+    <h1 class="title">Our Industry Advisors</h1>
+    <p class="subtitle">Professionals who guided this project with real-world insight.</p>
+
+    <section class="advisor-grid">
+      <!-- Advisor 1 -->
+      <article class="card" aria-label="Advisor Card 1">
+        <div class="card-inner" tabindex="0">
+          <!-- FRONT -->
+          <div class="card-face front" style="--img: url('msadani.jpg')">
+            <span class="badge">Industry Advisor</span>
+            <div class="meta">
+              <h2 class="name">Ms. Adani</h2>
+              <p class="role">Malayan Banking Berhad (Maybank)</p>
+              <div class="chips">
+                <span class="chip">Cloud Engineer</span>
+                <span class="chip">AWS</span>
+                <span class="chip">Microsoft Azure</span>
+                <span class="chip">Senior Cloud PenTest & DevSecOps</span>
+                <span class="chip">Senior CyberSecurity</span>
+              </div>
+            </div>
+          </div>
+          <!-- BACK -->
+          <div class="card-face back">
+            <h3>About</h3>
+            <p>
+              Ms. Adani guided the team in understanding and applying Google Cloud Storage effectively. She provided direction on where to begin, explained how the technology is used in real-world contexts, and consistently reviewed our progress during meetings. Her mentorship also extended to advising us on technical priorities for both the front-end and back-end, as well as recommendations on FYP purchases. Along with Sir Amir, she regularly suggested improvements after each project update to keep us moving forward.
+            </p><br>
+            <h3>Key Contributions</h3>
+            <ul class="list">
+              <li>Guided study approach for Google Cloud Storage</li>
+              <li>Explained real-world use cases and best practices</li>
+              <li>Advised on front-end and back-end priorities</li>            
+              <li>Recommended FYP purchase priorities</li>
+              <li>Suggested continuous improvements after progress updates</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <!-- Advisor 2 -->
+      <article class="card" aria-label="Advisor Card 2">
+        <div class="card-inner" tabindex="0">
+          <div class="card-face front" style="--img: url('mrhaslan.jpg')">
+            <span class="badge">Industry Advisor</span>
+            <div class="meta">
+              <h2 class="name">Mr. Haslan</h2>
+              <p class="role">PETRONAS Digital Sdn. Bhd (PETRONAS Digital)</p>
+              <div class="chips">
+                <span class="chip">Cloud Engineer</span>
+                <span class="chip">Head of Cloud Demand</span>
+                <span class="chip">Google Cloud</span>
+                <span class="chip">Solution Architect for Cloud Infrastructure at PETRONAS</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-face back">
+            <h3>About</h3>
+            <p>
+              Mr. Haslan provided valuable insights after the system reached full functionality. He encouraged the team to go beyond the regular level, suggesting improvements that would enhance the system’s overall impact and ensure it delivers greater value. His guidance helped us look at the project from a broader perspective and focus on long-term usability and effectiveness.
+            </p><br>
+            <h3>Key Contributions</h3>
+            <ul class="list">
+              <li>Encouraged improvements beyond basic functionality</li>
+              <li>Suggested ways to increase project impact</li>
+              <li>Guided enhancement strategies for system performance and value</li>
+              <li>Proposed a live dashboard for real-time scan results and Key Performance Indicators (KPIs)</li>
+              <li>Recommended using AI to generate step-by-step remediation guidance</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <p class="tap-hint">Hover to flip (desktop) Tap once to flip, tap outside to reset (mobile)</p>
+
+    <div class="cta">
+      <a class="btn" href="index.html#aboutus">Back to Homepage</a>
+    </div>
+  </main>
+
+  <script>
+    // Enable tap/click flip for mobile + keyboard accessibility
+    document.querySelectorAll('.card-inner').forEach(el => {
+      // click/tap toggles
+      el.addEventListener('click', () => {
+        el.classList.toggle('is-flipped');
+      });
+      // Enter/Space toggles (keyboard)
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          el.classList.toggle('is-flipped');
+        }
+      });
+    });
+
+    // Click outside to reset flips (mobile UX)
+    document.addEventListener('click', (e) => {
+      document.querySelectorAll('.card-inner.is-flipped').forEach(open => {
+        if (!open.contains(e.target)) open.classList.remove('is-flipped');
+      });
+    }, true);
+  </script>
+</body>
+</html>

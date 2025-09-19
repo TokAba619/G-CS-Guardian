@@ -1,0 +1,209 @@
+:root{
+  --bg:#000000;
+  --card:#000000;
+  --card-2:#000000;
+  --text:#eaeaea;
+  --muted:#a8a8a8;
+  --ring: rgba(255, 255, 255, 0.39);
+  --accent:#E91E63;        /* your pink */
+  --radius:15px;
+  --shadow: 0 10px 35px rgba(0,0,0,.45);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:"Inter", system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.page{
+  max-width:1100px;
+  margin:0 auto;
+  padding:56px 20px 80px;
+}
+
+.title{
+  text-align:center;
+  font-size:clamp(28px, 4.2vw, 44px);
+  font-weight:800;
+  margin:0 0 10px;
+  letter-spacing:.3px;
+}
+.subtitle{
+  text-align:center;
+  color:var(--muted);
+  margin:0 0 38px;
+  font-weight:600;
+}
+
+/* grid */
+.advisor-grid{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(260px,1fr));
+  gap:28px;
+  align-items:stretch;
+}
+@media (max-width:720px){
+  .advisor-grid{ grid-template-columns: 1fr; }
+}
+
+/* flip card */
+.card{
+  perspective:1200px;
+}
+.card-inner{
+  position:relative;
+  width:100%;
+  height:520px;
+  transform-style:preserve-3d;
+  transition: transform 1.2s cubic-bezier(.2,.8,.2,1);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+}
+.card:hover .card-inner{ transform: rotateY(180deg); } /* desktop hover */
+.card-inner.is-flipped{ transform: rotateY(180deg); }   /* mobile tap */
+
+.card-face{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,var(--card),var(--card-2));
+  border-radius:var(--radius);
+  backface-visibility:hidden;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  border:1px solid var(--ring);
+}
+
+.card-face.front{
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.0) 45%, rgba(0,0,0,.55) 100%),
+    var(--img, #222);
+  background-size:cover;
+  background-position:center;
+}
+
+.badge{
+  position:absolute;
+  top:14px; left:14px;
+  background:rgba(0,0,0,.6);
+  color:#fff;
+  border:1px solid rgba(255,255,255,.15);
+  backdrop-filter: blur(4px);
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.3px;
+}
+
+.meta{
+  padding:18px 18px 20px;
+  background:linear-gradient(180deg, rgba(0,0,0,.0), rgba(0,0,0,.55));
+}
+.name{
+  margin:0 0 4px;
+  font-size:20px;
+  font-weight:800;
+  line-height:1.2;
+  text-shadow:0 1px 2px rgba(0,0,0,.4);
+}
+.role{
+  margin:0 0 10px;
+  color:var(--muted);
+  font-weight:600;
+  font-size:14px;
+}
+.chips{ display:flex; flex-wrap:wrap; gap:8px; }
+.chip{
+  font-size:12px; font-weight:700; color:#fff;
+  background:rgba(233,30,99,.18);
+  border:1px solid rgba(233,30,99,.45);
+  padding:6px 10px; border-radius:999px;
+}
+
+.card-face.back{
+  transform: rotateY(180deg);
+  padding:22px;
+  gap:12px;
+}
+.back h3{
+  margin:4px 0 6px;
+  font-size:16px;
+  font-weight:800;
+  margin-top: -10px;
+}
+.back p{
+  margin:0;
+  color:#ffffff;
+  line-height:1.55;
+}
+.back .list{
+  margin:6px 0 0 1rem;
+  padding:0;
+  color:#ffffff;
+  line-height:1.5;
+}
+
+/* hint + CTA */
+.tap-hint{
+  text-align:center;
+  color:var(--muted);
+  font-size:12px;
+  margin-top:14px;
+}
+.cta{ margin-top:28px; text-align:center; }
+.btn{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:10px 18px; border-radius:13px;
+  background:#fff; color:#111; border:2px solid #111;
+  font-weight:800; text-decoration:none;
+  transition:.2s;
+}
+.btn:hover{ background:#111; color:#fff; }
+
+
+/* Logo header for advisors page */
+.advisor-header {
+  position: absolute;
+  top: 20px;
+  left: 30px;
+  z-index: 1000;
+}
+
+.advisor-header .brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.advisor-header img {
+  width: 100px;   /* adjust size */
+  height: auto;
+}
+
+.advisor-header .brand-text {
+  font-family: "Audiowide", sans-serif;  /* or Inter if you prefer */
+  font-size: 30px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: -1px -1px 0 #000,
+                1px -1px 0 #000,
+               -1px  1px 0 #000,
+                1px  1px 0 #000;
+}
+
+.advisor-header .brand-text:hover {
+  color: var(--text); /* matches your theme */
+}
+
+.back p,
+.about-text {
+  text-align: justify;
+  text-justify: inter-word; /* makes spacing between words more natural */
+}
