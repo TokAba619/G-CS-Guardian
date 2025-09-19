@@ -550,17 +550,22 @@ if(hamburgerMenu){
       var isSel = state.selected && state.selected.id === p.id;
       var tr=document.createElement("tr");
       tr.setAttribute("data-id", p.id);
+      tr.setAttribute("data-name", p.name || "");
+      tr.setAttribute("data-access", p.access_level);
+
+tr.addEventListener("click", function(){
+  selectProject({
+    id: p.id,
+    name: p.name,
+    access: p.access_level
+  });
+});
+
 
       tr.innerHTML =
         "<td>"+escapeHtml(p.name||"—")+"</td>"+
         "<td><code>"+escapeHtml(p.id)+"</code></td>"+
-        "<td>"+p.access_level+"</td>"+
-        "<td style='text-align:right'>" +
-          "<button type='button' class='select-btn "+(isSel?"selected":"")+"' aria-pressed='"+(isSel?"true":"false")+"' " +
-          "data-id='"+p.id+"' data-name='"+escapeHtml(p.name||"")+"' data-access='"+p.access_level+"'>" +
-          (isSel ? "Selected" : "Select") +
-          "</button>" +
-        "</td>";
+        "<td>"+p.access_level+"</td>";
 
       if(isSel) tr.classList.add("is-selected");
       els.tbody.appendChild(tr);
