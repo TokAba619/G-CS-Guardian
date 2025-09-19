@@ -930,105 +930,230 @@ document.addEventListener("DOMContentLoaded",function(){
 });
 
 /* =========================
-   MY-SCAN (list, detail, pdf)
+   MY-SCAN (list, detail, pdf/csv/json)
 ========================= */
-var API_PREVIOUS_SCANS=API_BASE+"/my-scans/";
-var API_SCAN_DETAILS=API_BASE+"/my-scans/{scan_id}";
-var API_REPORT_PDF=API_BASE+"/reports/{scan_id}/report.pdf";
+var API_PREVIOUS_SCANS = API_BASE + "/my-scans/";
+var API_SCAN_DETAILS   = API_BASE + "/my-scans/{scan_id}";
+var API_REPORT_PDF     = API_BASE + "/reports/{scan_id}/report.pdf";
 
-function getFilenameFromDisposition(header,fallback){
-  if(!header)return fallback+".pdf";
-  var m=/filename\*=UTF-8''([^;]+)|filename=\"?([^\";]+)\"?/i.exec(header);
-  var name=decodeURIComponent((m&&(m[1]||m[2]))||"");
-  return name||fallback+".pdf";
+/* ---------- helpers ---------- */
+function getFilenameFromDisposition(header, fallback){
+  if(!header) return fallback + ".pdf";
+  var m = /filename\*=UTF-8''([^;]+)|filename=\"?([^\";]+)\"?/i.exec(header);
+  var name = decodeURIComponent((m && (m[1] || m[2])) || "");
+  return name || fallback + ".pdf";
 }
-async function downloadReport(scanId,btnEl){
-  var token=getToken();if(!token){alert("You are not logged in.");return;}
+function csvEscape(v){
+  if(v == null) return "";
+  var s = String(v);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+function bucketsToCsv(buckets){
+  var header = ["bucket_name","public","risk_score","risk_level","risk_reason","sensitive_keywords","sample_files"];
+  var rows = (buckets || []).map(function(b){
+    var level = riskLevelFromScore(b.risk_score);
+    var keywords = Array.isArray(b.sensitive_keywords_detected)
+      ? b.sensitive_keywords_detected.join("; ")
+      : (b.sensitive_keywords_detected || "");
+    var samples = Array.isArray(b.sample_files) ? b.sample_files.join("; ") : "";
+    return [
+      b.bucket_name || "",
+      b.public ? "public" : "private",
+      b.risk_score ?? "",
+      level,
+      (b.risk_reason || "").replace(/\s+/g, " ").trim(),
+      keywords,
+      samples
+    ].map(csvEscape).join(",");
+  });
+  return header.join(",") + "\n" + rows.join("\n");
+}
+
+/* ---------- download handlers ---------- */
+// PDF
+async function downloadPdf(scanId, btnEl){
+  var token = getToken(); if(!token){ alert("You are not logged in."); return; }
   try{
-    if(btnEl){btnEl.disabled=true;btnEl.textContent="Downloading...";}
-    var url=API_REPORT_PDF.replace("{scan_id}",encodeURIComponent(scanId));
-    var res=await fetch(url,{method:"GET",headers:{"Authorization":"Bearer "+token,"Accept":"application/pdf"}});
-    if(!res.ok)throw new Error("Failed to download ("+res.status+")");
-    var blob=await res.blob();var cd=res.headers.get("Content-Disposition");
-    var filename=getFilenameFromDisposition(cd,scanId);
-    var link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download=filename;document.body.appendChild(link);link.click();URL.revokeObjectURL(link.href);link.remove();
-  }catch(e){alert(e.message||"Download failed");}
-  finally{if(btnEl){btnEl.disabled=false;btnEl.textContent="Download";}}
+    if(btnEl){ btnEl.disabled = true; btnEl.textContent = "Downloading…"; }
+    var url = API_REPORT_PDF.replace("{scan_id}", encodeURIComponent(scanId));
+    var res = await fetch(url, {
+      method: "GET",
+      headers: { "Authorization":"Bearer "+token, "Accept":"application/pdf" }
+    });
+    if(!res.ok) throw new Error("Failed to download ("+res.status+")");
+
+    var blob = await res.blob();
+    var cd = res.headers.get("Content-Disposition");
+    var filename = getFilenameFromDisposition(cd, scanId);
+
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a); a.click();
+    URL.revokeObjectURL(a.href); a.remove();
+  }catch(e){ alert(e.message || "Download failed"); }
+  finally{ if(btnEl){ btnEl.disabled = false; btnEl.textContent = "PDF"; } }
 }
+
+// JSON
+async function downloadJson(scanId, btnEl){
+  var token = getToken(); if(!token){ alert("You are not logged in."); return; }
+  try{
+    if(btnEl){ btnEl.disabled = true; btnEl.textContent = "Preparing…"; }
+    var url = API_SCAN_DETAILS.replace("{scan_id}", encodeURIComponent(scanId));
+    var res = await fetch(url, { headers:{ "Authorization":"Bearer "+token }});
+    if(!res.ok) throw new Error("Fetch failed ("+res.status+")");
+
+    var data = await res.json();
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type:"application/json" });
+
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = scanId + ".json";
+    document.body.appendChild(a); a.click();
+    URL.revokeObjectURL(a.href); a.remove();
+  }catch(e){ alert(e.message || "Download failed"); }
+  finally{ if(btnEl){ btnEl.disabled = false; btnEl.textContent = "JSON"; } }
+}
+
+// CSV
+async function downloadCsv(scanId, btnEl){
+  var token = getToken(); if(!token){ alert("You are not logged in."); return; }
+  try{
+    if(btnEl){ btnEl.disabled = true; btnEl.textContent = "Preparing…"; }
+    var url = API_SCAN_DETAILS.replace("{scan_id}", encodeURIComponent(scanId));
+    var res = await fetch(url, { headers:{ "Authorization":"Bearer "+token }});
+    if(!res.ok) throw new Error("Fetch failed ("+res.status+")");
+
+    var data = await res.json();
+    var csv = bucketsToCsv(Array.isArray(data && data.buckets) ? data.buckets : []);
+    var blob = new Blob([csv], { type:"text/csv;charset=utf-8" });
+
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = scanId + ".csv";
+    document.body.appendChild(a); a.click();
+    URL.revokeObjectURL(a.href); a.remove();
+  }catch(e){ alert(e.message || "Download failed"); }
+  finally{ if(btnEl){ btnEl.disabled = false; btnEl.textContent = "CSV"; } }
+}
+
+/* ---------- list previous scans ---------- */
 async function loadPreviousScans(){
-  var tableBody=document.getElementById("previous-scan-table");
-  tableBody.innerHTML="<tr><td colspan='4'>Loading...</td></tr>";
-  var token=getToken();if(!token){tableBody.innerHTML="<tr><td colspan='4'>Please log in to view scans</td></tr>";return;}
+  var tableBody = document.getElementById("previous-scan-table");
+  tableBody.innerHTML = "<tr><td colspan='4'>Loading...</td></tr>";
+  var token = getToken();
+  if(!token){
+    tableBody.innerHTML = "<tr><td colspan='4'>Please log in to view scans</td></tr>";
+    return;
+  }
   try{
-    var res=await fetch(API_PREVIOUS_SCANS,{headers:{"Authorization":"Bearer "+token}});
-    if(!res.ok)throw new Error("Failed to fetch scans ("+res.status+")");
-    var data=await res.json();
-    var scans=Array.isArray(data&&data.my_scans)?data.my_scans:[];
-    if(scans.length===0){tableBody.innerHTML="<tr><td colspan='4'>No scans found</td></tr>";return;}
-    tableBody.innerHTML="";
+    var res = await fetch(API_PREVIOUS_SCANS, { headers:{ "Authorization":"Bearer "+token }});
+    if(!res.ok) throw new Error("Failed to fetch scans ("+res.status+")");
+    var data = await res.json();
+    var scans = Array.isArray(data && data.my_scans) ? data.my_scans : [];
+    if(scans.length === 0){
+      tableBody.innerHTML = "<tr><td colspan='4'>No scans found</td></tr>";
+      return;
+    }
+
+    tableBody.innerHTML = "";
     scans.forEach(function(scan){
-      var row=document.createElement("tr");
-      row.innerHTML="<td>"+formatDate(scan.timestamp)+"</td>"+
-        "<td class='scan-id'>"+(scan.scan_id||"N/A")+"</td>"+
-        "<td>"+(scan.project_id||"N/A")+"</td>"+
-        "<td><button class='btn-report' data-scan='"+scan.scan_id+"'>Download</button></td>";
-      row.querySelector(".scan-id").addEventListener("click",function(){
-        document.getElementById("scanIdInput").value=scan.scan_id;fetchDetailedScan();
+      var row = document.createElement("tr");
+      row.innerHTML =
+        "<td>"+formatDate(scan.timestamp)+"</td>" +
+        "<td class='scan-id'>"+(scan.scan_id || "N/A")+"</td>" +
+        "<td>"+(scan.project_id || "N/A")+"</td>" +
+        "<td>" +
+          "<div class='download-actions'>" +
+            "<button class='btn-chip btn-pdf'  data-scan='"+scan.scan_id+"'>PDF</button>" +
+            "<button class='btn-chip btn-csv'  data-scan='"+scan.scan_id+"'>CSV</button>" +
+            "<button class='btn-chip btn-json' data-scan='"+scan.scan_id+"'>JSON</button>" +
+          "</div>" +
+        "</td>";
+
+      // click ID to show details
+      row.querySelector(".scan-id").addEventListener("click", function(){
+        document.getElementById("scanIdInput").value = scan.scan_id;
+        fetchDetailedScan();
       });
-      var btn=row.querySelector(".btn-report");
-      btn.addEventListener("click",function(){downloadReport(scan.scan_id,btn);});
+
+      // attach download handlers
+      row.querySelector(".btn-pdf").addEventListener("click",  function(){ downloadPdf(scan.scan_id,  this); });
+      row.querySelector(".btn-csv").addEventListener("click",  function(){ downloadCsv(scan.scan_id,  this); });
+      row.querySelector(".btn-json").addEventListener("click", function(){ downloadJson(scan.scan_id, this); });
+
       tableBody.appendChild(row);
     });
   }catch(error){
     console.error(error);
-    tableBody.innerHTML="<tr><td colspan='4'>Error: "+error.message+"</td></tr>";
+    tableBody.innerHTML = "<tr><td colspan='4'>Error: "+error.message+"</td></tr>";
   }
 }
+
+/* ---------- scan details (unchanged) ---------- */
 async function fetchDetailedScan(){
-  var scanId=(document.getElementById("scanIdInput").value||"").trim();
-  var resultsContainer=document.getElementById("detailed-scan-results");
-  var tableEl=document.getElementById("detailed-table");
-  var toolsEl=document.getElementById("detailed-tools");
-  var filterEl=document.getElementById("detailed-filter");
-  var countEl=document.getElementById("detailed-count");
+  var scanId = (document.getElementById("scanIdInput").value || "").trim();
+  var resultsContainer = document.getElementById("detailed-scan-results");
+  var tableEl = document.getElementById("detailed-table");
+  var toolsEl = document.getElementById("detailed-tools");
+  var filterEl = document.getElementById("detailed-filter");
+  var countEl = document.getElementById("detailed-count");
 
-  resultsContainer.innerHTML="<p>Loading...</p>";
-  toolsEl.style.display="none";tableEl.style.display="none";
-  if(!scanId){resultsContainer.innerHTML="<p>Please enter a Scan ID.</p>";return;}
+  resultsContainer.innerHTML = "<p>Loading...</p>";
+  toolsEl.style.display = "none"; tableEl.style.display = "none";
+  if(!scanId){ resultsContainer.innerHTML = "<p>Please enter a Scan ID.</p>"; return; }
 
-  var token=getToken();
+  var token = getToken();
   try{
-    var url=API_SCAN_DETAILS.replace("{scan_id}",encodeURIComponent(scanId));
-    var res=await fetch(url,{headers:{"Authorization":"Bearer "+token}});
+    var url = API_SCAN_DETAILS.replace("{scan_id}", encodeURIComponent(scanId));
+    var res = await fetch(url, { headers:{ "Authorization":"Bearer "+token }});
     if(!res.ok){
-      var msg="Scan not found ("+res.status+")";
-      try{var err=await res.json();if(err&&err.detail)msg=(Array.isArray(err.detail)?err.detail.map(function(d){return d.msg;}).join(", "):err.detail);}catch(_){}
+      var msg = "Scan not found ("+res.status+")";
+      try{
+        var err = await res.json();
+        if(err && err.detail){
+          msg = Array.isArray(err.detail) ? err.detail.map(function(d){ return d.msg; }).join(", ") : err.detail;
+        }
+      }catch(_){}
       throw new Error(msg);
     }
-    var data=await res.json();
-    var buckets=Array.isArray(data&&data.buckets)?data.buckets:[];
-    var ethicalMode=Boolean(data&&data.ethical_mode);
+    var data = await res.json();
+    var buckets = Array.isArray(data && data.buckets) ? data.buckets : [];
+    var ethicalMode = Boolean(data && data.ethical_mode);
 
-    resultsContainer.innerHTML="<div class='result-card'>"+
-      "<h4>Scan "+data.scan_id+"</h4>"+
-      "<p><strong>Project:</strong> "+(data.project_id||"N/A")+"</p>"+
-      "<p><strong>Time:</strong> "+formatDate(data.timestamp)+"</p>"+
-      "<p><strong>Role:</strong> "+(data.project_role||"N/A")+" | <strong>Ethical Mode:</strong> "+(ethicalMode?"On":"Off")+"</p>"+
-      "<p><strong>Bucket Count:</strong> "+buckets.length+"</p>"+
+    resultsContainer.innerHTML =
+      "<div class='result-card'>" +
+        "<h4>Scan "+data.scan_id+"</h4>" +
+        "<p><strong>Project:</strong> "+(data.project_id||"N/A")+"</p>" +
+        "<p><strong>Time:</strong> "+formatDate(data.timestamp)+"</p>" +
+        "<p><strong>Role:</strong> "+(data.project_role||"N/A")+" | <strong>Ethical Mode:</strong> "+(ethicalMode?"On":"Off")+"</p>" +
+        "<p><strong>Bucket Count:</strong> "+buckets.length+"</p>" +
       "</div>";
 
-    if(buckets.length===0){resultsContainer.insertAdjacentHTML("beforeend","<p>No bucket results stored for this scan.</p>");return;}
+    if(buckets.length === 0){
+      resultsContainer.insertAdjacentHTML("beforeend", "<p>No bucket results stored for this scan.</p>");
+      return;
+    }
 
     renderResultsTable({
-      buckets:buckets,ethicalMode:ethicalMode,tableEl:tableEl,toolsEl:toolsEl,countEl:countEl,filterInput:filterEl,
-      defaultSortKey:"risk_score",defaultSortDir:"desc"
+      buckets: buckets,
+      ethicalMode: ethicalMode,
+      tableEl: tableEl,
+      toolsEl: toolsEl,
+      countEl: countEl,
+      filterInput: filterEl,
+      defaultSortKey: "risk_score",
+      defaultSortDir: "desc"
     });
   }catch(error){
     console.error(error);
-    resultsContainer.innerHTML="<p style='color:red;'>Error: "+error.message+"</p>";
+    resultsContainer.innerHTML = "<p style='color:red;'>Error: "+error.message+"</p>";
   }
 }
-document.addEventListener("DOMContentLoaded",loadPreviousScans);
+
+document.addEventListener("DOMContentLoaded", loadPreviousScans);
+
 
 /* =========================
    HISTORY (owner/creator) — GUARDED INIT
