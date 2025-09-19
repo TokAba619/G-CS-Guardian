@@ -163,7 +163,7 @@
               <span>Protect your Google Cloud Storage with G-CS Guardian.<br>Stay secure, stay compliant.</span></p>
 
       <button onclick="window.location.href='article.html'">
-      Learn More
+      What is<br>Cloud Misconfigurations?
       </button>
 <br>
       <button onclick="window.location.href='signup.html'">
@@ -278,6 +278,8 @@
                 <img src="paper5.png" alt="Our Tools" />
               </div>
               <div class="slide-content">
+                <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+                <h6>This project has been developed as part of a Final Year Project by students and is intended strictly for academic and educational purposes.</h6>
               </div>
             </div>
           </div>
@@ -335,7 +337,7 @@
               >Read More
               <i data-feather="arrow-right" size="12px" class="icon"></i
             ></a>
-            <h1>RedHunt Labs Finds 23,000 Misconfigured Buckets, Including Google Cloud</h1>
+            <h1>RedHunt Labs Finds 23,000 Misconfigured Buckets</h1>
           </div>
 
           <div class="items blackhole" data-aos="fade-up-right" data-aos-delay="200">
@@ -343,7 +345,7 @@
               >Read More
               <i data-feather="arrow-right" size="12px" class="icon"></i
             ></a>
-            <h1>Misconfigured Google Cloud Bucket Exposes 83,000 Customers of Shark Tank Contestant</h1>
+            <h1>Misconfigured Cloud Bucket Exposes 83,000 Customers of Shark Tank Contestant</h1>
           </div>
 
           <div class="items titan" data-aos="fade-left" data-aos-delay="200">
@@ -375,7 +377,7 @@
         <div class="team-card">
           <div class="card-inner">
             <div class="card-front" style="background-image:url('siramir.jpg');background-size:cover;">
-              <div class="overlay"><h3>Supervisor</h3><p>Sir Amir Hakeem Bin Sahrir</p></div>
+              <div class="overlay"><h3>Project Supervisor</h3><br><p>Sir Amir Hakeem Bin Sahrir</p></div>
             </div>
             <div class="card-back"><p>"Be Humble, Stay Underground"</p></div>
           </div>
@@ -384,7 +386,7 @@
         <div class="team-card">
           <div class="card-inner">
             <div class="card-front" style="background-image:url('aqil.jpg');background-size:cover;">
-              <div class="overlay"><h3>Group Leader</h3><p>Muhammad Aqil Darwisy Bin Nor Azli</p></div>
+              <div class="overlay"><h3>Front-End Developer</h3><br><p>Muhd Aqil Darwisy Bin Nor Azli</p></div>
             </div>
             <div class="card-back"><p>"Failure Is Just a Temporary Syntax Error"</p></div>
           </div>
@@ -393,7 +395,7 @@
         <div class="team-card">
           <div class="card-inner">
             <div class="card-front" style="background-image:url('ilhan.jpg');background-size:cover;">
-              <div class="overlay"><h3>Group Member</h3><p>Ilhan Munsieff Bin Abdullah</p></div>
+              <div class="overlay"><h3>Back-End Developer</h3><br><p>Ilhan Munsieff Bin Abdullah</p></div>
             </div>
             <div class="card-back"><p>"The best defense against cyber threats is a well educated mind"</p></div>
           </div>
@@ -402,13 +404,19 @@
         <div class="team-card">
           <div class="card-inner">
             <div class="card-front" style="background-image:url('jibil.jpg');background-size:cover;">
-              <div class="overlay"><h3>Group Member</h3><p>Jibril Ruhul Amin Bin Mohd Nor Ariffin</p></div>
+              <div class="overlay"><h3>Quality Engineer</h3><br><p>Jibril Ruhul Amin Bin M.Nor Ariffin</p></div>
             </div>
             <div class="card-back"><p>"In a world full of threats, be the shield"</p></div>
           </div>
         </div>
       </div>
     </div>
+    <p class="tap-hint">Hover to flip (desktop) Tap once to flip, tap outside to reset (mobile)</p>
+
+    <div class="cta">
+      <a class="btn" href="industryadvisor.html">Meet Our Industry Advisors</a>
+    </div>
+
   </section>
 
    <!-- ===== CONTACT ===== -->
@@ -485,6 +493,29 @@ const io = new IntersectionObserver((entries) => {
 }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
 
 pairs.forEach(p => io.observe(p.el));
+
+ // Enable tap/click flip for mobile + keyboard accessibility
+    document.querySelectorAll('.card-inner').forEach(el => {
+      // click/tap toggles
+      el.addEventListener('click', () => {
+        el.classList.toggle('is-flipped');
+      });
+      // Enter/Space toggles (keyboard)
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          el.classList.toggle('is-flipped');
+        }
+      });
+    });
+
+    // Click outside to reset flips (mobile UX)
+    document.addEventListener('click', (e) => {
+      document.querySelectorAll('.card-inner.is-flipped').forEach(open => {
+        if (!open.contains(e.target)) open.classList.remove('is-flipped');
+      });
+    }, true);
+
 </script>
   </body>
 </html>
