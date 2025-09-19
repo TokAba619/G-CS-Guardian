@@ -48,7 +48,7 @@
     .risk-high { background:#7a0c0c; color:#000000 !important; font-weight:700; }
     .risk-critical { background:#ff0000; color:#000000 !important; font-weight:700; }
 
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .mono {font-family: "Inter", sans-serif !important; }
     .nowrap { white-space: nowrap; }
 
     .sample-col { width: 320px; }
@@ -314,6 +314,24 @@
     <div class="container">
       <h2 class="section-title">Your Scan is Complete!</h2>
       <p class="section-content">This report provides detailed insights into the configuration status of your scanned Google Cloud Storage buckets.</p>
+
+      <!-- Loader shown while scanning -->
+<div id="scan-loader" class="scan-loader" aria-live="polite" aria-busy="true" hidden>
+  <div class="loader-wrapper">
+    <span class="loader-letter">S</span>
+    <span class="loader-letter">C</span>
+    <span class="loader-letter">A</span>
+    <span class="loader-letter">N</span>
+    <span class="loader-letter">N</span>
+    <span class="loader-letter">I</span>
+    <span class="loader-letter">N</span>
+    <span class="loader-letter">G</span>
+
+    <div class="loader-bg-1"></div>
+    <div class="loader-bg-2"></div>
+    <div class="loader"></div>
+  </div>
+</div>
 
       <div id="results-summary" class="results-container"></div>
 
@@ -809,53 +827,76 @@ function prettyKeyword(s) {
    SCAN FLOW
 ========================= */
 async function runScan(projectId, ethicalMode){
-  var token=getToken();
+  var token = getToken();
   if(!token){ window.location.href="signup.html"; return; }
 
-  var resultsSummary=document.getElementById("results-summary");
-  var resultsTools=document.getElementById("results-tools");
-  var resultsTable=document.getElementById("results-table");
-  var resultsFilter=document.getElementById("results-filter");
-  var resultsCount=document.getElementById("results-count");
+  // grab DOM elements
+  var resultsSection = document.getElementById("results");
+  var resultsSummary = document.getElementById("results-summary");
+  var resultsTools   = document.getElementById("results-tools");
+  var resultsTable   = document.getElementById("results-table");
+  var resultsFilter  = document.getElementById("results-filter");
+  var resultsCount   = document.getElementById("results-count");
+  var scanLoader     = document.getElementById("scan-loader"); // 👈 our loader div
 
-  resultsSummary.innerHTML="<p>🔍 Scanning in progress...</p>";
-  resultsTools.style.display="none";resultsTable.style.display="none";
+  // reset + show loader
+  resultsSummary.innerHTML = "";
+  resultsTools.style.display = "none";
+  resultsTable.style.display = "none";
+  scanLoader.classList.add("show");  // 👈 loader on
+  resultsSection.scrollIntoView({ behavior: "smooth" });
 
-  var apiUrl=API_BASE+"/scan?project_id="+encodeURIComponent(projectId)+"&ethical_mode="+(ethicalMode?"true":"false");
-  var response=await fetch(apiUrl,{
-    method:"GET",
-    headers:{
-      "Authorization":"Bearer "+token,
-      "Accept":"application/json"
-    }
-  });
-
-  if(!response.ok){
-    var detail="";
-    try{
-      var err=await response.json();
-      if(err && err.detail){
-        detail = typeof err.detail==="string" ? " ("+err.detail+")" : " ("+JSON.stringify(err.detail)+")";
+  try {
+    // call API
+    var apiUrl = API_BASE+"/scan?project_id="+encodeURIComponent(projectId)+"&ethical_mode="+(ethicalMode?"true":"false");
+    var response = await fetch(apiUrl, {
+      method:"GET",
+      headers:{
+        "Authorization":"Bearer "+token,
+        "Accept":"application/json"
       }
-    }catch(_){}
-    throw new Error("Scan failed: "+response.status+detail);
+    });
+
+    if(!response.ok){
+      var detail="";
+      try{
+        var err=await response.json();
+        if(err && err.detail){
+          detail = typeof err.detail==="string" ? " ("+err.detail+")" : " ("+JSON.stringify(err.detail)+")";
+        }
+      }catch(_){}
+      throw new Error("Scan failed: "+response.status+detail);
+    }
+
+    var apiData = await response.json();
+
+    // hide loader
+    scanLoader.classList.remove("show");
+
+    // show summary
+    resultsSummary.innerHTML =
+      "<div class='result-card'><h3>Scan Summary</h3>"+
+      "<p><strong>Scan ID:</strong> "+apiData.scan_id+"</p>"+
+      "<p><strong>Detected Role:</strong> "+(apiData.project_role||"N/A")+"</p>"+
+      "<p><strong>Bucket Count:</strong> "+(Array.isArray(apiData.buckets)?apiData.buckets.length:0)+"</p></div>";
+
+    // render table
+    renderResultsTable({
+      buckets:Array.isArray(apiData.buckets)?apiData.buckets:[],
+      ethicalMode:ethicalMode,
+      tableEl:resultsTable,
+      toolsEl:resultsTools,
+      countEl:resultsCount,
+      filterInput:resultsFilter
+    });
+
+  } catch(e){
+    // hide loader on error
+    scanLoader.classList.remove("show");
+    resultsSummary.innerHTML = "<p style='color:red;'>Error: "+(e.message||e)+"</p>";
   }
-  var apiData=await response.json();
-
-  resultsSummary.innerHTML="<div class='result-card'><h3>Scan Summary</h3>"+
-    "<p><strong>Scan ID:</strong> "+apiData.scan_id+"</p>"+
-    "<p><strong>Detected Role:</strong> "+(apiData.project_role||"N/A")+"</p>"+
-    "<p><strong>Bucket Count:</strong> "+(Array.isArray(apiData.buckets)?apiData.buckets.length:0)+"</p></div>";
-
-  renderResultsTable({
-    buckets:Array.isArray(apiData.buckets)?apiData.buckets:[],
-    ethicalMode:ethicalMode,
-    tableEl:resultsTable,
-    toolsEl:resultsTools,
-    countEl:resultsCount,
-    filterInput:resultsFilter
-  });
 }
+
 
 /* Scan button: prefer selected project from picker, else typed input */
 document.addEventListener("DOMContentLoaded",function(){
