@@ -1135,3 +1135,10 @@ td.download-col {
 .btn-chip:hover { background: #000; color: #fff; }
 .btn-chip:active { transform: translateY(1px); }
 .btn-chip[disabled] { opacity: .6; cursor: not-allowed; }
+
+/* Make Download Report header + cells left aligned */
+.scan-table th.download-col,
+.scan-table td.download-col {
+  text-align: left;
+  padding-left: 1rem; /* optional: gives breathing space */
+}
