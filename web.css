@@ -795,6 +795,36 @@ section{ scroll-margin-top: 80px; } /* adjust to your header height */
   cursor: pointer;
 }
 
+.project-table tr {
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.project-table tr:hover {
+  background: rgba(233,30,99,0.3); /* pink hover */
+}
+.project-table tr.is-selected {
+  background: #ff4381 !important;
+  color: #fff;
+}
+.project-table tr.is-selected td code {
+  color: #fff;
+}
+
+
 .cta-pink {
-  border-radius: 15px !important;
+  height: 52px;
+  padding: 0 22px;
+  border-radius: 15px !important;  /* your rounded style */
+  border: 2px solid #fff;
+  background: #fff;      /* white background */
+  color: #000;           /* black text */
+  font-weight: 800;
+  cursor: pointer;
+  transition: all .3s ease;
+}
+
+.cta-pink:hover {
+  background: #000;  /* black bg */
+  color: #fff;       /* white text */
+  border-color: #000;
 }
