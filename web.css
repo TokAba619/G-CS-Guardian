@@ -803,7 +803,7 @@ section{ scroll-margin-top: 80px; } /* adjust to your header height */
   background: rgba(233,30,99,0.3); /* pink hover */
 }
 .project-table tr.is-selected {
-  background: #ff4381 !important;
+  background: #ff0055 !important;
   color: #fff;
 }
 .project-table tr.is-selected td code {
@@ -821,10 +821,27 @@ section{ scroll-margin-top: 80px; } /* adjust to your header height */
   cursor: pointer;
   border: none;
   transition: background 0.3s, color 0.3s;
+  font-family: "Inter", sans-serif !important;
 }
 
 .cta-pink:hover {
-  background: #000 !important;
-  color: #fff !important;
+  background: #ff0055 !important;
+  color: #000000 !important;
   border-color: #000;
+}
+
+
+/* Center the loader block inside the Results section */
+.scan-loader{
+  display: none;                /* hidden by default */
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;            /* space while waiting */
+}
+.scan-loader.show{ display: flex; }
+
+/* Optional: dim the area slightly while loading */
+.results.loading{
+  opacity: .85;
+  transition: opacity .2s ease;
 }
