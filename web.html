@@ -289,7 +289,6 @@
                     <th style="width:38%">Name</th>
                     <th style="width:38%;">ID</th>
                     <th style="width:14%">Access level</th>
-                    <th style="width:10%">Select</th>
                   </tr>
                 </thead>
                 <tbody></tbody>
@@ -555,7 +554,7 @@ if(hamburgerMenu){
       tr.innerHTML =
         "<td>"+escapeHtml(p.name||"—")+"</td>"+
         "<td><code>"+escapeHtml(p.id)+"</code></td>"+
-        "<td><span class='badge "+p.access_level+"'>"+p.access_level+"</span></td>"+
+        "<td>"+p.access_level+"</td>"+
         "<td style='text-align:right'>" +
           "<button type='button' class='select-btn "+(isSel?"selected":"")+"' aria-pressed='"+(isSel?"true":"false")+"' " +
           "data-id='"+p.id+"' data-name='"+escapeHtml(p.name||"")+"' data-access='"+p.access_level+"'>" +
