@@ -316,7 +316,7 @@
       <p class="section-content">This report provides detailed insights into the configuration status of your scanned Google Cloud Storage buckets.</p>
 
 <!-- Loader (hidden by default) -->
-<div id="loader-wrapper" class="loader-wrapper" aria-live="polite" hidden>
+<div id="scan-loader" class="scan-loader" aria-live="polite">
   <div class="loader-wrapper">
     <span class="loader-letter">S</span>
     <span class="loader-letter">C</span>
@@ -828,75 +828,72 @@ function prettyKeyword(s) {
    SCAN FLOW
 ========================= */
 async function runScan(projectId, ethicalMode){
-  var token = getToken();
+  const token = getToken();
   if(!token){ window.location.href="signup.html"; return; }
 
-  // grab DOM elements
-  var resultsSection = document.getElementById("results");
-  var resultsSummary = document.getElementById("results-summary");
-  var resultsTools   = document.getElementById("results-tools");
-  var resultsTable   = document.getElementById("results-table");
-  var resultsFilter  = document.getElementById("results-filter");
-  var resultsCount   = document.getElementById("results-count");
-  var scanLoader     = document.getElementById("loader-wrapper"); // 👈 our loader div
+  const resultsSection = document.getElementById("results");
+  const resultsSummary = document.getElementById("results-summary");
+  const resultsTools   = document.getElementById("results-tools");
+  const resultsTable   = document.getElementById("results-table");
+  const resultsFilter  = document.getElementById("results-filter");
+  const resultsCount   = document.getElementById("results-count");
+  const scanLoader     = document.getElementById("scan-loader");  // <-- new
 
-  // reset + show loader
+  // SHOW loader, hide content
   resultsSummary.innerHTML = "";
   resultsTools.style.display = "none";
   resultsTable.style.display = "none";
-  scanLoader.classList.add("show");  // 👈 loader on
+  scanLoader.classList.add("show");              // <-- show
+  // scanLoader.classList.add("fullscreen");     // (optional) taller while waiting
   resultsSection.scrollIntoView({ behavior: "smooth" });
 
   try {
-    // call API
-    var apiUrl = API_BASE+"/scan?project_id="+encodeURIComponent(projectId)+"&ethical_mode="+(ethicalMode?"true":"false");
-    var response = await fetch(apiUrl, {
-      method:"GET",
-      headers:{
-        "Authorization":"Bearer "+token,
-        "Accept":"application/json"
-      }
+    const apiUrl = `${API_BASE}/scan?project_id=${encodeURIComponent(projectId)}&ethical_mode=${ethicalMode?"true":"false"}`;
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: { "Authorization":"Bearer "+token, "Accept":"application/json" }
     });
 
     if(!response.ok){
-      var detail="";
+      let detail = "";
       try{
-        var err=await response.json();
+        const err = await response.json();
         if(err && err.detail){
-          detail = typeof err.detail==="string" ? " ("+err.detail+")" : " ("+JSON.stringify(err.detail)+")";
+          detail = typeof err.detail === "string" ? ` (${err.detail})` : ` (${JSON.stringify(err.detail)})`;
         }
       }catch(_){}
-      throw new Error("Scan failed: "+response.status+detail);
+      throw new Error("Scan failed: " + response.status + detail);
     }
 
-    var apiData = await response.json();
+    const apiData = await response.json();
 
-    // hide loader
+    // HIDE loader
     scanLoader.classList.remove("show");
+    // scanLoader.classList.remove("fullscreen");
 
-    // show summary
+    // SHOW results
     resultsSummary.innerHTML =
-      "<div class='result-card'><h3>Scan Summary</h3>"+
-      "<p><strong>Scan ID:</strong> "+apiData.scan_id+"</p>"+
-      "<p><strong>Detected Role:</strong> "+(apiData.project_role||"N/A")+"</p>"+
-      "<p><strong>Bucket Count:</strong> "+(Array.isArray(apiData.buckets)?apiData.buckets.length:0)+"</p></div>";
+      `<div class='result-card'><h3>Scan Summary</h3>
+        <p><strong>Scan ID:</strong> ${apiData.scan_id}</p>
+        <p><strong>Detected Role:</strong> ${apiData.project_role||"N/A"}</p>
+        <p><strong>Bucket Count:</strong> ${(Array.isArray(apiData.buckets)?apiData.buckets.length:0)}</p>
+      </div>`;
 
-    // render table
     renderResultsTable({
-      buckets:Array.isArray(apiData.buckets)?apiData.buckets:[],
-      ethicalMode:ethicalMode,
-      tableEl:resultsTable,
-      toolsEl:resultsTools,
-      countEl:resultsCount,
-      filterInput:resultsFilter
+      buckets: Array.isArray(apiData.buckets) ? apiData.buckets : [],
+      ethicalMode,
+      tableEl: resultsTable,
+      toolsEl: resultsTools,
+      countEl: resultsCount,
+      filterInput: resultsFilter
     });
-
   } catch(e){
-    // hide loader on error
+    // HIDE loader, show error
     scanLoader.classList.remove("show");
-    resultsSummary.innerHTML = "<p style='color:red;'>Error: "+(e.message||e)+"</p>";
+    resultsSummary.innerHTML = `<p style="color:red;">Error: ${e.message||e}</p>`;
   }
 }
+
 
 
 /* Scan button: prefer selected project from picker, else typed input */
