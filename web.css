@@ -782,3 +782,19 @@ section { scroll-margin-top: 80px; }
 
 /* if you use a fixed navbar, keep anchors from hiding under it */
 section{ scroll-margin-top: 80px; } /* adjust to your header height */
+
+
+.project-table tr.is-selected {
+  background: #E91E63 !important;  /* pink highlight */
+  color: #fff;
+}
+.project-table tr.is-selected td code {
+  color: #fff;
+}
+.project-table tr {
+  cursor: pointer;
+}
+
+.cta-pink {
+  border-radius: 15px !important;
+}
