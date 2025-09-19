@@ -840,75 +840,135 @@ section{ scroll-margin-top: 80px; } /* adjust to your header height */
 }
 .scan-loader.show{ display:flex; }
 
-/* ===== the circular neon ring ===== */
+/* ========= THEME ========= */
+:root{
+  /* uses your site's accent automatically; change here if you prefer teal */
+  --accent: var(--accent, #ff0055);
+  --accent-rgb: 233, 30, 99;        /* fallback for shadows if CSS var missing */
+}
+
+/* ========= OVERLAY HOLDER (you already have #scan-loader in HTML) ========= */
+#scan-loader{
+  display:none;                /* .show will reveal it from JS */
+  min-height: 260px;           /* keeps area stable while loading */
+  place-items:center;
+}
+#scan-loader.show{ display:grid; }
+
+/* ========= LOADER CORE ========= */
 .loader-wrapper{
-  position:relative;
-  width:220px;                 /* size of the circle */
-  aspect-ratio:1 / 1;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 220px;
+  aspect-ratio: 1 / 1;
+  font-family: "Inter", "Jura", system-ui, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  border-radius: 50%;
+  user-select: none;
 
-  /* deep black center with soft inner falloff */
-  background: radial-gradient(circle at 50% 50%, #000 62%, #0c0c0c 70%, #000 100%);
-  box-shadow:
-    inset 0 0 80px rgba(0,0,0,.9);                 /* inner darkness */
-}
-
-/* glowing pink ring + outer glow */
-.loader-wrapper::before{
-  content:"";
-  position:absolute;
-  inset:-6px;                                      /* ring thickness */
-  border-radius:50%;
+  /* dark core + subtle vignette */
   background:
-    radial-gradient(circle at 50% 50%,
-      transparent 66%,                             /* empty center */
-      #ff2e79 67%,                                 /* bright ring edge */
-      rgba(255,46,121,.7) 73%,
-      transparent 75%);
-  filter: drop-shadow(0 0 22px rgba(255,46,121,.55))
-          drop-shadow(0 0 48px rgba(255,46,121,.35));
-  animation: ringPulse 2.6s ease-in-out infinite;
+    radial-gradient(65% 65% at 50% 45%, #0b0b0b 0%, #050505 60%, #000 100%);
+
+  /* outer glow ring in your accent color */
+  box-shadow:
+    0 0 0 1px rgba(var(--accent-rgb), .35) inset,
+    0 0 22px 6px rgba(var(--accent-rgb), .30),
+    0 0 90px 22px rgba(var(--accent-rgb), .12);
 }
 
-/* OPTIONAL: subtle breathing glow */
-@keyframes ringPulse{
-  0%,100%{ filter: drop-shadow(0 0 18px rgba(255,46,121,.45))
-                  drop-shadow(0 0 40px rgba(255,46,121,.28)); }
-  50%   { filter: drop-shadow(0 0 28px rgba(255,46,121,.65))
-                  drop-shadow(0 0 64px rgba(255,46,121,.42)); }
+/* inner rotating highlight (gives that “glassy sphere” feel) */
+.loader{
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  pointer-events:none;
+
+  background:
+    radial-gradient(120% 120% at 30% 25%, rgba(255,255,255,.16) 0%, rgba(255,255,255,.02) 55%, transparent 56%) ,
+    radial-gradient(110% 110% at 70% 80%, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 55%);
+  filter: blur(.2px);
+  animation: rotateSpec 6.5s linear infinite;
 }
 
-/* we don’t need the rotating pane anymore */
-.loader,
+/* thin glossy ring around the edge */
+.loader::before{
+  content:"";
+  position:absolute; inset:6px;
+  border-radius:inherit;
+  background:
+    radial-gradient(100% 100% at 50% 50%,
+      rgba(255,255,255,.05) 35%,
+      rgba(255,255,255,.18) 48%,
+      rgba(255,255,255,0) 52%);
+  mix-blend-mode: screen;
+  filter: blur(.5px);
+}
+
+/* soft neon rim from the accent color */
+.loader::after{
+  content:"";
+  position:absolute; inset:-1px;
+  border-radius:inherit;
+  box-shadow:
+    inset 0 0 28px rgba(var(--accent-rgb), .60),
+    inset 0 0 90px rgba(var(--accent-rgb), .25);
+  animation: pulseGlow 2.2s ease-in-out infinite;
+}
+
+/* backglow "fog" */
 .loader-bg-1,
-.loader-bg-2{ display:none !important; }
+.loader-bg-2{
+  position:absolute;
+  inset:-40px;
+  border-radius:50%;
+  filter: blur(50px);
+  opacity:.55;
+  z-index:-1;
+}
+.loader-bg-1{ background: radial-gradient(60% 60% at 50% 50%, rgba(var(--accent-rgb), .18), transparent 65%); }
+.loader-bg-2{ background: radial-gradient(70% 70% at 50% 50%, rgba(var(--accent-rgb), .10), transparent 70%); }
 
-/* ===== metallic "SCANNING" text ===== */
+/* ========= TEXT ========= */
 .loader-letter{
   display:inline-block;
-  margin:0 .02em;
-  letter-spacing:.12em;
-  font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  font-weight: 900;
-  font-size: 28px;                                /* adjust size if needed */
-  text-transform: uppercase;
-
-  /* silver metallic fill */
-  background: linear-gradient(#f0f0f0, #dcdcdc 45%, #bcbcbc 65%, #9d9d9d);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-
-  /* slight 3D / emboss + glow */
+  letter-spacing:.08em;
+  color: #e9e9e9;
   text-shadow:
-    0 2px 0 rgba(0,0,0,.45),
-    0 8px 16px rgba(0,0,0,.55);
+    0 1px 0 #000,
+    0 0 14px rgba(var(--accent-rgb), .35);
+  opacity:.9;
+  transform: translateY(0);
+  animation: wave 1.8s ease-in-out infinite;
+}
 
-  /* stop previous bounce/opacity animations */
-  animation: none !important;
-  opacity: 1 !important;
-  transform: none !important;
+/* wave offsets */
+.loader-letter:nth-child(1){animation-delay:0s}
+.loader-letter:nth-child(2){animation-delay:.06s}
+.loader-letter:nth-child(3){animation-delay:.12s}
+.loader-letter:nth-child(4){animation-delay:.18s}
+.loader-letter:nth-child(5){animation-delay:.24s}
+.loader-letter:nth-child(6){animation-delay:.30s}
+.loader-letter:nth-child(7){animation-delay:.36s}
+.loader-letter:nth-child(8){animation-delay:.42s}
+
+/* ========= ANIMATIONS ========= */
+@keyframes rotateSpec{
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes pulseGlow{
+  0%,100%{ box-shadow:
+    inset 0 0 28px rgba(var(--accent-rgb), .60),
+    inset 0 0 90px rgba(var(--accent-rgb), .25); }
+  50%{ box-shadow:
+    inset 0 0 34px rgba(var(--accent-rgb), .80),
+    inset 0 0 110px rgba(var(--accent-rgb), .35); }
+}
+@keyframes wave{
+  0%,100%{ transform: translateY(0) scale(1); opacity:.85; }
+  40%{ transform: translateY(-2px) scale(1.05); opacity:1; }
 }
