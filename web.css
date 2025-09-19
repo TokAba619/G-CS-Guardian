@@ -842,15 +842,14 @@ section{ scroll-margin-top: 80px; } /* adjust to your header height */
 
 /* ========= THEME ========= */
 :root{
-  /* uses your site's accent automatically; change here if you prefer teal */
-  --accent: var(--accent, #ff0055);
-  --accent-rgb: 233, 30, 99;        /* fallback for shadows if CSS var missing */
+  --accent: var(--accent, #ff0055);   /* your pink accent */
+  --accent-rgb: 233, 30, 99;
 }
 
-/* ========= OVERLAY HOLDER (you already have #scan-loader in HTML) ========= */
+/* ========= OVERLAY HOLDER ========= */
 #scan-loader{
-  display:none;                /* .show will reveal it from JS */
-  min-height: 260px;           /* keeps area stable while loading */
+  display:none;                
+  min-height: 260px;           
   place-items:center;
 }
 #scan-loader.show{ display:grid; }
@@ -869,46 +868,38 @@ section{ scroll-margin-top: 80px; } /* adjust to your header height */
   border-radius: 50%;
   user-select: none;
 
-  /* dark core + subtle vignette */
-  background:
-    radial-gradient(65% 65% at 50% 45%, #0b0b0b 0%, #050505 60%, #000 100%);
+  /* dark core with vignette to make text stand out */
+  background: radial-gradient(circle at 50% 50%, #050505 0%, #000 70%, #000 100%);
 
-  /* outer glow ring in your accent color */
+  /* outer glow ring */
   box-shadow:
     0 0 0 1px rgba(var(--accent-rgb), .35) inset,
     0 0 22px 6px rgba(var(--accent-rgb), .30),
     0 0 90px 22px rgba(var(--accent-rgb), .12);
 }
 
-/* inner rotating highlight (gives that “glassy sphere” feel) */
+/* rotating highlight (glass look) */
 .loader{
   position:absolute;
   inset:0;
   border-radius:inherit;
   pointer-events:none;
-
-  background:
-    radial-gradient(120% 120% at 30% 25%, rgba(0, 0, 0, 0.425) 0%, rgba(0, 0, 0, 0.459) 55%, transparent 56%) ,
-    radial-gradient(110% 110% at 70% 80%, rgba(0, 0, 0, 0.459) 0%, rgba(255,255,255,0) 55%);
+  background: radial-gradient(120% 120% at 30% 25%, rgba(0,0,0,0.65) 0%, transparent 55%),
+              radial-gradient(110% 110% at 70% 80%, rgba(0,0,0,0.55) 0%, transparent 55%);
   filter: blur(.2px);
   animation: rotateSpec 6.5s linear infinite;
 }
 
-/* thin glossy ring around the edge */
+/* inner dim disk under text for stronger contrast */
 .loader::before{
   content:"";
-  position:absolute; inset:6px;
+  position:absolute; inset:14px;
   border-radius:inherit;
-  background:
-    radial-gradient(100% 100% at 50% 50%,
-      rgba(255,255,255,.05) 35%,
-      rgba(255,255,255,.18) 48%,
-      rgba(255,255,255,0) 52%);
-  mix-blend-mode: screen;
-  filter: blur(.5px);
+  background: radial-gradient(circle at 50% 50%, rgba(0,0,0,.85) 0%, rgba(0,0,0,.55) 70%, transparent 100%);
+  z-index:2;
 }
 
-/* soft neon rim from the accent color */
+/* glowing rim */
 .loader::after{
   content:"";
   position:absolute; inset:-1px;
@@ -919,7 +910,7 @@ section{ scroll-margin-top: 80px; } /* adjust to your header height */
   animation: pulseGlow 2.2s ease-in-out infinite;
 }
 
-/* backglow "fog" */
+/* backglow fog */
 .loader-bg-1,
 .loader-bg-2{
   position:absolute;
@@ -934,17 +925,16 @@ section{ scroll-margin-top: 80px; } /* adjust to your header height */
 
 /* ========= TEXT ========= */
 .loader-letter{
+  position: relative;
+  z-index: 3;            /* ensure above dark layers */
   display:inline-block;
   letter-spacing:.08em;
-  color: #fff;
-  font-weight: 900; /* extra bold */
+  color:#fff;
+  font-weight: 900;
+  opacity:1;
   text-shadow:
-        -1px -1px 0 #000,
-         1px -1px 0 #000,
-        -1px  1px 0 #000,
-         1px  1px 0 #000;
-  opacity:.9;
-  transform: translateY(0);
+    0 0 4px rgba(255,255,255,.85),
+    0 0 10px rgba(255,255,255,.65);
   animation: wave 1.8s ease-in-out infinite;
 }
 
