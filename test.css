@@ -38,7 +38,7 @@ body{
   height: auto;
 }
 .brandbar .brand .title{
-  font-family:"Audiowide", sans-serif;
+  font-family: "Inter", sans-serif !important;
   font-size:26px; letter-spacing:.3px;
   line-height:1;
 }
