@@ -237,7 +237,6 @@
     </ul>
   </nav>
 
-  <a href="#demo" class="to-top"><i data-feather="chevron-up"></i></a>
 
   <!-- DEMO SECTION -->
   <section class="content-section demo" id="demo">
@@ -431,6 +430,9 @@
       </div>
     </div>
   </section>
+
+  <a href="#demo" class="scroll-top" aria-label="Back to top">
+  <i data-feather="chevron-up"></i></a>
 
 <script>
 /* =========================
@@ -849,7 +851,6 @@ async function runScan(projectId, ethicalMode){
     countEl:resultsCount,
     filterInput:resultsFilter
   });
-  document.getElementById("results").scrollIntoView({behavior:"smooth"});
 }
 
 /* Scan button: prefer selected project from picker, else typed input */
@@ -1201,7 +1202,8 @@ document.addEventListener("DOMContentLoaded",function(){
 })();
 </script>
 
-
-  <script src="web.js"></script>
+<script src="https://unpkg.com/feather-icons"></script>
+<script>window.feather && feather.replace();</script>
+<script src="web.js"></script>
 </body>
 </html>
