@@ -886,7 +886,7 @@ section{ scroll-margin-top: 80px; } /* adjust to your header height */
   pointer-events:none;
   background: radial-gradient(120% 120% at 30% 25%, rgba(0,0,0,0.65) 0%, transparent 55%),
               radial-gradient(110% 110% at 70% 80%, rgba(0,0,0,0.55) 0%, transparent 55%);
-  filter: blur(.2px);
+  filter: blur(.1px);
   animation: rotateSpec 6.5s linear infinite;
 }
 
@@ -916,7 +916,7 @@ section{ scroll-margin-top: 80px; } /* adjust to your header height */
   position:absolute;
   inset:-40px;
   border-radius:50%;
-  filter: blur(50px);
+  filter: blur(25px);
   opacity:.55;
   z-index:-1;
 }
@@ -933,8 +933,8 @@ section{ scroll-margin-top: 80px; } /* adjust to your header height */
   font-weight: 900;
   opacity:1;
   text-shadow:
-    0 0 4px rgba(255,255,255,.85),
-    0 0 10px rgba(255,255,255,.65);
+    0 0 4px rgb(0, 0, 0),
+    0 0 10px rgb(0, 0, 0);
   animation: wave 1.8s ease-in-out infinite;
 }
 
