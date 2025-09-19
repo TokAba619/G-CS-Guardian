@@ -1140,5 +1140,6 @@ td.download-col {
 .scan-table th.download-col,
 .scan-table td.download-col {
   text-align: left;
-  padding-left: 1rem; /* optional: gives breathing space */
+  padding-left: 5rem; /* optional: gives breathing space */
 }
+
