@@ -1084,47 +1084,54 @@ document.addEventListener("DOMContentLoaded",function(){
     });
   }
 });
+</script>
 
-// Build (section, link) pairs automatically from your nav
-const navLinks = Array.from(document.querySelectorAll('.nav-link[href^="#"]'));
-const pairs = navLinks
-  .map(link => {
-    const sel = link.getAttribute('href');
-    const el = document.querySelector(sel);
+<script>
+(function activateSectionNav(){
+  // 1) Collect only in-page nav items (won’t touch your #navLinks var)
+  const navItems = Array.from(document.querySelectorAll('.nav-link[href^="#"]'));
+
+  // Build (sectionEl, linkEl) pairs safely
+  const pairs = navItems.map(link => {
+    const hash = link.getAttribute('href');
+    const el = document.querySelector(hash);
     return el ? { el, link } : null;
-  })
-  .filter(Boolean);
+  }).filter(Boolean);
 
-// Highlight the link for the section centered in the viewport
-const io = new IntersectionObserver((entries) => {
-  // pick the entry with the largest intersectionRatio
-  const visible = entries
-    .filter(e => e.isIntersecting)
-    .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-  if (!visible) return;
+  if (!pairs.length) return;
 
-  const currentId = '#' + visible.target.id;
-  navLinks.forEach(a => a.classList.remove('active'));
-  const currentLink = navLinks.find(a => a.getAttribute('href') === currentId);
-  currentLink?.classList.add('active');
-}, {
-  rootMargin: '-35% 0px -55% 0px', // triggers when section is near the middle
-  threshold: [0, 0.2, 0.4, 0.6, 0.8, 1]
-});
-
-pairs.forEach(p => io.observe(p.el));
-
-// (optional) smooth scroll when clicking a nav link
-navLinks.forEach(link => {
-  link.addEventListener('click', e => {
-    const id = link.getAttribute('href');
-    const target = document.querySelector(id);
-    if (target) {
+  // 2) Smooth scroll on click (doesn't affect your other helpers)
+  navItems.forEach(link => {
+    const hash = link.getAttribute('href');
+    link.addEventListener('click', e => {
+      const target = document.querySelector(hash);
+      if (!target) return;
       e.preventDefault();
       target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+      // Close mobile menu if open (uses your existing closeMenu)
+      if (typeof closeMenu === 'function') closeMenu();
+    });
   });
-});
+
+  // 3) Highlight active link while scrolling
+  const observer = new IntersectionObserver((entries) => {
+    // choose the currently most visible section
+    const visible = entries
+      .filter(e => e.isIntersecting)
+      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (!visible) return;
+
+    const id = '#' + visible.target.id;
+    navItems.forEach(a => a.classList.remove('active'));
+    const current = navItems.find(a => a.getAttribute('href') === id);
+    current && current.classList.add('active');
+  }, {
+    rootMargin: '-40% 0px -50% 0px',   // triggers when section is near middle
+    threshold: [0.25, 0.5, 0.75, 1]
+  });
+
+  pairs.forEach(p => observer.observe(p.el));
+})();
 </script>
 
   <script src="web.js"></script>
