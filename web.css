@@ -1058,3 +1058,48 @@ section{ scroll-margin-top: 80px; } /* adjust to your header height */
 .btn-chip:hover { background: #000; color: #fff; }
 .btn-chip:active { transform: translateY(1px); }
 .btn-chip[disabled] { opacity: .6; cursor: not-allowed; }
+
+/* Make table cells vertically centered (tidier rows) */
+.scan-table th,
+.scan-table td {
+  vertical-align: middle;
+}
+
+/* Right-align the header & the last column */
+.scan-table th:last-child,
+.scan-table td:last-child {
+  text-align: right;
+}
+
+/* Give the last column a stable width so buttons don't jump/wrap */
+.scan-table td:last-child { width: 260px; }
+
+/* Button group layout inside the last cell */
+.download-actions{
+  display:flex;
+  justify-content:flex-end;   /* push to the right */
+  align-items:center;
+  gap:.5rem;
+}
+
+/* Chips: force white bg + black text, even if table sets color */
+.btn-chip{
+  padding:.35rem .9rem;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.14);
+  background:#fff !important; /* force white */
+  color:#000 !important;       /* force black text */
+  font-weight:700;
+  line-height:1;
+  cursor:pointer;
+  transition: background .2s ease, color .2s ease, transform .03s ease;
+}
+
+.btn-chip:hover{
+  background:#000 !important;
+  color:#fff !important;
+  border-color:#000;
+}
+
+.btn-chip:active{ transform: translateY(1px); }
+.btn-chip[disabled]{ opacity:.6; cursor:not-allowed; }
