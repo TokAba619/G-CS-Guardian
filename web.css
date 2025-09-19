@@ -738,3 +738,47 @@ th, td, button, input, textarea, select,
 
 /* set this to your navbar height */
 section { scroll-margin-top: 80px; }
+
+/* Floating "back to top" button */
+.scroll-top{
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: rgba(255,255,255,0.04);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  z-index: 1000;
+
+  /* appear/disappear */
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(.9);
+  transition: opacity .2s ease, transform .2s ease, background .2s ease;
+}
+.scroll-top:hover{ background: rgba(255,255,255,0.12); }
+.scroll-top:active{ transform: scale(.88); }
+
+/* show state toggled by JS below */
+.scroll-top.show{
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+}
+
+/* feather icon look */
+.scroll-top svg{
+  width: 22px;
+  height: 22px;
+  stroke: #fff;
+  stroke-width: 2.5;
+}
+
+/* if you use a fixed navbar, keep anchors from hiding under it */
+section{ scroll-margin-top: 80px; } /* adjust to your header height */
