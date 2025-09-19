@@ -715,7 +715,7 @@ th, td, button, input, textarea, select,
 /* === Select button for rows === */
 .project-table .btn-select {
   padding:6px 14px;
-  border-radius:999px;
+  border-radius:15px;
   border:none;
   background: var(--accent);
   color:#fff;
@@ -782,3 +782,4 @@ section { scroll-margin-top: 80px; }
 
 /* if you use a fixed navbar, keep anchors from hiding under it */
 section{ scroll-margin-top: 80px; } /* adjust to your header height */
+
