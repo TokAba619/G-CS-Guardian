@@ -1349,3 +1349,20 @@ td.download-col {
 .lr-quick .chip.active {
   -webkit-text-fill-color: #000 !important;
 }
+
+/* Limit My-Scan table height */
+.my-scan-table-wrapper {
+  max-height: 400px;   /* adjust to fit ~10 rows */
+  overflow-y: auto;    /* vertical scroll */
+  overflow-x: hidden;  /* prevent sideways scroll */
+  border-radius: 8px;
+}
+
+/* Optional: keep table header fixed */
+.my-scan-table-wrapper table thead th {
+  position: sticky;
+  top: 0;
+  background: #e91e63; /* match your pink header */
+  color: #fff;
+  z-index: 2;
+}
