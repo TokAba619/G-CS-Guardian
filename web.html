@@ -1475,9 +1475,9 @@ document.addEventListener("DOMContentLoaded",function(){
 const API_REPORTS_SUMMARY = API_BASE + "/reports/summary";
 const API_REPORTS_TRENDS  = API_BASE + "/reports/trends";
 const API_REPORTS_TOP     = API_BASE + "/reports/top-risks";
-const API_PREVIOUS_SCANS  = (typeof API_PREVIOUS_SCANS !== "undefined")
-  ? API_PREVIOUS_SCANS
-  : (API_BASE + "/my-scans/");
+// Safe alias that never re-declares the global name
+const API_PREVIOUS_SCANS_URL = (window.API_PREVIOUS_SCANS || (window.API_PREVIOUS_SCANS = API_BASE + "/my-scans/"));
+
 
 let LR_CHARTS = { risk:null, exposure:null, trend:null };
 
@@ -1501,7 +1501,7 @@ async function ensureProjectId(){
   if(stored) return stored;
 
   const t = getToken(); if(!t) return "";
-  const res = await fetch(API_PREVIOUS_SCANS, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }});
+  const res = await fetch(API_PREVIOUS_SCANS_URL, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }});
   if(!res.ok) return "";
   const data  = await res.json();
   const scans = Array.isArray(data?.my_scans) ? data.my_scans : [];
@@ -1517,7 +1517,7 @@ async function ensureProjectId(){
 /* Get the newest scan DAY (YYYY-MM-DD) for this project */
 async function getLastScanDay(pid){
   const t = getToken(); if(!t) return null;
-  const res = await fetch(API_PREVIOUS_SCANS, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }});
+  const res = await fetch(API_PREVIOUS_SCANS_URL, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }});
   if(!res.ok) return null;
   const data  = await res.json();
   const scans = Array.isArray(data?.my_scans) ? data.my_scans : [];
