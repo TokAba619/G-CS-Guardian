@@ -1352,7 +1352,7 @@ td.download-col {
 
 /* Limit My-Scan table height */
 .my-scan-table-wrapper {
-  max-height: 400px;   /* adjust to fit ~10 rows */
+  max-height: 650px;   /* adjust to fit ~10 rows */
   overflow-y: auto;    /* vertical scroll */
   overflow-x: hidden;  /* prevent sideways scroll */
   border-radius: 8px;
@@ -1366,3 +1366,4 @@ td.download-col {
   color: #fff;
   z-index: 2;
 }
+
