@@ -1478,6 +1478,9 @@ document.addEventListener("DOMContentLoaded",function(){
 <script>
 /* =========================
    LIVE REPORTS — RANGE FILTERS (Latest | Today | All)
+   - Latest  -> single newest scan (exact timestamp)
+   - Today   -> all scans today
+   - All     -> all scans available
 ========================= */
 const API_REPORTS_SUMMARY = API_BASE + "/reports/summary";
 const API_REPORTS_TRENDS  = API_BASE + "/reports/trends";
@@ -1525,7 +1528,8 @@ async function ensureProjectId(){
   return "";
 }
 
-async function getLatestScanDay(pid){
+/* New: get the **exact ISO timestamp** for the newest scan of this project */
+async function getLatestScanTimestamp(pid){
   const t = getToken(); if(!t) return null;
   const res  = await fetch(API_PREVIOUS_SCANS_URL, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }});
   if(!res.ok) return null;
@@ -1533,18 +1537,28 @@ async function getLatestScanDay(pid){
   const scans = Array.isArray(data?.my_scans) ? data.my_scans : [];
   const latest = scans.filter(s => s.project_id === pid)
                       .sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp))[0];
-  return latest ? formatScanDay(latest.timestamp) : null;
+  return latest ? latest.timestamp : null;  // full ISO string with timezone
 }
 
+/* (kept) day helper if you want it elsewhere */
+async function getLatestScanDay(pid){
+  const ts = await getLatestScanTimestamp(pid);
+  return ts ? formatScanDay(ts) : null;
+}
+
+/* Compute the date filters for the current range */
 async function computeDatesForRange(pid){
   if (LR_RANGE === "all")   return { from:"", to:"", label:"All scans" };
+
   if (LR_RANGE === "today"){
     const today = isoLocalDate(new Date());
     return { from: today, to: today, label: "Today" };
   }
-  const latestDay = await getLatestScanDay(pid);
-  if(!latestDay) return { from:"", to:"", label:"All scans" }; // graceful fallback
-  return { from: latestDay, to: latestDay, label:"Latest scan" };
+
+  // LATEST -> lock to EXACT timestamp (single scan), not a whole day
+  const latestTs = await getLatestScanTimestamp(pid);
+  if (!latestTs) return { from:"", to:"", label:"All scans" }; // fallback
+  return { from: latestTs, to: latestTs, label:"Latest scan" };
 }
 
 /* ---------- KPI + renderers ---------- */
@@ -1552,7 +1566,7 @@ function renderKpis(summary){
   const totals = summary?.totals || {};
   const put = (id,v)=>{ const el=document.getElementById(id); if(el) el.textContent = (v ?? "—"); };
 
-  // Show “1” only for Latest (single-scan day)
+  // Only force "1" for Latest (single scan); otherwise show API aggregate
   put("kpi-total-scans", (LR_RANGE === "latest") ? 1 : (totals.total_scans ?? "—"));
   put("kpi-buckets",     totals.buckets_scanned ?? "—");
   put("kpi-risky",       totals.risky_buckets   ?? "—");
@@ -1683,18 +1697,18 @@ async function loadLiveReports(){
   if (to)   { qs.set("to",   to);   qsTop.set("to",   to);   }
 
   try{
-    // One range applied to ALL blocks:
+    // Apply the SAME range to ALL endpoints
     const [summary, trends, topRisks] = await Promise.all([
       authFetchJSON(`${API_REPORTS_SUMMARY}?${qs}`),
       authFetchJSON(`${API_REPORTS_TRENDS}?${qs}`),
       authFetchJSON(`${API_REPORTS_TOP}?${qsTop}`)
     ]);
 
-    renderKpis(summary);       // Buckets Scanned / Risky Buckets / Risk % obey range
-    renderRiskLevels(summary); // Doughnut obeys range
-    renderExposure(summary);   // Exposure obeys range
-    renderTrend(trends);       // Trend obeys range
-    renderTopRisks(topRisks?.items || []); // Top Risks obeys range
+    renderKpis(summary);
+    renderRiskLevels(summary);
+    renderExposure(summary);
+    renderTrend(trends);
+    renderTopRisks(topRisks?.items || []);
   }catch(err){
     console.error("Live Reports error:", err);
   }
@@ -1704,7 +1718,7 @@ async function loadLiveReports(){
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("lr-refresh")?.addEventListener("click", loadLiveReports);
 
-  // Range chips (add buttons with .lr-quick .chip and data-range="latest|today|all")
+  // Range chips (buttons with .lr-quick .chip and data-range="latest|today|all")
   document.querySelectorAll(".lr-quick .chip").forEach(btn=>{
     btn.addEventListener("click", async ()=>{
       const next = btn.getAttribute("data-range");
