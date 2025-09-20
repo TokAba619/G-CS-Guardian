@@ -1380,7 +1380,7 @@ td.download-col {
   border: 1px solid rgba(255,255,255,.08);
 
   /* give gutter on ALL sides so sticky header/first column aren't clipped */
-  padding: 10px 10px 12px 16px;  /* top right bottom left */
+  padding: 10px 10px 12px 18px;  /* top right bottom left */
   box-sizing: border-box;
 
   /* prevent content from sitting under scrollbars and avoid radius bleed */
@@ -1392,8 +1392,8 @@ td.download-col {
 #detailed-table{
   border-collapse: collapse;
   border-spacing: 0;
-  min-width: 1400px !important;             /* force horizontal scroll if needed */
-  width: max-content;            /* grows with content */
+  width: 1600px !important;      /* force a wider table */
+  min-width: 1600px !important;  /* keep it from shrinking below this */
   table-layout: fixed;
   margin: 0;
 }
@@ -1488,7 +1488,3 @@ td.download-col {
   background: #fff; border-radius: 6px;
 }
 .results-table-wrapper::-webkit-scrollbar-track{ background: #222; }
-
-
-
-
