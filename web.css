@@ -1366,3 +1366,102 @@ td.download-col {
   color: #fff;
   z-index: 2;
 }
+
+/* ===== Scrollable wrapper (both axes) ===== */
+.results-table-wrapper{
+  max-height: 640px;        /* vertical limit */
+  overflow: auto;           /* X + Y scroll as needed */
+  border-radius: 10px;
+  background: #111;
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+/* ===== Table base ===== */
+#detailed-table{
+  width: 100%;
+  table-layout: fixed;      /* use colgroup widths */
+  border-collapse: collapse;
+}
+
+/* Sticky header */
+.results-table-wrapper #detailed-table thead th{
+  position: sticky;
+  top: 0;
+  background: #e91e63;      /* your pink */
+  color: #fff;
+  z-index: 5;
+}
+
+/* Cells */
+#detailed-table th,
+#detailed-table td{
+  padding: 14px 16px;
+  vertical-align: top;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  color: #ddd;
+}
+
+/* Don’t let any column blow out the width */
+#detailed-table th,
+#detailed-table td{
+  overflow-wrap: anywhere;  /* wraps long tokens/words */
+  word-break: break-word;
+  white-space: normal;      /* override any .nowrap */
+}
+
+/* Bucket name can wrap normally */
+#detailed-table td:nth-child(1){
+  font-weight: 500;
+  color: #fff;
+}
+
+/* Status / Score / Level — center-ish and compact */
+#detailed-table td:nth-child(2),
+#detailed-table td:nth-child(3),
+#detailed-table td:nth-child(4){
+  white-space: nowrap;
+}
+
+/* Risk Reason column: make lists tidy + scroll if very long */
+#detailed-table td:nth-child(5) ul{
+  margin: 0;
+  padding-left: 1.2rem;
+  max-height: 10.5rem;
+  overflow: auto;
+}
+#detailed-table td:nth-child(5) li{
+  line-height: 1.35;
+  margin: .25rem 0;
+}
+
+/* Sensitive Keywords: wrap chips and allow internal scroll */
+#detailed-table td:nth-child(6){
+  padding-right: 8px;
+}
+#detailed-table td:nth-child(6){
+  max-height: 8.5rem;
+  overflow: auto;
+}
+#detailed-table td:nth-child(6) .chip,
+#detailed-table td:nth-child(6) .tag{
+  display: inline-block;
+  margin: 4px 6px 0 0;
+  white-space: nowrap;
+}
+
+/* Sample files: one line per link, ellipsis for long names */
+#detailed-table td:nth-child(7) a{
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 4px 0;
+}
+
+/* Scrollbar theming for dark UI */
+.results-table-wrapper::-webkit-scrollbar{ width: 10px; height: 10px; }
+.results-table-wrapper::-webkit-scrollbar-thumb{
+  background: #fff; border-radius: 6px;
+}
+.results-table-wrapper::-webkit-scrollbar-track{ background: #222; }
