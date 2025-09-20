@@ -361,7 +361,7 @@
   </section>
 
 
-  <!-- LIVE REPORTS -->
+<!-- LIVE REPORTS -->
 <section class="content-section live-reports" id="live-reports">
   <div class="container">
     <h2 class="section-title">Live Reports</h2>
@@ -375,15 +375,32 @@
         <span>Project:</span>
         <strong id="lr-project-label">—</strong>
       </div>
+
+      <!-- hidden date inputs (needed by script to lock to latest scan) -->
+      <input type="date" id="lr-from" style="display:none" aria-hidden="true">
+      <input type="date" id="lr-to" style="display:none" aria-hidden="true">
+
       <button id="lr-refresh" class="cta-pink">Refresh</button>
     </div>
 
     <!-- KPI tiles -->
     <div class="lr-kpis">
-      <div class="card"><div class="card-title">Total Scans</div><div id="kpi-total-scans" class="kpi-val">—</div></div>
-      <div class="card"><div class="card-title">Buckets Scanned</div><div id="kpi-buckets" class="kpi-val">—</div></div>
-      <div class="card"><div class="card-title">Risky Buckets</div><div id="kpi-risky" class="kpi-val">—</div></div>
-      <div class="card"><div class="card-title">Risky %</div><div id="kpi-risky-pct" class="kpi-val">—</div></div>
+      <div class="card">
+        <div class="card-title">Total Scans</div>
+        <div id="kpi-total-scans" class="kpi-val">—</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Buckets Scanned</div>
+        <div id="kpi-buckets" class="kpi-val">—</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Risky Buckets</div>
+        <div id="kpi-risky" class="kpi-val">—</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Risky %</div>
+        <div id="kpi-risky-pct" class="kpi-val">—</div>
+      </div>
     </div>
 
     <!-- Charts -->
@@ -425,7 +442,6 @@
     </div>
   </div>
 </section>
-
 
 
   <!-- MY-SCAN SECTION -->
@@ -1533,10 +1549,13 @@ async function lrDefaultToLastScan(pid){
 function lrRenderKpis(summary){
   const totals = summary?.totals || {};
   const put = (id,v)=>{ const el=document.getElementById(id); if(el) el.textContent = (v ?? "—"); };
+
   put("kpi-total-scans", 1);
   put("kpi-buckets",      totals.buckets_scanned);
   put("kpi-risky",        totals.risky_buckets);
-  put("kpi-risky-pct",    (summary?.risky_bucket_pct == null) ? "—" : (summary.risky_bucket_pct + "%"));
+
+  const pct = summary?.risky_bucket_pct;
+  put("kpi-risky-pct", (pct == null ? "—" : `${Number(pct).toFixed(1)}%`));
 }
 
 /* ---------- charts ---------- */
@@ -1642,7 +1661,16 @@ async function loadLiveReports(){
   if(!pid){ console.warn("Live Reports: no project selected or no scans yet."); return; }
 
   // Force date inputs to the latest scan **for this project**
-  await lrDefaultToLastScan(pid);
+  const seeded = await lrDefaultToLastScan(pid);
+  if (!seeded){
+    // No scans found for this project; clear UI and exit
+    lrRenderKpis({ totals:{} });
+    lrRenderRiskLevels({ risk_level_counts:{} });
+    lrRenderExposure({ exposure_category_counts:{} });
+    lrRenderTrend({ points:[] });
+    lrRenderTopRisks([]);
+    return;
+  }
 
   // Read those dates
   const from = document.getElementById("lr-from")?.value?.trim() || "";
