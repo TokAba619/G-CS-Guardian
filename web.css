@@ -1318,28 +1318,27 @@ td.download-col {
   .live-reports .lr-charts{ grid-template-columns: 1fr; }
 }
 
-/* Default button style */
-.filter-btn {
+.lr-quick .chip {
   background: transparent;
   border: 1px solid #666;
-  color: #fff;
+  color: #fff;  /* default white text */
   padding: 6px 14px;
   border-radius: 20px;
   cursor: pointer;
   font-weight: 600;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
 }
 
-/* Hover state */
-.filter-btn:hover {
+/* Hover effect */
+.lr-quick .chip:hover {
   background: #fff;
-  color: #000;   /* fix: black text */
+  color: #000 !important;   /* text turns black */
   border-color: #fff;
 }
 
-/* Active/selected button */
-.filter-btn.active {
+/* Active (selected) button */
+.lr-quick .chip.active {
   background: #fff;
-  color: #000;
+  color: #000 !important;   /* text stays black */
   border-color: #fff;
 }
