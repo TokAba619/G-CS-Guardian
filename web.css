@@ -1367,3 +1367,33 @@ td.download-col {
   z-index: 2;
 }
 
+/* Wrapper for scrollable results table */
+.results-table-wrapper {
+  max-height: 800px;       /* vertical limit, adjust as you like */
+  overflow-y: auto;        /* vertical scroll */
+  overflow-x: auto;        /* horizontal scroll */
+  border-radius: 8px;
+  background: #111;        /* keeps dark theme */
+}
+
+/* Make header sticky */
+.results-table-wrapper table thead th {
+  position: sticky;
+  top: 0;
+  background: #e91e63;  /* your pink header */
+  color: #fff;
+  z-index: 5;
+}
+
+/* Optional: tidy scrollbar to match dark theme */
+.results-table-wrapper::-webkit-scrollbar {
+  height: 8px;   /* horizontal bar */
+  width: 8px;    /* vertical bar */
+}
+.results-table-wrapper::-webkit-scrollbar-thumb {
+  background: #e91e63;
+  border-radius: 4px;
+}
+.results-table-wrapper::-webkit-scrollbar-track {
+  background: #222;
+}
