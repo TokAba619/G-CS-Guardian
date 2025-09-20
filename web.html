@@ -344,21 +344,32 @@
       </div>
 
       
-      <table class="dashboard-table" id="results-table" style="display:none;">
-        <thead>
-          <tr>
-            <th data-key="bucket_name">Bucket Name<span class="sort-ind">↕</span></th>
-            <th data-key="public" class="nowrap">Status<span class="sort-ind">↕</span></th>
-            <th data-key="risk_score" class="nowrap">Risk Score<span class="sort-ind">↕</span></th>
-            <th data-key="risk_level" class="nowrap">Risk Level<span class="sort-ind">↕</span></th>
-            <th data-key="risk_reason" class="risk-reason-col">Risk Reason <span class="sort-ind">↕</span></th>
-            <th data-key="sensitive_keywords_detected">Sensitive Keywords<span class="sort-ind">↕</span></th>
-            <th data-key="sample_files" class="sample-col" style="display:none;">Sample Files<span class="sort-ind">↕</span></th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+     <div class="results-table-wrapper">
+  <table class="dashboard-table" id="results-table" style="display:none;">
+    <colgroup>
+      <col style="width: 220px;">  <!-- Bucket Name -->
+      <col style="width: 90px;">   <!-- Status -->
+      <col style="width: 90px;">   <!-- Risk Score -->
+      <col style="width: 110px;">  <!-- Risk Level -->
+      <col style="width: 560px;">  <!-- Risk Reason -->
+      <col style="width: 360px;">  <!-- Sensitive Keywords -->
+      <col style="width: 220px;">  <!-- Sample Files -->
+    </colgroup>
+    <thead>
+      <tr>
+        <th data-key="bucket_name">Bucket Name<span class="sort-ind">↕</span></th>
+        <th data-key="public" class="nowrap">Status<span class="sort-ind">↕</span></th>
+        <th data-key="risk_score" class="nowrap">Risk Score<span class="sort-ind">↕</span></th>
+        <th data-key="risk_level" class="nowrap">Risk Level<span class="sort-ind">↕</span></th>
+        <th data-key="risk_reason" class="risk-reason-col">Risk Reason <span class="sort-ind">↕</span></th>
+        <th data-key="sensitive_keywords_detected">Sensitive Keywords<span class="sort-ind">↕</span></th>
+        <th data-key="sample_files" class="sample-col" style="display:none;">Sample Files<span class="sort-ind">↕</span></th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
   </section>
 
 
