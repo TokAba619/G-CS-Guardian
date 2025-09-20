@@ -1542,27 +1542,39 @@ function lrDestroy(id){ if (LR_CHARTS[id]) { LR_CHARTS[id].destroy(); LR_CHARTS[
 
 function lrRenderRiskLevels(summary){
   lrDestroy("risk");
-  const c = document.getElementById("chart-risk-levels").getContext("2d");
-  const counts = summary?.risk_level_counts || {};
-  const labels = ["critical","high","medium","low","info"];
-  const data   = labels.map(k => counts[k]||0);
 
-  LR_CHARTS.risk = new Chart(c,{
-    type:"doughnut",
-    data:{ labels: labels.map(s=>s.toUpperCase()), datasets:[{ data }] },
-    options:{
-      plugins:{
-        legend:{ position:"bottom", labels:{ color:"#ddd" } },
-        tooltip:{
-          callbacks:{
-            label(ctx){
-              const v = ctx.raw ?? 0;
-              return `${ctx.label}: ${v} bucket${v===1?'':'s'}`;
-            }
+  const ctx    = document.getElementById("chart-risk-levels").getContext("2d");
+  const counts = summary?.risk_level_counts || {};
+  const order  = ["critical","high","medium","low","info"];
+
+  // your palette
+  const riskColors = {
+    critical: "#ff0000",
+    high:     "#7a0c0c",
+    medium:   "#ffee00",
+    low:      "#00ff37",
+    info:     "#00eeff"
+  };
+
+  const data   = order.map(k => counts[k] || 0);
+  const colors = order.map(k => riskColors[k]);
+
+  LR_CHARTS.risk = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: order.map(s => s.toUpperCase()),
+      datasets: [{ data, backgroundColor: colors, borderWidth: 0 }]
+    },
+    options: {
+      cutout: "58%",
+      plugins: {
+        legend: { position: "bottom", labels: { color: "#ddd" } },
+        tooltip: {
+          callbacks: {
+            label(t){ const v=t.raw??0; return `${t.label}: ${v} bucket${v===1?'':'s'}`; }
           }
         }
-      },
-      cutout:"58%"
+      }
     }
   });
 }
@@ -1570,29 +1582,34 @@ function lrRenderRiskLevels(summary){
 
 function lrRenderExposure(summary){
   lrDestroy("exposure");
-  const c = document.getElementById("chart-exposure").getContext("2d");
-  const ec = summary?.exposure_category_counts || {};
-  LR_CHARTS.exposure = new Chart(c,{
-    type:"bar",
-    data:{
-      labels:["Private","Public"],
-      datasets:[{ data:[ec.private||0, ec.public||0] }]
+
+  const ctx = document.getElementById("chart-exposure").getContext("2d");
+  const ec  = summary?.exposure_category_counts || {};
+  const vals = [ec.private || 0, ec.public || 0];
+
+  LR_CHARTS.exposure = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: ["Private", "Public"],
+      datasets: [{
+        data: vals,
+        backgroundColor: ["#00ff00", "#ff0000"],  // private, public
+        borderColor: ["#00cc00", "#cc0000"],
+        borderWidth: 1
+      }]
     },
-    options:{
-      plugins:{
-        legend:{ display:false },
-        tooltip:{
-          callbacks:{
-            label(ctx){
-              const v = (ctx.parsed?.y ?? ctx.raw ?? 0);
-              return `${ctx.label}: ${v} bucket${v===1?'':'s'}`;
-            }
+    options: {
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label(t){ const v=t.parsed?.y ?? 0; return `${t.label}: ${v} bucket${v===1?'':'s'}`; }
           }
         }
       },
-      scales:{
-        x:{ ticks:{ color:"#ddd" }, grid:{ display:false } },
-        y:{ ticks:{ color:"#aaa" }, grid:{ color:"rgba(255,255,255,.08)" }, beginAtZero:true, precision:0 }
+      scales: {
+        x: { ticks: { color: "#ddd" }, grid: { display: false } },
+        y: { beginAtZero: true, ticks: { color: "#aaa" }, grid: { color: "rgba(255,255,255,.08)" } }
       }
     }
   });
@@ -1716,38 +1733,45 @@ function lrEnsureDates(){
 
 
 /* ---------- wiring ---------- */
-document.addEventListener("DOMContentLoaded", function () {
-  lrEnsureDates();            // auto-fill From/To if empty
+// --- helpers must be declared above this block ---
+// function toISODateLocal(d){ ... }
+// function lrEnsureDates(){ ... }  // sets last 30 days into #lr-from / #lr-to
+// function loadLiveReports(){ ... }
 
+document.addEventListener("DOMContentLoaded", function () {
+  // 1) Seed dates on first load
+  lrEnsureDates();
+
+  // 2) Wire controls
   const btn  = document.getElementById("lr-refresh");
   const auto = document.getElementById("lr-autorefresh");
-  if(btn)  btn.addEventListener("click", loadLiveReports);
-  if(auto){
-    auto.addEventListener("change", function(){
-      if(LR_TIMER){ clearInterval(LR_TIMER); LR_TIMER = null; }
-      if(this.checked){ LR_TIMER = setInterval(loadLiveReports, 30_000); }
+
+  if (btn)  btn.addEventListener("click", loadLiveReports);
+
+  if (auto) {
+    auto.addEventListener("change", function () {
+      if (LR_TIMER) { clearInterval(LR_TIMER); LR_TIMER = null; }
+      if (this.checked) { LR_TIMER = setInterval(loadLiveReports, 30_000); }
     });
   }
 
-  loadLiveReports();          // first paint uses the defaulted dates
-});
-
-window.addEventListener("gcs_project_selected", function(){
-  // Optional: clear any manual values first
-  document.getElementById("lr-from").value = "";
-  document.getElementById("lr-to").value   = "";
-  lrEnsureDates();             // <-- reseed to last 30 days
+  // 3) First render
   loadLiveReports();
 });
 
+// 4) When user picks a new project from your picker
+window.addEventListener("gcs_project_selected", function (ev) {
+  // (optional) remember the selection
+  try { if (ev?.detail?.id) localStorage.setItem("selected_project_id", ev.detail.id); } catch(_) {}
 
-// Listen to project selection from the picker
-window.addEventListener("gcs_project_selected", function(ev){
-  // optional: reset date filters when project changes
-  const f = document.getElementById("lr-from"), t = document.getElementById("lr-to");
-  if (f) f.value = ""; if (t) t.value = "";
-  // also keep latest id in localStorage for good measure
-  try{ if (ev?.detail?.id) localStorage.setItem("selected_project_id", ev.detail.id); } catch(_){}
+  // reset & re-seed date range to last 30 days
+  const f = document.getElementById("lr-from");
+  const t = document.getElementById("lr-to");
+  if (f) f.value = "";
+  if (t) t.value = "";
+  lrEnsureDates();
+
+  // refresh live reports
   loadLiveReports();
 });
 </script>
