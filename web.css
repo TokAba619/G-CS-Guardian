@@ -1237,3 +1237,29 @@ td.download-col {
   transform:translateX(-100%); animation:shimmer 1.2s infinite;
 }
 @keyframes shimmer { to { transform:translateX(100%); } }
+
+/* Nuke the big live-reports loader strip */
+#lr-loader, .lr-loader { display: none !important; }
+
+/* Quick range buttons */
+.lr-quick .chip {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.25);
+  color: #fff;
+  padding: .25rem .75rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+/* Hover: white bg + black text */
+.lr-quick .chip:hover {
+  background: #fff;
+  color: #000;    /* <-- text becomes black */
+  font-weight: 600;
+}
+
+/* Active/click state (optional slight press-down effect) */
+.lr-quick .chip:active {
+  transform: translateY(1px);
+}
