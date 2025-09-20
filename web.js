@@ -1,4 +1,4 @@
-/* ========= G‑CS Guardian — Web UI Scripts (refined) =========
+/* ========= G-CS Guardian — Web UI Scripts (refined) =========
    Features:
    - Navbar "scrolled" state (rAF-throttled)
    - Smooth in-page anchor navigation
@@ -289,6 +289,7 @@
   }
 })();
 
+/* ===== Scroll-to-top button ===== */
 (function(){
   const btn = document.querySelector('.scroll-top');
   if(!btn) return;
@@ -308,39 +309,14 @@
   if(window.feather) feather.replace();
 })();
 
-
-document.getElementById("learn-more").addEventListener("click", function () {
-  // Run your scan logic here (if you already have it)
-  
-  // Auto scroll to results section
-  const resultsSection = document.getElementById("results");
-  if (resultsSection) {
-    resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-});
-
-rows.forEach(function(p){
-  var isSel = state.selected && state.selected.id === p.id;
-  var tr=document.createElement("tr");
-  tr.setAttribute("data-id", p.id);
-  tr.setAttribute("data-name", p.name || "");
-  tr.setAttribute("data-access", p.access_level);
-
-  tr.innerHTML =
-    "<td>"+escapeHtml(p.name||"—")+"</td>"+
-    "<td><code>"+escapeHtml(p.id)+"</code></td>"+
-    "<td>"+p.access_level+"</td>";
-
-  if(isSel) tr.classList.add("is-selected");
-
-  // NEW: row click selects project
-  tr.addEventListener("click", function(){
-    selectProject({
-      id: tr.getAttribute("data-id"),
-      name: tr.getAttribute("data-name"),
-      access: tr.getAttribute("data-access")
-    });
+/* ===== "Learn more" scroll (guarded) ===== */
+(function(){
+  const btn = document.getElementById("learn-more");
+  if(!btn) return;
+  btn.addEventListener("click", function () {
+    const resultsSection = document.getElementById("results");
+    if (resultsSection) {
+      resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   });
-
-  els.tbody.appendChild(tr);
-});
+})();
