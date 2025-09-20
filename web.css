@@ -1392,7 +1392,7 @@ td.download-col {
 #detailed-table{
   border-collapse: collapse;
   border-spacing: 0;
-  min-width: 1400px;             /* force horizontal scroll if needed */
+  min-width: 1400px !important;             /* force horizontal scroll if needed */
   width: max-content;            /* grows with content */
   table-layout: fixed;
   margin: 0;
@@ -1488,6 +1488,7 @@ td.download-col {
   background: #fff; border-radius: 6px;
 }
 .results-table-wrapper::-webkit-scrollbar-track{ background: #222; }
+
 
 
 
