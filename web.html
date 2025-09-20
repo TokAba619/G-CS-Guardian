@@ -1489,407 +1489,291 @@ document.addEventListener("DOMContentLoaded",function(){
 
 <script>
 /* =========================
-   LIVE REPORTS
+   LIVE REPORTS (clean build)
 ========================= */
-var API_REPORTS_SUMMARY = API_BASE + "/reports/summary";
-var API_REPORTS_TRENDS  = API_BASE + "/reports/trends";
-var API_REPORTS_TOP     = API_BASE + "/reports/top-risks";
+const API_REPORTS_SUMMARY = API_BASE + "/reports/summary";
+const API_REPORTS_TRENDS  = API_BASE + "/reports/trends";
+const API_REPORTS_TOP     = API_BASE + "/reports/top-risks";
+const API_MY_SCANS        = API_BASE + "/my-scans/"; // fallback to resolve a project
 
 let LR_CHARTS = { risk:null, exposure:null, trend:null };
 let LR_TIMER  = null;
 
-/* ---------- helpers ---------- */
-function lrQS(params){
+/* ---------- tiny helpers ---------- */
+function qs(params){
   const sp = new URLSearchParams();
-  Object.entries(params || {}).forEach(([k,v])=>{
-    if (v != null && String(v).trim() !== "") sp.set(k, v);
+  Object.entries(params||{}).forEach(([k,v])=>{
+    if (v!=null && String(v).trim()!=="") sp.set(k,v);
   });
   return sp.toString();
 }
-
-function authFetchJSON(url){
-  const t = getToken();
-  if (!t) throw new Error("No token; please log in again.");
-  return fetch(url, {
-    headers: { "Authorization": "Bearer " + t, "Accept": "application/json" }
-  }).then(async r=>{
-    if (!r.ok) {
-      const text = await r.text().catch(()=> "");
-      throw new Error(`HTTP ${r.status} on ${url}\n${text}`);
-    }
-    return r.json();
-  });
+function authJSON(url){
+  const t = getToken(); if(!t) throw new Error("No token");
+  return fetch(url,{ headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" } })
+    .then(async r=>{ if(!r.ok){ throw new Error(`HTTP ${r.status} ${url}`); } return r.json(); });
+}
+function setBusy(on){
+  const btn = document.getElementById("lr-refresh");
+  if (btn) btn.setAttribute("aria-busy", on ? "true" : "false");
 }
 
-// slim loader: only affects Refresh button (and optional KPI shimmer)
-function lrSetLoading(on){
-  const refreshBtn = document.getElementById("lr-refresh");
-  if(refreshBtn) refreshBtn.setAttribute("aria-busy", on ? "true" : "false");
+/* ---------- project resolution ---------- */
+function getPickerProjectId(){
+  try{
+    const sel = window.ProjectPicker?.getSelected?.();
+    if (sel?.id) return sel.id;
+  }catch(_){}
+  return "";
+}
+function getStoredProjectId(){
+  try{ return localStorage.getItem("selected_project_id") || "";}catch(_){ return ""; }
+}
+async function resolveProjectId(){
+  // 1) picker  2) localStorage  3) fetch most recent /my-scans
+  let pid = getPickerProjectId() || getStoredProjectId();
+  if (pid) return pid;
 
-  // Optional: skeleton shimmer on KPI tiles
-  const kpis = [
-    "kpi-total-scans","kpi-buckets","kpi-risky","kpi-risky-pct"
-  ].map(id=>document.getElementById(id)?.closest(".card"));
-
-  kpis.forEach(el => el && el.classList.toggle("lr-skel", !!on));
+  try{
+    const t = getToken(); if(!t) return "";
+    const r = await fetch(API_MY_SCANS, { headers:{ "Authorization":"Bearer "+t }});
+    if(!r.ok) return "";
+    const j = await r.json();
+    const scans = Array.isArray(j?.my_scans) ? j.my_scans : [];
+    const latest = scans.sort((a,b)=> new Date(b.timestamp)-new Date(a.timestamp))[0];
+    pid = latest?.project_id || "";
+    if (pid) localStorage.setItem("selected_project_id", pid);
+    return pid;
+  }catch(_){ return ""; }
 }
 
+/* ---------- date helpers ---------- */
+const isoDay = d => d.toISOString().slice(0,10);
+function ensureDates(){
+  const f = document.getElementById("lr-from");
+  const t = document.getElementById("lr-to");
+  if(!f || !t) return;
 
-function getSelectedProjectId(){
-  // Prefer an active ProjectPicker selection if present, else fallback to localStorage
-  try {
-    const pick = (window.ProjectPicker && window.ProjectPicker.getSelected && window.ProjectPicker.getSelected()) || null;
-    if (pick && pick.id) return pick.id;
-  } catch(_) {}
-  return localStorage.getItem("selected_project_id") || "";
+  const today = new Date();
+  const start = new Date(); start.setDate(today.getDate()-30);
+
+  if(!f.value) f.value = isoDay(start);
+  if(!t.value) t.value = isoDay(today);
+
+  f.max = isoDay(today);
+  t.max = isoDay(today);
 }
 
 /* ---------- KPIs ---------- */
-function lrRenderKpis(summary){
+function renderKpis(summary){
   const totals = summary?.totals || {};
-  const put = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = (val ?? "—"); };
+  const put=(id,val)=>{ const el=document.getElementById(id); if(el) el.textContent = (val ?? "—"); };
   put("kpi-total-scans", totals.total_scans);
   put("kpi-buckets",     totals.buckets_scanned);
   put("kpi-risky",       totals.risky_buckets);
-  put("kpi-risky-pct",   summary?.risky_bucket_pct == null ? "—" : summary.risky_bucket_pct + "%");
+  put("kpi-risky-pct",   summary?.risky_bucket_pct==null ? "—" : (summary.risky_bucket_pct+"%"));
 }
 
 /* ---------- charts ---------- */
-function lrDestroy(id){ if (LR_CHARTS[id]) { LR_CHARTS[id].destroy(); LR_CHARTS[id] = null; } }
+function destroyChart(key){ if(LR_CHARTS[key]){ LR_CHARTS[key].destroy(); LR_CHARTS[key]=null; } }
 
-function lrRenderRiskLevels(summary){
-  lrDestroy("risk");
+function renderRiskLevels(summary){
+  destroyChart("risk");
+  const cv = document.getElementById("chart-risk-levels"); if(!cv) return;
+  const ctx = cv.getContext("2d");
 
-  const ctx    = document.getElementById("chart-risk-levels").getContext("2d");
-  const counts = summary?.risk_level_counts || {};
   const order  = ["critical","high","medium","low","info"];
+  const counts = summary?.risk_level_counts || {};
+  const data   = order.map(k=>counts[k]||0);
 
-  // your palette
-  const riskColors = {
-    critical: "#ff0000",
-    high:     "#7a0c0c",
-    medium:   "#ffee00",
-    low:      "#00ff37",
-    info:     "#00eeff"
-  };
+  const colors = ["#ff0000","#7a0c0c","#ffee00","#00ff37","#00eeff"]; // critical..info (yours)
 
-  const data   = order.map(k => counts[k] || 0);
-  const colors = order.map(k => riskColors[k]);
-
-  LR_CHARTS.risk = new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      labels: order.map(s => s.toUpperCase()),
-      datasets: [{ data, backgroundColor: colors, borderWidth: 0 }]
-    },
-    options: {
-      cutout: "58%",
-      plugins: {
-        legend: { position: "bottom", labels: { color: "#ddd" } },
-        tooltip: {
-          callbacks: {
-            label(t){ const v=t.raw??0; return `${t.label}: ${v} bucket${v===1?'':'s'}`; }
-          }
-        }
+  LR_CHARTS.risk = new Chart(ctx,{
+    type:"doughnut",
+    data:{ labels: order.map(s=>s.toUpperCase()), datasets:[{ data, backgroundColor:colors, borderWidth:0 }] },
+    options:{
+      maintainAspectRatio:false, cutout:"58%",
+      plugins:{
+        legend:{ position:"bottom", labels:{ color:"#ddd" } },
+        tooltip:{ callbacks:{ label: c => `${c.label}: ${c.raw} bucket${c.raw===1?"":"s"}` } }
       }
     }
   });
 }
 
+function renderExposure(summary){
+  destroyChart("exposure");
+  const cv=document.getElementById("chart-exposure"); if(!cv) return;
+  const ctx=cv.getContext("2d");
 
-function lrRenderExposure(summary){
-  lrDestroy("exposure");
+  const ec = summary?.exposure_category_counts || {};
+  const priv = ec.private||0, pub = ec.public||0;
 
-  const ctx = document.getElementById("chart-exposure").getContext("2d");
-  const ec  = summary?.exposure_category_counts || {};
-  const vals = [ec.private || 0, ec.public || 0];
-
-  LR_CHARTS.exposure = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: ["Private", "Public"],
-      datasets: [{
-        data: vals,
-        backgroundColor: ["#00ff00", "#ff0000"],  // private, public
-        borderColor: ["#00cc00", "#cc0000"],
-        borderWidth: 1
-      }]
+  LR_CHARTS.exposure = new Chart(ctx,{
+    type:"bar",
+    data:{
+      labels:["Private","Public"],
+      datasets:[{ data:[priv,pub], backgroundColor:["#00ff00","#ff0000"], borderColor:["#00cc00","#cc0000"], borderWidth:1 }]
     },
-    options: {
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label(t){ const v=t.parsed?.y ?? 0; return `${t.label}: ${v} bucket${v===1?'':'s'}`; }
-          }
-        }
+    options:{
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label:c=>`${c.parsed.y} bucket${c.parsed.y===1?"":"s"}` } }
       },
-      scales: {
-        x: { ticks: { color: "#ddd" }, grid: { display: false } },
-        y: { beginAtZero: true, ticks: { color: "#aaa" }, grid: { color: "rgba(255,255,255,.08)" } }
+      scales:{
+        x:{ ticks:{ color:"#ddd" }, grid:{ display:false } },
+        y:{ beginAtZero:true, ticks:{ color:"#aaa", precision:0 }, grid:{ color:"rgba(255,255,255,.08)" } }
       }
     }
   });
 }
 
+function renderTrend(trends){
+  destroyChart("trend");
+  const cv=document.getElementById("chart-trend"); if(!cv) return;
+  const ctx=cv.getContext("2d");
 
-function lrRenderTrend(trends){
-  const cv = document.getElementById("chart-trend");
-  if (!cv) return;
-  const ctx = cv.getContext("2d"); if (!ctx) return;
-
-  lrDestroy("trend");
-  const points = trends?.points || [];
-  const labels = points.map(p => new Date(p.timestamp).toLocaleString());
-  const avg    = points.map(p => p.avg_risk ?? 0);
+  const pts = trends?.points || [];
+  const labels = pts.map(p=> new Date(p.timestamp).toLocaleString());
+  const avg    = pts.map(p=> p.avg_risk ?? 0);
 
   LR_CHARTS.trend = new Chart(ctx,{
     type:"line",
-    data:{ labels, datasets:[{ data: avg, tension:.25, fill:false }] },
+    data:{ labels, datasets:[{ data:avg, tension:.25, fill:false }] },
     options:{
+      maintainAspectRatio:false,
       plugins:{ legend:{ display:false } },
       scales:{
         x:{ ticks:{ color:"#ddd", maxRotation:0 }, grid:{ display:false } },
-        y:{ ticks:{ color:"#aaa" }, grid:{ color:"rgba(255,255,255,.08)" }, beginAtZero:true, suggestedMax:10 }
+        y:{ beginAtZero:true, suggestedMax:10, ticks:{ color:"#aaa" }, grid:{ color:"rgba(255,255,255,.08)" } }
       }
     }
   });
 }
 
-function lrRenderTopRisks(items){
-  const tb = document.getElementById("lr-toprisks-body");
-  if (!tb) return;
-
-  tb.innerHTML = "";
-  if (!items || items.length === 0){
-    tb.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No risky buckets found.</td></tr>";
+function renderTopRisks(items){
+  const tb=document.getElementById("lr-toprisks-body"); if(!tb) return;
+  tb.innerHTML="";
+  if(!items || !items.length){
+    tb.innerHTML="<tr><td colspan='5' style='text-align:center;'>No risky buckets found.</td></tr>";
     return;
   }
-
-  const rc = lvl => (lvl ? ("badge " + lvl.toLowerCase()) : "badge");
-
+  const badge = lvl => lvl ? `badge ${lvl.toLowerCase()}` : "badge";
   items.forEach(it=>{
-    const tr = document.createElement("tr");
+    const tr=document.createElement("tr");
     tr.innerHTML =
-      "<td>"+ (it.bucket_name||"—") +"</td>"+
-      "<td><strong>"+ (it.risk_score ?? "—") +"</strong> <span class='"+rc(it.risk_level)+"'>"+(it.risk_level||"")+"</span></td>"+
-      "<td>"+ (it.exposure_state||"—") +"</td>"+
-      "<td>"+ (it.sensitive_keyword_count ?? 0) +"</td>"+
-      "<td>"+ formatDate(it.last_seen_at) +"</td>";
+      `<td>${it.bucket_name||"—"}</td>
+       <td><strong>${it.risk_score ?? "—"}</strong> <span class="${badge(it.risk_level)}">${it.risk_level||""}</span></td>
+       <td>${it.exposure_state||"—"}</td>
+       <td>${it.sensitive_keyword_count ?? 0}</td>
+       <td>${formatDate(it.last_seen_at)}</td>`;
     tb.appendChild(tr);
   });
 }
 
 /* ---------- main loader ---------- */
 async function loadLiveReports(){
-  const pid = getSelectedProjectId();
+  const pid = await resolveProjectId();
   const label = document.getElementById("lr-project-label");
-  if (label) label.textContent = pid || "—";
+  if(label) label.textContent = pid || "—";
+  if(!pid){ console.warn("Live Reports: no project id."); return; }
 
-  if (!pid){
-    // friendly message if you want: keep charts blank
-    console.warn("Live Reports: no project selected.");
-    return;
-  }
-
-  // read dates; do NOT pass empty strings
-  const fromEl = document.getElementById("lr-from");
-  const toEl   = document.getElementById("lr-to");
-  const from = fromEl ? fromEl.value.trim() : "";
-  const to   = toEl   ? toEl.value.trim()   : "";
+  const from = document.getElementById("lr-from")?.value || "";
+  const to   = document.getElementById("lr-to")?.value   || "";
 
   try{
-    lrSetLoading(true);
+    setBusy(true);
+    const q   = qs({ project_id: pid, ...(from && {from}), ...(to && {to}) });
+    const q5  = qs({ project_id: pid, limit:5, ...(from && {from}), ...(to && {to}) });
 
-    const qs   = lrQS({ project_id: pid, ...(from && {from}), ...(to && {to}) });
-    const lim5 = lrQS({ project_id: pid, limit: 5, ...(from && {from}), ...(to && {to}) });
-
-    const [summary, trends, topRisks] = await Promise.all([
-      authFetchJSON(API_REPORTS_SUMMARY + "?" + qs),
-      authFetchJSON(API_REPORTS_TRENDS  + "?" + qs),
-      authFetchJSON(API_REPORTS_TOP     + "?" + lim5)
+    const [summary,trends,top] = await Promise.all([
+      authJSON(`${API_REPORTS_SUMMARY}?${q}`),
+      authJSON(`${API_REPORTS_TRENDS}?${q}`),
+      authJSON(`${API_REPORTS_TOP}?${q5}`)
     ]);
 
-    console.debug("Live Reports summary:", summary);
-    console.debug("Live Reports trends:", trends);
-    console.debug("Live Reports top:", topRisks);
-
-    lrRenderKpis(summary);
-    lrRenderRiskLevels(summary);
-    lrRenderExposure(summary);
-    lrRenderTrend(trends);
-    lrRenderTopRisks(topRisks?.items || []);
+    renderKpis(summary);
+    renderRiskLevels(summary);
+    renderExposure(summary);
+    renderTrend(trends);
+    renderTopRisks(top?.items || []);
   }catch(e){
-    console.error("Live Reports error:", e);
-    // Optional: surface an inline error message here
+    console.error("Live Reports:", e);
   }finally{
-    lrSetLoading(false);
+    setBusy(false);
   }
 }
 
-// YYYY-MM-DD for <input type="date">
-function lrIsoDay(d){ return d.toISOString().slice(0, 10); }
-
-// Seed defaults if fields are empty (last 30 days)
-function lrEnsureDates(){
-  const fromEl = document.getElementById("lr-from");
-  const toEl   = document.getElementById("lr-to");
-  if(!fromEl || !toEl) return;
-
-  const today = new Date();
-  const start = new Date();
-  start.setDate(today.getDate() - 30);   // last 30 days
-
-  if(!fromEl.value) fromEl.value = lrIsoDay(start);
-  if(!toEl.value)   toEl.value   = lrIsoDay(today);
-
-  // Optional: constrain selection
-  fromEl.max = lrIsoDay(today);
-  toEl.max   = lrIsoDay(today);
+/* ---------- quick ranges ---------- */
+const dISO = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+function setDateInputs(fromISO,toISO){
+  const f=document.getElementById("lr-from"); const t=document.getElementById("lr-to");
+  if(f) f.value = fromISO || ""; if(t) t.value = toISO || "";
 }
-
-
-/* ---------- wiring ---------- */
-// --- helpers must be declared above this block ---
-// function toISODateLocal(d){ ... }
-// function lrEnsureDates(){ ... }  // sets last 30 days into #lr-from / #lr-to
-// function loadLiveReports(){ ... }
-
-document.addEventListener("DOMContentLoaded", function () {
-  // 1) Seed dates on first load
-  lrEnsureDates();
-
-  // 2) Wire controls
-  const btn  = document.getElementById("lr-refresh");
-  const auto = document.getElementById("lr-autorefresh");
-
-  if (btn)  btn.addEventListener("click", loadLiveReports);
-
-  if (auto) {
-    auto.addEventListener("change", function () {
-      if (LR_TIMER) { clearInterval(LR_TIMER); LR_TIMER = null; }
-      if (this.checked) { LR_TIMER = setInterval(loadLiveReports, 30_000); }
-    });
-  }
-
-  // 3) First render
-  loadLiveReports();
-});
-
-// 4) When user picks a new project from your picker
-window.addEventListener("gcs_project_selected", function (ev) {
-  // (optional) remember the selection
-  try { if (ev?.detail?.id) localStorage.setItem("selected_project_id", ev.detail.id); } catch(_) {}
-
-  // reset & re-seed date range to last 30 days
-  const f = document.getElementById("lr-from");
-  const t = document.getElementById("lr-to");
-  if (f) f.value = "";
-  if (t) t.value = "";
-  lrEnsureDates();
-
-  // refresh live reports
-  loadLiveReports();
-});
-
-/* If not already available in this file, keep this next line */
-const API_PREVIOUS_SCANS = typeof API_PREVIOUS_SCANS !== "undefined"
-  ? API_PREVIOUS_SCANS
-  : (API_BASE + "/my-scans/");
-
-/* ============ Date helpers ============ */
-function lrISODateOnly(d){
-  // returns YYYY-MM-DD in local time
-  const pad = n=>String(n).padStart(2,"0");
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-}
-function lrSetDateInputs(fromISO, toISO){
-  const f = document.getElementById("lr-from");
-  const t = document.getElementById("lr-to");
-  if(f) f.value = fromISO || "";
-  if(t) t.value = toISO   || "";
-}
-
-/* Seed last 30 days if empty (you already call this somewhere) */
-function lrEnsureDates(){
-  const f = document.getElementById("lr-from");
-  const t = document.getElementById("lr-to");
-  if(f && !f.value || t && !t.value){
-    const now = new Date();
-    const start = new Date(now); start.setDate(now.getDate()-30);
-    lrSetDateInputs(lrISODateOnly(start), lrISODateOnly(now));
-  }
-}
-
-/* ============ Quick range logic ============ */
-async function lrQuick(range){
+async function quick(range){
   const pid = document.getElementById("lr-project-label")?.textContent?.trim();
-  if(!pid || pid === "—"){ return; }
+  if(!pid || pid==="—") return;
 
   const today = new Date();
-  let fromISO = "", toISO = "";
+  let fromISO="", toISO="";
 
-  if(range === "reset"){
-    // restore your default (last 30 days)
-    const start = new Date(today); start.setDate(today.getDate()-30);
-    fromISO = lrISODateOnly(start);
-    toISO   = lrISODateOnly(today);
+  if(range==="reset"){
+    const start=new Date(today); start.setDate(today.getDate()-30);
+    fromISO=dISO(start); toISO=dISO(today);
+  }else if(range==="today"){
+    fromISO=dISO(today); toISO=dISO(today);
+  }else if(range==="7d" || range==="30d"){
+    const n=range==="7d"?7:30; const start=new Date(today); start.setDate(today.getDate()-n);
+    fromISO=dISO(start); toISO=dISO(today);
+  }else if(range==="last"){
+    // use /my-scans to find latest scan for current project
+    try{
+      const t=getToken(); if(!t) return;
+      const r=await fetch(API_MY_SCANS,{ headers:{ "Authorization":"Bearer "+t }});
+      const j=await r.json();
+      const scans=Array.isArray(j?.my_scans)?j.my_scans:[];
+      const latest=scans.filter(s=>s.project_id===pid)
+                        .sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];
+      if(!latest){ alert("No scan found for this project."); return; }
+      const ts=new Date(latest.timestamp);
+      fromISO=dISO(ts); toISO=dISO(ts);
+    }catch(_){ return; }
   }
-  else if(range === "today"){
-    fromISO = lrISODateOnly(today);
-    toISO   = lrISODateOnly(today);
-  }
-  else if(range === "7d" || range === "30d"){
-    const n = range === "7d" ? 7 : 30;
-    const start = new Date(today); start.setDate(today.getDate()-n);
-    fromISO = lrISODateOnly(start);
-    toISO   = lrISODateOnly(today);
-  }
-  else if(range === "last"){
-    // fetch most recent scan for this project (uses the same endpoint you use on My-Scan)
-    const token = getToken(); if(!token){ alert("Please sign in."); return; }
-    const res = await fetch(API_PREVIOUS_SCANS, { headers:{ "Authorization":"Bearer "+token }});
-    if(!res.ok){ alert("Can't fetch recent scans."); return; }
-    const data = await res.json();
-    const scans = Array.isArray(data?.my_scans) ? data.my_scans : [];
-    // find latest scan for this project
-    const latest = scans.filter(s => s.project_id === pid)
-                        .sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp))[0];
-    if(!latest){ alert("No scans found for this project."); return; }
-    const ts = new Date(latest.timestamp);
-    fromISO = lrISODateOnly(ts);
-    toISO   = lrISODateOnly(ts);
-  }
-
-  lrSetDateInputs(fromISO, toISO);
+  setDateInputs(fromISO,toISO);
   await loadLiveReports();
 }
 
-/* Wire up chips & slimmer loader */
-document.addEventListener("DOMContentLoaded", function () {
-  // quick filters
+/* ---------- wiring ---------- */
+document.addEventListener("DOMContentLoaded", ()=>{
+  ensureDates();
+
+  // quick-range chips
   document.querySelectorAll(".lr-quick .chip").forEach(btn=>{
-    btn.addEventListener("click", ()=> lrQuick(btn.getAttribute("data-range")));
+    btn.addEventListener("click", ()=> quick(btn.getAttribute("data-range")));
   });
 
-  // make KPI boxes shimmer while loading (optional)
-  const kpis = [
-    "kpi-total-scans","kpi-buckets","kpi-risky","kpi-risky-pct"
-  ].map(id=>document.getElementById(id)?.closest(".card"));
+  // refresh / auto-refresh
+  document.getElementById("lr-refresh")?.addEventListener("click", loadLiveReports);
+  const auto = document.getElementById("lr-autorefresh");
+  if(auto){
+    auto.addEventListener("change", function(){
+      if(LR_TIMER){ clearInterval(LR_TIMER); LR_TIMER=null; }
+      if(this.checked){ LR_TIMER=setInterval(loadLiveReports, 30_000); }
+    });
+  }
 
-  // replace big banner loader with subtle button state + optional shimmer
-  const refreshBtn = document.getElementById("lr-refresh");
-  const oldSetLoading = lrSetLoading;
-  lrSetLoading = function(on){
-    // 1) slim loader on button
-    if(refreshBtn) refreshBtn.setAttribute("aria-busy", on ? "true" : "false");
-    // 2) KPI shimmer (optional)
-    kpis.forEach(el => el && el.classList.toggle("lr-skel", !!on));
-    // keep your old behavior (if you still have the banner, it will also hide/show)
-    if(typeof oldSetLoading === "function"){ oldSetLoading(on); }
-  };
+  // first paint
+  loadLiveReports();
 });
 
+// when user selects a project elsewhere
+window.addEventListener("gcs_project_selected", ev=>{
+  try{ if(ev?.detail?.id) localStorage.setItem("selected_project_id", ev.detail.id); }catch(_){}
+  const f=document.getElementById("lr-from"), t=document.getElementById("lr-to");
+  if(f) f.value=""; if(t) t.value="";
+  ensureDates();
+  loadLiveReports();
+});
 </script>
 
 <script src="https://unpkg.com/feather-icons"></script>
