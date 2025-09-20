@@ -358,6 +358,101 @@
     </div>
   </section>
 
+
+  <!-- LIVE REPORTS SECTION -->
+<section class="content-section live-reports" id="live-reports">
+  <div class="floating-elements">
+    <div class="floating-element"></div><div class="floating-element"></div>
+    <div class="floating-element"></div><div class="floating-element"></div>
+    <div class="floating-element"></div>
+  </div>
+
+  <div class="container">
+    <h2 class="section-title">Live Reports</h2>
+    <p class="section-content">
+      Real-time insights for the currently selected project. Pick a project above — or hit Refresh.
+    </p>
+
+    <!-- Controls -->
+    <div class="lr-controls">
+      <div class="lr-left">
+        <label class="lr-inline">
+          <span>Project:</span>
+          <strong id="lr-project-label">—</strong>
+        </label>
+        <label class="lr-inline">
+          <span>From</span>
+          <input type="date" id="lr-from">
+        </label>
+        <label class="lr-inline">
+          <span>To</span>
+          <input type="date" id="lr-to">
+        </label>
+      </div>
+      <div class="lr-right">
+        <label class="toggle lr-auto">
+          <input type="checkbox" id="lr-autorefresh">
+          <span class="slider"></span>
+          <span class="toggle-label">Auto-refresh (30s)</span>
+        </label>
+        <button id="lr-refresh" class="cta-pink lr-refresh">Refresh</button>
+      </div>
+    </div>
+
+    <!-- Loader -->
+    <div id="lr-loader" class="lr-loader" hidden>
+      <div class="lr-spinner"></div>
+      <div class="lr-loading-text">Loading live reports…</div>
+    </div>
+
+    <!-- Tiles -->
+    <div class="lr-kpis">
+      <div class="lr-tile"><div class="lr-t-h">Total Scans</div><div id="kpi-total-scans" class="lr-t-v">—</div></div>
+      <div class="lr-tile"><div class="lr-t-h">Buckets Scanned</div><div id="kpi-buckets" class="lr-t-v">—</div></div>
+      <div class="lr-tile"><div class="lr-t-h">Risky Buckets</div><div id="kpi-risky" class="lr-t-v">—</div></div>
+      <div class="lr-tile"><div class="lr-t-h">Risky %</div><div id="kpi-risky-pct" class="lr-t-v">—</div></div>
+    </div>
+
+    <!-- Charts -->
+    <div class="lr-grid">
+      <div class="lr-card">
+        <div class="lr-card-title">Risk Levels</div>
+        <canvas id="chart-risk-levels" height="160"></canvas>
+      </div>
+      <div class="lr-card">
+        <div class="lr-card-title">Exposure (Public vs Private)</div>
+        <canvas id="chart-exposure" height="160"></canvas>
+      </div>
+      <div class="lr-card lr-wide">
+        <div class="lr-card-title">Risk Trend</div>
+        <canvas id="chart-trend" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- Top Risks -->
+    <div class="lr-card">
+      <div class="lr-card-title">Top Risks (latest scan)</div>
+      <div class="table-container">
+        <table class="dashboard-table">
+          <thead>
+          <tr>
+            <th>Bucket</th>
+            <th>Risk</th>
+            <th>Exposure</th>
+            <th>Keywords</th>
+            <th class="nowrap">Last Seen</th>
+          </tr>
+          </thead>
+          <tbody id="lr-toprisks-body">
+          <tr><td colspan="5" style="text-align:center;">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+
   <!-- MY-SCAN SECTION -->
   <section class="content-section myscan" id="myscan">
     <div class="floating-elements">
@@ -1380,6 +1475,7 @@ document.addEventListener("DOMContentLoaded",function(){
 })();
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://unpkg.com/feather-icons"></script>
 <script>window.feather && feather.replace();</script>
 <script src="web.js"></script>
