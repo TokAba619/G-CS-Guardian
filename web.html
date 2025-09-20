@@ -460,26 +460,31 @@
       <h2 class="section-title">My-Scan</h2>
       <p class="section-content">My-Scan lets you review past scans without rescanning the same project.</p>
 
-      <div class="myscan-feature">
-        <h3>Previous Scans</h3>
-        <p>View all your previous scans with timestamps and IDs.</p>
-       <table class="scan-table">
-  <thead>
-    <tr>
-      <th>Timestamp</th>
-      <th>Scan ID</th>
-      <th>Project ID</th>
-      <th class="download-col">Download Report</th>
-    </tr>
-  </thead>
-  <tbody id="previous-scan-table">
-    <tr>
-      <td colspan="4">Loading...</td>
-    </tr>
-  </tbody>
-</table>
+    <div class="myscan-feature">
+  <h3>Previous Scans</h3>
+  <p>View all your previous scans with timestamps and IDs.</p>
 
-      </div>
+  <!-- ✅ Add scrollable wrapper here -->
+  <div class="my-scan-table-wrapper">
+    <table class="scan-table">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Scan ID</th>
+          <th>Project ID</th>
+          <th class="download-col">Download Report</th>
+        </tr>
+      </thead>
+      <tbody id="previous-scan-table">
+        <tr>
+          <td colspan="4">Loading...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <!-- ✅ End wrapper -->
+
+</div>
 
       <hr class="myscan-divider">
 
