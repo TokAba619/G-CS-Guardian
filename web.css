@@ -1367,20 +1367,28 @@ td.download-col {
   z-index: 2;
 }
 
+
+
 /* ===== Scrollable wrapper (both axes) ===== */
 .results-table-wrapper{
-  max-height: 640px;        /* vertical limit */
+  display: block;
+  width: 100%;
+  max-height: 1500px;        /* vertical limit */
   overflow: auto;           /* X + Y scroll as needed */
   border-radius: 10px;
   background: #111;
   border: 1px solid rgba(255,255,255,.08);
+  padding: 0 10px 10px;     /* gutter so table + scrollbar not clipped */
+  box-sizing: border-box;
 }
 
 /* ===== Table base ===== */
 #detailed-table{
-  width: 100%;
-  table-layout: fixed;      /* use colgroup widths */
   border-collapse: collapse;
+  border-spacing: 0;
+  min-width: 1200px;        /* force horizontal scroll if needed */
+  width: max-content;       /* grows with content */
+  table-layout: fixed;
 }
 
 /* Sticky header */
@@ -1391,6 +1399,12 @@ td.download-col {
   color: #fff;
   z-index: 5;
 }
+.results-table-wrapper #detailed-table thead th:first-child{
+  border-top-left-radius: 10px;
+}
+.results-table-wrapper #detailed-table thead th:last-child{
+  border-top-right-radius: 10px;
+}
 
 /* Cells */
 #detailed-table th,
@@ -1399,30 +1413,31 @@ td.download-col {
   vertical-align: top;
   border-bottom: 1px solid rgba(255,255,255,.08);
   color: #ddd;
-}
-
-/* Don’t let any column blow out the width */
-#detailed-table th,
-#detailed-table td{
-  overflow-wrap: anywhere;  /* wraps long tokens/words */
+  overflow-wrap: anywhere;
   word-break: break-word;
-  white-space: normal;      /* override any .nowrap */
+  white-space: normal;
 }
 
-/* Bucket name can wrap normally */
+/* Bucket name */
 #detailed-table td:nth-child(1){
   font-weight: 500;
   color: #fff;
+  min-width: 220px;
 }
 
-/* Status / Score / Level — center-ish and compact */
+/* Status / Score / Level — compact */
 #detailed-table td:nth-child(2),
 #detailed-table td:nth-child(3),
 #detailed-table td:nth-child(4){
   white-space: nowrap;
+  min-width: 100px;
+  text-align: center;
 }
 
-/* Risk Reason column: make lists tidy + scroll if very long */
+/* Risk Reason column */
+#detailed-table td:nth-child(5){
+  min-width: 400px;
+}
 #detailed-table td:nth-child(5) ul{
   margin: 0;
   padding-left: 1.2rem;
@@ -1434,13 +1449,11 @@ td.download-col {
   margin: .25rem 0;
 }
 
-/* Sensitive Keywords: wrap chips and allow internal scroll */
-#detailed-table td:nth-child(6){
-  padding-right: 8px;
-}
+/* Sensitive Keywords */
 #detailed-table td:nth-child(6){
   max-height: 8.5rem;
   overflow: auto;
+  min-width: 280px;
 }
 #detailed-table td:nth-child(6) .chip,
 #detailed-table td:nth-child(6) .tag{
@@ -1449,7 +1462,10 @@ td.download-col {
   white-space: nowrap;
 }
 
-/* Sample files: one line per link, ellipsis for long names */
+/* Sample files */
+#detailed-table td:nth-child(7){
+  min-width: 220px;
+}
 #detailed-table td:nth-child(7) a{
   display: block;
   max-width: 100%;
@@ -1459,7 +1475,7 @@ td.download-col {
   margin: 4px 0;
 }
 
-/* Scrollbar theming for dark UI */
+/* Scrollbar theming */
 .results-table-wrapper::-webkit-scrollbar{ width: 10px; height: 10px; }
 .results-table-wrapper::-webkit-scrollbar-thumb{
   background: #fff; border-radius: 6px;
