@@ -1487,4 +1487,7 @@ td.download-col {
 .results-table-wrapper::-webkit-scrollbar-thumb{
   background: #fff; border-radius: 6px;
 }
+
 .results-table-wrapper::-webkit-scrollbar-track{ background: #222; }
+
+.results-table-wrapper > #detailed-table { width: 1600px !important; min-width: 1600px !important; }
