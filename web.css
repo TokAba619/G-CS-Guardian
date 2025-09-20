@@ -1369,7 +1369,7 @@ td.download-col {
 
 /* Wrapper for scrollable results table */
 .results-table-wrapper {
-  max-height: 800px;       /* vertical limit, adjust as you like */
+  max-height: 2000px;       /* vertical limit, adjust as you like */
   overflow-y: auto;        /* vertical scroll */
   overflow-x: auto;        /* horizontal scroll */
   border-radius: 8px;
@@ -1391,9 +1391,10 @@ td.download-col {
   width: 8px;    /* vertical bar */
 }
 .results-table-wrapper::-webkit-scrollbar-thumb {
-  background: #e91e63;
+  background: #ffffff;
   border-radius: 4px;
 }
 .results-table-wrapper::-webkit-scrollbar-track {
   background: #222;
 }
+
