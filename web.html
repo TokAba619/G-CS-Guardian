@@ -1482,13 +1482,12 @@ document.addEventListener("DOMContentLoaded",function(){
 const API_REPORTS_SUMMARY = API_BASE + "/reports/summary";
 const API_REPORTS_TRENDS  = API_BASE + "/reports/trends";
 const API_REPORTS_TOP     = API_BASE + "/reports/top-risks";
-
-// single safe source to avoid "already declared"
 const API_PREVIOUS_SCANS_URL =
   (window.API_PREVIOUS_SCANS || (window.API_PREVIOUS_SCANS = API_BASE + "/my-scans/"));
 
+/* Current range: "latest" | "today" | "all" */
+let LR_RANGE = "latest";
 let LR_CHARTS = { risk: null, exposure: null, trend: null };
-let LR_RANGE  = "latest"; // "latest" | "today" | "all"
 
 /* ---------- helpers ---------- */
 function authFetchJSON(url){
@@ -1496,25 +1495,13 @@ function authFetchJSON(url){
   return fetch(url, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }})
     .then(async r => { if(!r.ok) throw new Error(`HTTP ${r.status} on ${url}`); return r.json(); });
 }
+
 function isoLocalDate(d){
   const pad = n => String(n).padStart(2,"0");
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 }
-function dayBoundsISO(dayYYYYMMDD){
-  // Send FULL-day bounds to the backend (prevents it from widening the range)
-  // If your backend prefers timezone-aware strings, uncomment the UTC variant below.
-  const from = `${dayYYYYMMDD}T00:00:00`;
-  const to   = `${dayYYYYMMDD}T23:59:59.999`;
-  return { from, to };
-
-  // --- UTC variant (use if your API expects Z times) ---
-  // const start = new Date(dayYYYYMMDD + "T00:00:00");
-  // const end   = new Date(dayYYYYMMDD + "T23:59:59.999");
-  // return { from: start.toISOString(), to: end.toISOString() };
-}
 function formatScanDay(ts){ return isoLocalDate(new Date(ts)); }
 
-/* Project id resolution */
 async function ensureProjectId(){
   try{
     const pick = window.ProjectPicker?.getSelected?.();
@@ -1529,6 +1516,7 @@ async function ensureProjectId(){
   const data  = await res.json();
   const scans = Array.isArray(data?.my_scans) ? data.my_scans : [];
   if(!scans.length) return "";
+
   const latest = scans.sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp))[0];
   if(latest?.project_id){
     localStorage.setItem("selected_project_id", latest.project_id);
@@ -1537,7 +1525,6 @@ async function ensureProjectId(){
   return "";
 }
 
-/* Latest scan day for a project */
 async function getLatestScanDay(pid){
   const t = getToken(); if(!t) return null;
   const res  = await fetch(API_PREVIOUS_SCANS_URL, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }});
@@ -1549,30 +1536,29 @@ async function getLatestScanDay(pid){
   return latest ? formatScanDay(latest.timestamp) : null;
 }
 
-/* Date range from LR_RANGE */
 async function computeDatesForRange(pid){
-  if (LR_RANGE === "all") return { from:"", to:"" };
+  if (LR_RANGE === "all")   return { from:"", to:"", label:"All scans" };
   if (LR_RANGE === "today"){
-    const d = isoLocalDate(new Date());
-    return dayBoundsISO(d);
+    const today = isoLocalDate(new Date());
+    return { from: today, to: today, label: "Today" };
   }
-  // latest
   const latestDay = await getLatestScanDay(pid);
-  if(!latestDay) return { from:"", to:"" }; // no scans -> caller will fall back
-  return dayBoundsISO(latestDay);
+  if(!latestDay) return { from:"", to:"", label:"All scans" }; // graceful fallback
+  return { from: latestDay, to: latestDay, label:"Latest scan" };
 }
 
-/* ---------- KPIs ---------- */
+/* ---------- KPI + renderers ---------- */
 function renderKpis(summary){
   const totals = summary?.totals || {};
   const put = (id,v)=>{ const el=document.getElementById(id); if(el) el.textContent = (v ?? "—"); };
+
+  // Show “1” only for Latest (single-scan day)
   put("kpi-total-scans", (LR_RANGE === "latest") ? 1 : (totals.total_scans ?? "—"));
-  put("kpi-buckets",     totals.buckets_scanned);
-  put("kpi-risky",       totals.risky_buckets);
+  put("kpi-buckets",     totals.buckets_scanned ?? "—");
+  put("kpi-risky",       totals.risky_buckets   ?? "—");
   put("kpi-risky-pct",   (summary?.risky_bucket_pct == null) ? "—" : (summary.risky_bucket_pct + "%"));
 }
 
-/* ---------- charts ---------- */
 function destroyChart(id){ if(LR_CHARTS[id]){ LR_CHARTS[id].destroy(); LR_CHARTS[id]=null; } }
 
 function renderRiskLevels(summary){
@@ -1582,6 +1568,7 @@ function renderRiskLevels(summary){
   const order  = ["critical","high","medium","low","info"];
   const colors = ["#ff0000","#7a0c0c","#ffee00","#00ff37","#00eeff"];
   const data   = order.map(k => counts[k] || 0);
+
   LR_CHARTS.risk = new Chart(ctx,{
     type:"doughnut",
     data:{ labels: order.map(s=>s.toUpperCase()), datasets:[{ data, backgroundColor: colors, borderWidth:0 }] },
@@ -1600,6 +1587,7 @@ function renderExposure(summary){
   const ctx = document.getElementById("chart-exposure")?.getContext("2d"); if(!ctx) return;
   const ec  = summary?.exposure_category_counts || {};
   const vals = [ec.private||0, ec.public||0];
+
   LR_CHARTS.exposure = new Chart(ctx,{
     type:"bar",
     data:{
@@ -1630,6 +1618,7 @@ function renderTrend(trends){
   const points = trends?.points || [];
   const labels = points.map(p => new Date(p.timestamp).toLocaleString());
   const avg    = points.map(p => p.avg_risk ?? 0);
+
   LR_CHARTS.trend = new Chart(ctx,{
     type:"line",
     data:{ labels, datasets:[{ data: avg, tension:.25, fill:false, borderWidth:2, borderColor:"#ff4070", pointRadius:2 }] },
@@ -1663,33 +1652,49 @@ function renderTopRisks(items){
   });
 }
 
+/* Small helper to show current range text (optional) */
+function setRangeBadge(text){
+  let badge = document.getElementById("lr-range-badge");
+  if(!badge){
+    const holder = document.querySelector(".lr-header") || document.querySelector("#live-reports .container");
+    if(holder){
+      badge = document.createElement("div");
+      badge.id = "lr-range-badge";
+      badge.style.cssText = "margin-top:6px;font-size:.85rem;opacity:.7;";
+      holder.appendChild(badge);
+    }
+  }
+  if(badge) badge.textContent = text ? `Loaded: ${text}` : "";
+}
+
 /* ---------- main loader ---------- */
 async function loadLiveReports(){
   const pid = await ensureProjectId();
   const label = document.getElementById("lr-project-label");
   if (label) label.textContent = pid || "—";
-  if(!pid){ console.warn("Live Reports: no project selected or no scans yet."); return; }
+  if(!pid){ console.warn("Live Reports: no project selected or no scans yet."); setRangeBadge(""); return; }
 
-  let { from, to } = await computeDatesForRange(pid);
-  // If "latest" has no scans, transparently fall back to ALL
-  if (LR_RANGE === "latest" && !from && !to) { from = ""; to = ""; }
+  const { from, to, label: rangeText } = await computeDatesForRange(pid);
+  setRangeBadge(rangeText);
 
-  const qs    = new URLSearchParams({ project_id: pid });
-  const qsTop = new URLSearchParams({ project_id: pid, limit: "5" });
+  const qs   = new URLSearchParams({ project_id: pid });
+  const qsTop= new URLSearchParams({ project_id: pid, limit: "5" });
   if (from) { qs.set("from", from); qsTop.set("from", from); }
   if (to)   { qs.set("to",   to);   qsTop.set("to",   to);   }
 
   try{
+    // One range applied to ALL blocks:
     const [summary, trends, topRisks] = await Promise.all([
       authFetchJSON(`${API_REPORTS_SUMMARY}?${qs}`),
       authFetchJSON(`${API_REPORTS_TRENDS}?${qs}`),
       authFetchJSON(`${API_REPORTS_TOP}?${qsTop}`)
     ]);
-    renderKpis(summary);
-    renderRiskLevels(summary);
-    renderExposure(summary);
-    renderTrend(trends);
-    renderTopRisks(topRisks?.items || []);
+
+    renderKpis(summary);       // Buckets Scanned / Risky Buckets / Risk % obey range
+    renderRiskLevels(summary); // Doughnut obeys range
+    renderExposure(summary);   // Exposure obeys range
+    renderTrend(trends);       // Trend obeys range
+    renderTopRisks(topRisks?.items || []); // Top Risks obeys range
   }catch(err){
     console.error("Live Reports error:", err);
   }
@@ -1699,7 +1704,7 @@ async function loadLiveReports(){
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("lr-refresh")?.addEventListener("click", loadLiveReports);
 
-  // Filter chips (if present)
+  // Range chips (add buttons with .lr-quick .chip and data-range="latest|today|all")
   document.querySelectorAll(".lr-quick .chip").forEach(btn=>{
     btn.addEventListener("click", async ()=>{
       const next = btn.getAttribute("data-range");
@@ -1719,6 +1724,7 @@ window.addEventListener("gcs_project_selected", (ev)=>{
   loadLiveReports();
 });
 </script>
+
 
 <script src="https://unpkg.com/feather-icons"></script>
 <script>window.feather && feather.replace();</script>
