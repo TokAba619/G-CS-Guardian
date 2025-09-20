@@ -401,10 +401,18 @@
       </div>
     </div>
 
+    <div class="lr-quick">
+  <button type="button" class="chip" data-range="last">Last scan</button>
+  <button type="button" class="chip" data-range="today">Today</button>
+  <button type="button" class="chip" data-range="7d">7d</button>
+  <button type="button" class="chip" data-range="30d">30d</button>
+  <button type="button" class="chip chip-reset" data-range="reset">Reset</button>
+</div>
+
+
     <!-- Loader -->
     <div id="lr-loader" class="lr-loader" hidden>
       <div class="lr-spinner"></div>
-      <div class="lr-loading-text">Loading live reports…</div>
     </div>
 
     <!-- Tiles -->
@@ -1513,10 +1521,19 @@ function authFetchJSON(url){
   });
 }
 
+// slim loader: only affects Refresh button (and optional KPI shimmer)
 function lrSetLoading(on){
-  const el = document.getElementById("lr-loader");
-  if (el) el.hidden = !on;
+  const refreshBtn = document.getElementById("lr-refresh");
+  if(refreshBtn) refreshBtn.setAttribute("aria-busy", on ? "true" : "false");
+
+  // Optional: skeleton shimmer on KPI tiles
+  const kpis = [
+    "kpi-total-scans","kpi-buckets","kpi-risky","kpi-risky-pct"
+  ].map(id=>document.getElementById(id)?.closest(".card"));
+
+  kpis.forEach(el => el && el.classList.toggle("lr-skel", !!on));
 }
+
 
 function getSelectedProjectId(){
   // Prefer an active ProjectPicker selection if present, else fallback to localStorage
@@ -1774,6 +1791,105 @@ window.addEventListener("gcs_project_selected", function (ev) {
   // refresh live reports
   loadLiveReports();
 });
+
+/* If not already available in this file, keep this next line */
+const API_PREVIOUS_SCANS = typeof API_PREVIOUS_SCANS !== "undefined"
+  ? API_PREVIOUS_SCANS
+  : (API_BASE + "/my-scans/");
+
+/* ============ Date helpers ============ */
+function lrISODateOnly(d){
+  // returns YYYY-MM-DD in local time
+  const pad = n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+function lrSetDateInputs(fromISO, toISO){
+  const f = document.getElementById("lr-from");
+  const t = document.getElementById("lr-to");
+  if(f) f.value = fromISO || "";
+  if(t) t.value = toISO   || "";
+}
+
+/* Seed last 30 days if empty (you already call this somewhere) */
+function lrEnsureDates(){
+  const f = document.getElementById("lr-from");
+  const t = document.getElementById("lr-to");
+  if(f && !f.value || t && !t.value){
+    const now = new Date();
+    const start = new Date(now); start.setDate(now.getDate()-30);
+    lrSetDateInputs(lrISODateOnly(start), lrISODateOnly(now));
+  }
+}
+
+/* ============ Quick range logic ============ */
+async function lrQuick(range){
+  const pid = document.getElementById("lr-project-label")?.textContent?.trim();
+  if(!pid || pid === "—"){ return; }
+
+  const today = new Date();
+  let fromISO = "", toISO = "";
+
+  if(range === "reset"){
+    // restore your default (last 30 days)
+    const start = new Date(today); start.setDate(today.getDate()-30);
+    fromISO = lrISODateOnly(start);
+    toISO   = lrISODateOnly(today);
+  }
+  else if(range === "today"){
+    fromISO = lrISODateOnly(today);
+    toISO   = lrISODateOnly(today);
+  }
+  else if(range === "7d" || range === "30d"){
+    const n = range === "7d" ? 7 : 30;
+    const start = new Date(today); start.setDate(today.getDate()-n);
+    fromISO = lrISODateOnly(start);
+    toISO   = lrISODateOnly(today);
+  }
+  else if(range === "last"){
+    // fetch most recent scan for this project (uses the same endpoint you use on My-Scan)
+    const token = getToken(); if(!token){ alert("Please sign in."); return; }
+    const res = await fetch(API_PREVIOUS_SCANS, { headers:{ "Authorization":"Bearer "+token }});
+    if(!res.ok){ alert("Can't fetch recent scans."); return; }
+    const data = await res.json();
+    const scans = Array.isArray(data?.my_scans) ? data.my_scans : [];
+    // find latest scan for this project
+    const latest = scans.filter(s => s.project_id === pid)
+                        .sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp))[0];
+    if(!latest){ alert("No scans found for this project."); return; }
+    const ts = new Date(latest.timestamp);
+    fromISO = lrISODateOnly(ts);
+    toISO   = lrISODateOnly(ts);
+  }
+
+  lrSetDateInputs(fromISO, toISO);
+  await loadLiveReports();
+}
+
+/* Wire up chips & slimmer loader */
+document.addEventListener("DOMContentLoaded", function () {
+  // quick filters
+  document.querySelectorAll(".lr-quick .chip").forEach(btn=>{
+    btn.addEventListener("click", ()=> lrQuick(btn.getAttribute("data-range")));
+  });
+
+  // make KPI boxes shimmer while loading (optional)
+  const kpis = [
+    "kpi-total-scans","kpi-buckets","kpi-risky","kpi-risky-pct"
+  ].map(id=>document.getElementById(id)?.closest(".card"));
+
+  // replace big banner loader with subtle button state + optional shimmer
+  const refreshBtn = document.getElementById("lr-refresh");
+  const oldSetLoading = lrSetLoading;
+  lrSetLoading = function(on){
+    // 1) slim loader on button
+    if(refreshBtn) refreshBtn.setAttribute("aria-busy", on ? "true" : "false");
+    // 2) KPI shimmer (optional)
+    kpis.forEach(el => el && el.classList.toggle("lr-skel", !!on));
+    // keep your old behavior (if you still have the banner, it will also hide/show)
+    if(typeof oldSetLoading === "function"){ oldSetLoading(on); }
+  };
+});
+
 </script>
 
 <script src="https://unpkg.com/feather-icons"></script>
