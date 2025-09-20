@@ -401,17 +401,17 @@
       </div>
     </div>
 
-    <div class="lr-quick">
-  <button type="button" class="chip" data-range="last">Last scan</button>
-  <button type="button" class="chip" data-range="today">Today</button>
-  <button type="button" class="chip" data-range="7d">7d</button>
-  <button type="button" class="chip" data-range="30d">30d</button>
-  <button type="button" class="chip chip-reset" data-range="reset">Reset</button>
+    <!-- Quick ranges -->
+<div class="lr-quick">
+  <button id="lr-last"  class="chip">Last scan</button>
+  <button id="lr-today" class="chip">Today</button>
+  <button id="lr-7d"    class="chip">7d</button>
+  <button id="lr-30d"   class="chip">30d</button>
+  <button id="lr-reset" class="chip">Reset</button>
 </div>
 
-
-    <!-- Loader -->
-    <div id="lr-loader" class="lr-loader" hidden>
+<!-- (If this exists, we’ll hide it) -->
+<div id="lr-loader" class="lr-loader"></div>
       <div class="lr-spinner"></div>
     </div>
 
@@ -1777,6 +1777,105 @@ window.addEventListener("gcs_project_selected", ev=>{
   // lrEnsureDates();
   loadLiveReports();
 });
+
+
+/* ---------- helpers for date inputs ---------- */
+function lrFmtDateLocal(d) {
+  // yyyy-mm-dd in *local* timezone (not UTC)
+  const y = d.getFullYear();
+  const m = (d.getMonth() + 1).toString().padStart(2, "0");
+  const dd = d.getDate().toString().padStart(2, "0");
+  return `${y}-${m}-${dd}`;
+}
+function lrAddDays(d, n) {
+  const x = new Date(d);
+  x.setDate(x.getDate() + n);
+  return x;
+}
+function lrSetDateInputs(fromDate, toDate) {
+  const f = document.getElementById("lr-from");
+  const t = document.getElementById("lr-to");
+  if (f) f.value = lrFmtDateLocal(fromDate);
+  if (t) t.value = lrFmtDateLocal(toDate);
+}
+function lrGetSelectedProjectId() {
+  const p = (window.ProjectPicker && window.ProjectPicker.getSelected && window.ProjectPicker.getSelected()) || {};
+  return p.id || localStorage.getItem("selected_project_id") || "";
+}
+
+/* ---------- quick-range actions ---------- */
+async function lrRangeLastScan() {
+  const pid = lrGetSelectedProjectId();
+  if (!pid) return;
+
+  try {
+    // get trends -> newest point
+    const qs = lrQS({ project_id: pid });
+    const data = await authFetchJSON(API_REPORTS_TRENDS + "?" + qs);
+    const pts = Array.isArray(data?.points) ? data.points : [];
+    if (!pts.length) return;
+
+    const last = new Date(pts[pts.length - 1].timestamp);
+    lrSetDateInputs(last, last);
+    loadLiveReports();
+  } catch (e) {
+    console.error("Last scan range failed:", e);
+  }
+}
+
+function lrRangeToday() {
+  const today = new Date();
+  lrSetDateInputs(today, today);
+  loadLiveReports();
+}
+
+function lrRange7d() {
+  const to = new Date();
+  const from = lrAddDays(to, -7);
+  lrSetDateInputs(from, to);
+  loadLiveReports();
+}
+
+function lrRange30d() {
+  const to = new Date();
+  const from = lrAddDays(to, -30);
+  lrSetDateInputs(from, to);
+  loadLiveReports();
+}
+
+function lrRangeReset() {
+  // Clear date inputs and rely on your lrEnsureDates() (last 30 days) or show everything
+  const f = document.getElementById("lr-from");
+  const t = document.getElementById("lr-to");
+  if (f) f.value = "";
+  if (t) t.value = "";
+  if (typeof lrEnsureDates === "function") lrEnsureDates();
+  loadLiveReports();
+}
+
+/* ---------- wire up the buttons ---------- */
+document.addEventListener("DOMContentLoaded", () => {
+  const map = [
+    ["lr-last",  lrRangeLastScan],
+    ["lr-today", lrRangeToday],
+    ["lr-7d",    lrRange7d],
+    ["lr-30d",   lrRange30d],
+    ["lr-reset", lrRangeReset],
+  ];
+  map.forEach(([id, fn]) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("click", fn);
+  });
+});
+
+/* ---------- remove the big loader bar ---------- */
+// Option A: make the function a no-op
+function lrSetLoading(_) {
+  const el = document.getElementById("lr-loader");
+  if (el) el.hidden = true; // always hidden
+}
+// Option B (already safe with A): tiny CSS below forces it hidden
+
 </script>
 
 <script src="https://unpkg.com/feather-icons"></script>
