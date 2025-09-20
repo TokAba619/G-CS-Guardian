@@ -384,6 +384,12 @@
       <button id="lr-refresh" class="cta-pink">Refresh</button>
     </div>
 
+<div class="lr-quick">
+      <button class="chip" data-range="latest">Latest</button>
+      <button class="chip" data-range="today">Today</button>
+      <button class="chip" data-range="all">All</button>
+</div>
+
     <!-- KPI tiles -->
     <div class="lr-kpis">
       <div class="card">
@@ -1471,14 +1477,23 @@ document.addEventListener("DOMContentLoaded",function(){
 
 <script>
 /* =========================
-   LIVE REPORTS — LATEST SCAN ONLY (no aggregation)
+   LIVE REPORTS — RANGE FILTERS (Latest | Today | All)
+   - Latest: from/to = newest scan day for the selected project
+   - Today : from/to = local YYYY-MM-DD (today)
+   - All   : no from/to (entire history)
 ========================= */
 const API_REPORTS_SUMMARY = API_BASE + "/reports/summary";
 const API_REPORTS_TRENDS  = API_BASE + "/reports/trends";
 const API_REPORTS_TOP     = API_BASE + "/reports/top-risks";
-const API_PREVIOUS_SCANS_URL = (window.API_PREVIOUS_SCANS || (window.API_PREVIOUS_SCANS = API_BASE + "/my-scans/"));
 
-let LR_CHARTS = { risk:null, exposure:null, trend:null };
+// Safe single source for /my-scans URL (prevents “already declared”)
+const API_PREVIOUS_SCANS_URL =
+  (window.API_PREVIOUS_SCANS || (window.API_PREVIOUS_SCANS = API_BASE + "/my-scans/"));
+
+let LR_CHARTS = { risk: null, exposure: null, trend: null };
+
+/* Current range: "latest" | "today" | "all" */
+let LR_RANGE = "latest";
 
 /* ---------- helpers ---------- */
 function authFetchJSON(url){
@@ -1486,44 +1501,39 @@ function authFetchJSON(url){
   return fetch(url, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }})
     .then(async r => { if(!r.ok) throw new Error(`HTTP ${r.status} on ${url}`); return r.json(); });
 }
+
 function isoLocalDate(d){
   const pad = n => String(n).padStart(2,"0");
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 }
-function formatScanDay(ts){
-  // ts can be ISO; we convert to local day string
-  return isoLocalDate(new Date(ts));
-}
+function formatScanDay(ts){ return isoLocalDate(new Date(ts)); }
 
 /* Get a usable project id. Prefer picker, then localStorage, else most recent scan’s project_id. */
 async function ensureProjectId(){
-  try {
+  try{
     const pick = window.ProjectPicker?.getSelected?.();
-    if (pick?.id) {
-      localStorage.setItem("selected_project_id", pick.id);
-      return pick.id;
-    }
-  } catch(_){}
+    if(pick?.id){ localStorage.setItem("selected_project_id", pick.id); return pick.id; }
+  }catch(_){}
 
   const stored = localStorage.getItem("selected_project_id");
   if (stored) return stored;
 
   const t = getToken(); if(!t) return "";
-  const res = await fetch(API_PREVIOUS_SCANS_URL, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }});
+  const res  = await fetch(API_PREVIOUS_SCANS_URL, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }});
   if(!res.ok) return "";
   const data  = await res.json();
   const scans = Array.isArray(data?.my_scans) ? data.my_scans : [];
-  if (!scans.length) return "";
+  if(!scans.length) return "";
 
   const latest = scans.sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp))[0];
-  if (latest?.project_id){
+  if(latest?.project_id){
     localStorage.setItem("selected_project_id", latest.project_id);
     return latest.project_id;
   }
   return "";
 }
 
-/* Get newest scan DAY (YYYY-MM-DD) for this project */
+/* Get newest scan DAY (YYYY-MM-DD) for a project */
 async function getLatestScanDay(pid){
   const t = getToken(); if(!t) return null;
   const res  = await fetch(API_PREVIOUS_SCANS_URL, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }});
@@ -1535,14 +1545,30 @@ async function getLatestScanDay(pid){
   return latest ? formatScanDay(latest.timestamp) : null;
 }
 
+/* Compute date range based on LR_RANGE */
+async function computeDatesForRange(pid){
+  if (LR_RANGE === "all") return { from:"", to:"" };
+  if (LR_RANGE === "today"){
+    const today = isoLocalDate(new Date());
+    return { from: today, to: today };
+  }
+  // latest
+  const latestDay = await getLatestScanDay(pid);
+  if(!latestDay) return { from:"", to:"" }; // no scans yet -> fall back to all (handled by caller)
+  return { from: latestDay, to: latestDay };
+}
+
 /* ---------- KPIs ---------- */
 function renderKpis(summary){
   const totals = summary?.totals || {};
   const put = (id,v)=>{ const el=document.getElementById(id); if(el) el.textContent = (v ?? "—"); };
-  put("kpi-total-scans", 1); // always 1 (we filter to a single latest day)
-  put("kpi-buckets",      totals.buckets_scanned);
-  put("kpi-risky",        totals.risky_buckets);
-  put("kpi-risky-pct",    (summary?.risky_bucket_pct == null) ? "—" : (summary.risky_bucket_pct + "%"));
+
+  // UX: show "1" for Latest (a single scan day)
+  const totalScansDisplay = (LR_RANGE === "latest") ? 1 : (totals.total_scans ?? "—");
+  put("kpi-total-scans", totalScansDisplay);
+  put("kpi-buckets",     totals.buckets_scanned);
+  put("kpi-risky",       totals.risky_buckets);
+  put("kpi-risky-pct",   (summary?.risky_bucket_pct == null) ? "—" : (summary.risky_bucket_pct + "%"));
 }
 
 /* ---------- charts ---------- */
@@ -1639,22 +1665,22 @@ function renderTopRisks(items){
   });
 }
 
-/* ---------- main (LATEST SCAN ONLY) ---------- */
+/* ---------- main loader ---------- */
 async function loadLiveReports(){
   const pid = await ensureProjectId();
   const label = document.getElementById("lr-project-label");
   if (label) label.textContent = pid || "—";
   if(!pid){ console.warn("Live Reports: no project selected or no scans yet."); return; }
 
-  // **Key change**: lock all queries to the newest scan DAY for this project
-  const day = await getLatestScanDay(pid);
-  if(!day){
-    console.warn("No scans found for this project yet.");
-    return;
-  }
+  // Resolve date range from LR_RANGE
+  let { from, to } = await computeDatesForRange(pid);
+  // If we're in "latest" but nothing found, silently fall back to all
+  if (LR_RANGE === "latest" && !from && !to) { from = ""; to = ""; }
 
-  const qs   = new URLSearchParams({ project_id: pid, from: day, to: day });
-  const qsTop= new URLSearchParams({ project_id: pid, from: day, to: day, limit: "5" });
+  const qs   = new URLSearchParams({ project_id: pid });
+  const qsTop= new URLSearchParams({ project_id: pid, limit: "5" });
+  if (from) { qs.set("from", from); qsTop.set("from", from); }
+  if (to)   { qs.set("to",   to);   qsTop.set("to",   to);   }
 
   try{
     const [summary, trends, topRisks] = await Promise.all([
@@ -1662,10 +1688,10 @@ async function loadLiveReports(){
       authFetchJSON(`${API_REPORTS_TRENDS}?${qs}`),
       authFetchJSON(`${API_REPORTS_TOP}?${qsTop}`)
     ]);
-    renderKpis(summary);          // Total Scans will be 1
-    renderRiskLevels(summary);    // only that day’s distribution
-    renderExposure(summary);      // only that day
-    renderTrend(trends);          // only that day’s point(s)
+    renderKpis(summary);
+    renderRiskLevels(summary);
+    renderExposure(summary);
+    renderTrend(trends);
     renderTopRisks(topRisks?.items || []);
   }catch(err){
     console.error("Live Reports error:", err);
@@ -1674,9 +1700,26 @@ async function loadLiveReports(){
 
 /* ---------- wiring ---------- */
 document.addEventListener("DOMContentLoaded", () => {
+  // Refresh button
   document.getElementById("lr-refresh")?.addEventListener("click", loadLiveReports);
+
+  // Optional chips (if present in your HTML)
+  document.querySelectorAll(".lr-quick .chip").forEach(btn=>{
+    btn.addEventListener("click", async ()=>{
+      const next = btn.getAttribute("data-range");
+      if (next && next !== LR_RANGE) {
+        LR_RANGE = next;
+        await loadLiveReports();
+      }
+      // simple chip active state (optional)
+      document.querySelectorAll(".lr-quick .chip").forEach(b=> b.classList.toggle("active", b===btn));
+    });
+  });
+
   loadLiveReports();
 });
+
+// When user selects a project elsewhere
 window.addEventListener("gcs_project_selected", (ev)=>{
   try{ if(ev?.detail?.id) localStorage.setItem("selected_project_id", ev.detail.id); }catch(_){}
   loadLiveReports();
