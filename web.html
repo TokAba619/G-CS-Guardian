@@ -361,106 +361,71 @@
   </section>
 
 
-  <!-- LIVE REPORTS SECTION -->
+  <!-- LIVE REPORTS -->
 <section class="content-section live-reports" id="live-reports">
-  <div class="floating-elements">
-    <div class="floating-element"></div><div class="floating-element"></div>
-    <div class="floating-element"></div><div class="floating-element"></div>
-    <div class="floating-element"></div>
-  </div>
-
   <div class="container">
     <h2 class="section-title">Live Reports</h2>
     <p class="section-content">
-      Real-time insights for the currently selected project. Pick a project above or hit Refresh.
+      Real-time insights for the latest scan of the currently selected project.
     </p>
 
-    <!-- Controls -->
-    <div class="lr-controls">
-      <div class="lr-left">
-        <label class="lr-inline">
-          <span>Project:</span>
-          <strong id="lr-project-label">—</strong>
-        </label>
-        <label class="lr-inline">
-          <span>From</span>
-          <input type="date" id="lr-from">
-        </label>
-        <label class="lr-inline">
-          <span>To</span>
-          <input type="date" id="lr-to">
-        </label>
+    <!-- Header controls -->
+    <div class="lr-header">
+      <div class="lr-project">
+        <span>Project:</span>
+        <strong id="lr-project-label">—</strong>
       </div>
-      <div class="lr-right">
-        <label class="toggle lr-auto">
-          <input type="checkbox" id="lr-autorefresh">
-          <span class="slider"></span>
-          <span class="toggle-label">Auto-refresh (30s)</span>
-        </label>
-        <button id="lr-refresh" class="cta-pink lr-refresh">Refresh</button>
-      </div>
+      <button id="lr-refresh" class="cta-pink">Refresh</button>
     </div>
 
-    <div class="lr-quick">
-  <button type="button" class="chip" data-range="last">Last scan</button>
-  <button type="button" class="chip" data-range="today">Today</button>
-  <button type="button" class="chip" data-range="7d">7d</button>
-  <button type="button" class="chip" data-range="30d">30d</button>
-  <button type="button" class="chip chip-reset" data-range="reset">Reset</button>
-</div>
-
-
-    <!-- Loader -->
-    <div id="lr-loader" class="lr-loader" hidden>
-      <div class="lr-spinner"></div>
-    </div>
-
-    <!-- Tiles -->
+    <!-- KPI tiles -->
     <div class="lr-kpis">
-      <div class="lr-tile"><div class="lr-t-h">Total Scans</div><div id="kpi-total-scans" class="lr-t-v">—</div></div>
-      <div class="lr-tile"><div class="lr-t-h">Buckets Scanned</div><div id="kpi-buckets" class="lr-t-v">—</div></div>
-      <div class="lr-tile"><div class="lr-t-h">Risky Buckets</div><div id="kpi-risky" class="lr-t-v">—</div></div>
-      <div class="lr-tile"><div class="lr-t-h">Risky %</div><div id="kpi-risky-pct" class="lr-t-v">—</div></div>
+      <div class="card"><div class="card-title">Total Scans</div><div id="kpi-total-scans" class="kpi-val">—</div></div>
+      <div class="card"><div class="card-title">Buckets Scanned</div><div id="kpi-buckets" class="kpi-val">—</div></div>
+      <div class="card"><div class="card-title">Risky Buckets</div><div id="kpi-risky" class="kpi-val">—</div></div>
+      <div class="card"><div class="card-title">Risky %</div><div id="kpi-risky-pct" class="kpi-val">—</div></div>
     </div>
 
     <!-- Charts -->
-    <div class="lr-grid">
-      <div class="lr-card">
-        <div class="lr-card-title">Risk Levels</div>
-        <canvas id="chart-risk-levels" height="160"></canvas>
+    <div class="lr-charts">
+      <div class="card">
+        <div class="card-title">Risk Levels</div>
+        <canvas id="chart-risk-levels" height="260"></canvas>
       </div>
-      <div class="lr-card">
-        <div class="lr-card-title">Exposure (Public vs Private)</div>
-        <canvas id="chart-exposure" height="160"></canvas>
-      </div>
-      <div class="lr-card lr-wide">
-        <div class="lr-card-title">Risk Trend of this Project</div>
-        <canvas id="chart-trend" height="200"></canvas>
+      <div class="card">
+        <div class="card-title">Exposure (Public vs Private)</div>
+        <canvas id="chart-exposure" height="260"></canvas>
       </div>
     </div>
 
-    <!-- Top Risks -->
-    <div class="lr-card">
-      <div class="lr-card-title">Top Risks (latest scan)</div>
-      <div class="table-container">
-        <table class="dashboard-table">
+    <div class="card">
+      <div class="card-title">Risk Trend of this Project</div>
+      <canvas id="chart-trend" height="220"></canvas>
+    </div>
+
+    <!-- Top risks table -->
+    <div class="card">
+      <div class="card-title">Top Risks (latest scan)</div>
+      <div class="table-wrap">
+        <table class="scan-table">
           <thead>
-          <tr>
-            <th>Bucket</th>
-            <th>Risk</th>
-            <th>Exposure</th>
-            <th>Keywords</th>
-            <th class="nowrap">Last Seen</th>
-          </tr>
+            <tr>
+              <th>Bucket</th>
+              <th>Risk</th>
+              <th>Exposure</th>
+              <th>Keywords</th>
+              <th>Last Seen</th>
+            </tr>
           </thead>
           <tbody id="lr-toprisks-body">
-          <tr><td colspan="5" style="text-align:center;">—</td></tr>
+            <tr><td colspan="5" style="text-align:center;">—</td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </div>
 </section>
+
 
 
   <!-- MY-SCAN SECTION -->
@@ -1486,292 +1451,135 @@ document.addEventListener("DOMContentLoaded",function(){
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
 /* =========================
-   LIVE REPORTS (clean build)
+   LIVE REPORTS (LATEST SCAN ONLY)
 ========================= */
 const API_REPORTS_SUMMARY = API_BASE + "/reports/summary";
 const API_REPORTS_TRENDS  = API_BASE + "/reports/trends";
 const API_REPORTS_TOP     = API_BASE + "/reports/top-risks";
-const API_MY_SCANS        = API_BASE + "/my-scans/"; // fallback to resolve a project
 
 let LR_CHARTS = { risk:null, exposure:null, trend:null };
-let LR_TIMER  = null;
 
-/* ---------- tiny helpers ---------- */
-function qs(params){
-  const sp = new URLSearchParams();
-  Object.entries(params||{}).forEach(([k,v])=>{
-    if (v!=null && String(v).trim()!=="") sp.set(k,v);
-  });
-  return sp.toString();
-}
-function authJSON(url){
+function authFetchJSON(url){
   const t = getToken(); if(!t) throw new Error("No token");
   return fetch(url,{ headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" } })
-    .then(async r=>{ if(!r.ok){ throw new Error(`HTTP ${r.status} ${url}`); } return r.json(); });
-}
-function setBusy(on){
-  const btn = document.getElementById("lr-refresh");
-  if (btn) btn.setAttribute("aria-busy", on ? "true" : "false");
+    .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); });
 }
 
-/* ---------- project resolution ---------- */
-function getPickerProjectId(){
-  try{
-    const sel = window.ProjectPicker?.getSelected?.();
-    if (sel?.id) return sel.id;
-  }catch(_){}
-  return "";
-}
-function getStoredProjectId(){
-  try{ return localStorage.getItem("selected_project_id") || "";}catch(_){ return ""; }
-}
-async function resolveProjectId(){
-  // 1) picker  2) localStorage  3) fetch most recent /my-scans
-  let pid = getPickerProjectId() || getStoredProjectId();
-  if (pid) return pid;
-
-  try{
-    const t = getToken(); if(!t) return "";
-    const r = await fetch(API_MY_SCANS, { headers:{ "Authorization":"Bearer "+t }});
-    if(!r.ok) return "";
-    const j = await r.json();
-    const scans = Array.isArray(j?.my_scans) ? j.my_scans : [];
-    const latest = scans.sort((a,b)=> new Date(b.timestamp)-new Date(a.timestamp))[0];
-    pid = latest?.project_id || "";
-    if (pid) localStorage.setItem("selected_project_id", pid);
-    return pid;
-  }catch(_){ return ""; }
-}
-
-/* ---------- date helpers ---------- */
-const isoDay = d => d.toISOString().slice(0,10);
-function ensureDates(){
-  const f = document.getElementById("lr-from");
-  const t = document.getElementById("lr-to");
-  if(!f || !t) return;
-
-  const today = new Date();
-  const start = new Date(); start.setDate(today.getDate()-30);
-
-  if(!f.value) f.value = isoDay(start);
-  if(!t.value) t.value = isoDay(today);
-
-  f.max = isoDay(today);
-  t.max = isoDay(today);
-}
-
-/* ---------- KPIs ---------- */
-function renderKpis(summary){
+/* ---------- Render KPIs ---------- */
+function lrRenderKpis(summary){
   const totals = summary?.totals || {};
-  const put=(id,val)=>{ const el=document.getElementById(id); if(el) el.textContent = (val ?? "—"); };
-  put("kpi-total-scans", totals.total_scans);
-  put("kpi-buckets",     totals.buckets_scanned);
-  put("kpi-risky",       totals.risky_buckets);
-  put("kpi-risky-pct",   summary?.risky_bucket_pct==null ? "—" : (summary.risky_bucket_pct+"%"));
+  document.getElementById("kpi-total-scans").textContent = 1; // always 1 (latest scan)
+  document.getElementById("kpi-buckets").textContent     = totals.buckets_scanned ?? "—";
+  document.getElementById("kpi-risky").textContent       = totals.risky_buckets ?? "—";
+  document.getElementById("kpi-risky-pct").textContent   = (summary?.risky_bucket_pct ?? "—") + "%";
 }
 
-/* ---------- charts ---------- */
-function destroyChart(key){ if(LR_CHARTS[key]){ LR_CHARTS[key].destroy(); LR_CHARTS[key]=null; } }
+/* ---------- Render Charts ---------- */
+function lrDestroy(id){ if(LR_CHARTS[id]){ LR_CHARTS[id].destroy(); LR_CHARTS[id]=null; } }
 
-function renderRiskLevels(summary){
-  destroyChart("risk");
-  const cv = document.getElementById("chart-risk-levels"); if(!cv) return;
-  const ctx = cv.getContext("2d");
-
-  const order  = ["critical","high","medium","low","info"];
+function lrRenderRiskLevels(summary){
+  lrDestroy("risk");
+  const ctx = document.getElementById("chart-risk-levels").getContext("2d");
   const counts = summary?.risk_level_counts || {};
+  const order  = ["critical","high","medium","low","info"];
+  const colors = ["#ff0000","#7a0c0c","#ffee00","#00ff37","#00eeff"];
   const data   = order.map(k=>counts[k]||0);
-
-  const colors = ["#ff0000","#7a0c0c","#ffee00","#00ff37","#00eeff"]; // critical..info (yours)
 
   LR_CHARTS.risk = new Chart(ctx,{
     type:"doughnut",
-    data:{ labels: order.map(s=>s.toUpperCase()), datasets:[{ data, backgroundColor:colors, borderWidth:0 }] },
-    options:{
-      maintainAspectRatio:false, cutout:"58%",
-      plugins:{
-        legend:{ position:"bottom", labels:{ color:"#ddd" } },
-        tooltip:{ callbacks:{ label: c => `${c.label}: ${c.raw} bucket${c.raw===1?"":"s"}` } }
-      }
-    }
+    data:{ labels: order.map(s=>s.toUpperCase()), datasets:[{ data, backgroundColor:colors }] },
+    options:{ plugins:{ legend:{ position:"bottom", labels:{ color:"#ddd" } } }, cutout:"58%" }
   });
 }
 
-function renderExposure(summary){
-  destroyChart("exposure");
-  const cv=document.getElementById("chart-exposure"); if(!cv) return;
-  const ctx=cv.getContext("2d");
-
+function lrRenderExposure(summary){
+  lrDestroy("exposure");
+  const ctx = document.getElementById("chart-exposure").getContext("2d");
   const ec = summary?.exposure_category_counts || {};
-  const priv = ec.private||0, pub = ec.public||0;
-
   LR_CHARTS.exposure = new Chart(ctx,{
     type:"bar",
-    data:{
-      labels:["Private","Public"],
-      datasets:[{ data:[priv,pub], backgroundColor:["#00ff00","#ff0000"], borderColor:["#00cc00","#cc0000"], borderWidth:1 }]
-    },
-    options:{
-      maintainAspectRatio:false,
-      plugins:{
-        legend:{ display:false },
-        tooltip:{ callbacks:{ label:c=>`${c.parsed.y} bucket${c.parsed.y===1?"":"s"}` } }
-      },
-      scales:{
-        x:{ ticks:{ color:"#ddd" }, grid:{ display:false } },
-        y:{ beginAtZero:true, ticks:{ color:"#aaa", precision:0 }, grid:{ color:"rgba(255,255,255,.08)" } }
-      }
-    }
+    data:{ labels:["Private","Public"], datasets:[{ data:[ec.private||0, ec.public||0], backgroundColor:["#00ff00","#ff0000"] }] },
+    options:{ plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{color:"#ddd"} }, y:{ beginAtZero:true, ticks:{ color:"#aaa" } } } }
   });
 }
 
-function renderTrend(trends){
-  destroyChart("trend");
-  const cv=document.getElementById("chart-trend"); if(!cv) return;
-  const ctx=cv.getContext("2d");
-
-  const pts = trends?.points || [];
-  const labels = pts.map(p=> new Date(p.timestamp).toLocaleString());
-  const avg    = pts.map(p=> p.avg_risk ?? 0);
+function lrRenderTrend(trends){
+  lrDestroy("trend");
+  const ctx = document.getElementById("chart-trend").getContext("2d");
+  const points = trends?.points || [];
+  const labels = points.map(p=> new Date(p.timestamp).toLocaleString());
+  const avg    = points.map(p=> p.avg_risk ?? 0);
 
   LR_CHARTS.trend = new Chart(ctx,{
     type:"line",
-    data:{ labels, datasets:[{ data:avg, tension:.25, fill:false }] },
-    options:{
-      maintainAspectRatio:false,
-      plugins:{ legend:{ display:false } },
-      scales:{
-        x:{ ticks:{ color:"#ddd", maxRotation:0 }, grid:{ display:false } },
-        y:{ beginAtZero:true, suggestedMax:10, ticks:{ color:"#aaa" }, grid:{ color:"rgba(255,255,255,.08)" } }
-      }
-    }
+    data:{ labels, datasets:[{ data:avg, tension:.25, fill:false, borderColor:"#ff4081" }] },
+    options:{ plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{ color:"#ddd" } }, y:{ beginAtZero:true, suggestedMax:10, ticks:{ color:"#aaa" } } } }
   });
 }
 
-function renderTopRisks(items){
+function lrRenderTopRisks(items){
   const tb=document.getElementById("lr-toprisks-body"); if(!tb) return;
   tb.innerHTML="";
   if(!items || !items.length){
-    tb.innerHTML="<tr><td colspan='5' style='text-align:center;'>No risky buckets found.</td></tr>";
+    tb.innerHTML="<tr><td colspan='5' style='text-align:center;'>No risky buckets.</td></tr>";
     return;
   }
-  const badge = lvl => lvl ? `badge ${lvl.toLowerCase()}` : "badge";
   items.forEach(it=>{
     const tr=document.createElement("tr");
-    tr.innerHTML =
-      `<td>${it.bucket_name||"—"}</td>
-       <td><strong>${it.risk_score ?? "—"}</strong> <span class="${badge(it.risk_level)}">${it.risk_level||""}</span></td>
-       <td>${it.exposure_state||"—"}</td>
-       <td>${it.sensitive_keyword_count ?? 0}</td>
-       <td>${formatDate(it.last_seen_at)}</td>`;
+    tr.innerHTML=`<td>${it.bucket_name||"—"}</td>
+      <td><strong>${it.risk_score ?? "—"}</strong> <span class="badge ${it.risk_level?.toLowerCase()}">${it.risk_level||""}</span></td>
+      <td>${it.exposure_state||"—"}</td>
+      <td>${it.sensitive_keyword_count ?? 0}</td>
+      <td>${formatDate(it.last_seen_at)}</td>`;
     tb.appendChild(tr);
   });
 }
 
-/* ---------- main loader ---------- */
+/* ---------- Main Loader (Latest Scan Only) ---------- */
 async function loadLiveReports(){
-  const pid = await resolveProjectId();
-  const label = document.getElementById("lr-project-label");
-  if(label) label.textContent = pid || "—";
-  if(!pid){ console.warn("Live Reports: no project id."); return; }
-
-  const from = document.getElementById("lr-from")?.value || "";
-  const to   = document.getElementById("lr-to")?.value   || "";
-
   try{
-    setBusy(true);
-    const q   = qs({ project_id: pid, ...(from && {from}), ...(to && {to}) });
-    const q5  = qs({ project_id: pid, limit:5, ...(from && {from}), ...(to && {to}) });
+    const pid = localStorage.getItem("selected_project_id") || "";
+    if(!pid){ console.warn("No project selected."); return; }
+    document.getElementById("lr-project-label").textContent = pid;
 
-    const [summary,trends,top] = await Promise.all([
-      authJSON(`${API_REPORTS_SUMMARY}?${q}`),
-      authJSON(`${API_REPORTS_TRENDS}?${q}`),
-      authJSON(`${API_REPORTS_TOP}?${q5}`)
+    // Always fetch latest scan summary only
+    const qs   = "project_id=" + pid;
+    const lim5 = "project_id=" + pid + "&limit=5";
+
+    const [summary, trends, topRisks] = await Promise.all([
+      authFetchJSON(API_REPORTS_SUMMARY + "?" + qs),
+      authFetchJSON(API_REPORTS_TRENDS  + "?" + qs),
+      authFetchJSON(API_REPORTS_TOP     + "?" + lim5)
     ]);
 
-    renderKpis(summary);
-    renderRiskLevels(summary);
-    renderExposure(summary);
-    renderTrend(trends);
-    renderTopRisks(top?.items || []);
-  }catch(e){
-    console.error("Live Reports:", e);
-  }finally{
-    setBusy(false);
-  }
+    lrRenderKpis(summary);
+    lrRenderRiskLevels(summary);
+    lrRenderExposure(summary);
+    lrRenderTrend(trends);
+    lrRenderTopRisks(topRisks?.items || []);
+  }catch(e){ console.error("Live Reports error:", e); }
 }
 
-/* ---------- quick ranges ---------- */
-const dISO = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-function setDateInputs(fromISO,toISO){
-  const f=document.getElementById("lr-from"); const t=document.getElementById("lr-to");
-  if(f) f.value = fromISO || ""; if(t) t.value = toISO || "";
-}
-async function quick(range){
-  const pid = document.getElementById("lr-project-label")?.textContent?.trim();
-  if(!pid || pid==="—") return;
-
-  const today = new Date();
-  let fromISO="", toISO="";
-
-  if(range==="reset"){
-    const start=new Date(today); start.setDate(today.getDate()-30);
-    fromISO=dISO(start); toISO=dISO(today);
-  }else if(range==="today"){
-    fromISO=dISO(today); toISO=dISO(today);
-  }else if(range==="7d" || range==="30d"){
-    const n=range==="7d"?7:30; const start=new Date(today); start.setDate(today.getDate()-n);
-    fromISO=dISO(start); toISO=dISO(today);
-  }else if(range==="last"){
-    // use /my-scans to find latest scan for current project
-    try{
-      const t=getToken(); if(!t) return;
-      const r=await fetch(API_MY_SCANS,{ headers:{ "Authorization":"Bearer "+t }});
-      const j=await r.json();
-      const scans=Array.isArray(j?.my_scans)?j.my_scans:[];
-      const latest=scans.filter(s=>s.project_id===pid)
-                        .sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))[0];
-      if(!latest){ alert("No scan found for this project."); return; }
-      const ts=new Date(latest.timestamp);
-      fromISO=dISO(ts); toISO=dISO(ts);
-    }catch(_){ return; }
-  }
-  setDateInputs(fromISO,toISO);
-  await loadLiveReports();
-}
-
-/* ---------- wiring ---------- */
 document.addEventListener("DOMContentLoaded", ()=>{
-  ensureDates();
-
-  // quick-range chips
-  document.querySelectorAll(".lr-quick .chip").forEach(btn=>{
-    btn.addEventListener("click", ()=> quick(btn.getAttribute("data-range")));
-  });
-
-  // refresh / auto-refresh
   document.getElementById("lr-refresh")?.addEventListener("click", loadLiveReports);
-  const auto = document.getElementById("lr-autorefresh");
-  if(auto){
-    auto.addEventListener("change", function(){
-      if(LR_TIMER){ clearInterval(LR_TIMER); LR_TIMER=null; }
-      if(this.checked){ LR_TIMER=setInterval(loadLiveReports, 30_000); }
-    });
-  }
+  loadLiveReports(); // auto-load latest scan
+});
+</script>
 
-  // first paint
-  loadLiveReports();
+<script>
+// ... all your Live Report functions (lrQS, lrRenderKpis, loadLiveReports, etc.)
+
+// Initial DOMContentLoaded wiring
+document.addEventListener("DOMContentLoaded", function(){
+  lrEnsureDates?.();   // if you’re still using it, otherwise ignore
+  loadLiveReports();   // first render
 });
 
-// when user selects a project elsewhere
-window.addEventListener("gcs_project_selected", ev=>{
+// 🔽 Put the project-change listener here (below all functions)
+window.addEventListener("gcs_project_selected", (ev)=>{
   try{ if(ev?.detail?.id) localStorage.setItem("selected_project_id", ev.detail.id); }catch(_){}
-  const f=document.getElementById("lr-from"), t=document.getElementById("lr-to");
-  if(f) f.value=""; if(t) t.value="";
-  ensureDates();
   loadLiveReports();
 });
 </script>
