@@ -1202,3 +1202,38 @@ td.download-col {
 .btn-chip:hover{ background:#000; color:#fff; }
 .btn-chip:active{ transform: translateY(1px); }
 .btn-chip[disabled]{ opacity:.6; cursor:not-allowed; }
+
+/* Quick filter chips */
+.lr-quick{
+  display:flex; gap:.5rem; margin:.8rem 0 0;
+  flex-wrap:wrap;
+}
+.lr-quick .chip{
+  padding:.35rem .75rem; border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background:#111; color:#fff; font-weight:700;
+  cursor:pointer; transition:transform .03s ease, background .2s ease, color .2s ease;
+}
+.lr-quick .chip:hover{ background:#fff; color:#000; }
+.lr-quick .chip:active{ transform:translateY(1px); }
+.lr-quick .chip-reset{ background:#222; }
+
+/* Subtle inline loader on Refresh button */
+.lr-refresh[aria-busy="true"]{
+  position:relative; pointer-events:none; opacity:.85;
+}
+.lr-refresh[aria-busy="true"]::after{
+  content:""; position:absolute; right:.8rem; top:50%; width:.9rem; height:.9rem;
+  transform:translateY(-50%); border:2px solid rgba(255,255,255,.4);
+  border-top-color:#ff1e66; border-radius:50%; animation:spin .8s linear infinite;
+}
+@keyframes spin{ to { transform:translateY(-50%) rotate(360deg);} }
+
+/* (Optional) skeleton shimmer for KPI tiles while loading */
+.lr-skel{ position:relative; overflow:hidden; }
+.lr-skel::after{
+  content:""; position:absolute; inset:0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.06), transparent);
+  transform:translateX(-100%); animation:shimmer 1.2s infinite;
+}
+@keyframes shimmer { to { transform:translateX(100%); } }
