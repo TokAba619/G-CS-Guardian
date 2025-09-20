@@ -1373,29 +1373,36 @@ td.download-col {
 .results-table-wrapper{
   display: block;
   width: 100%;
-  max-height: 1500px;        /* vertical limit */
-  overflow: auto;           /* X + Y scroll as needed */
+  max-height: 1800px;            /* vertical limit */
+  overflow: auto;                /* X + Y scroll as needed */
   border-radius: 10px;
   background: #111;
   border: 1px solid rgba(255,255,255,.08);
-  padding: 0 10px 10px;     /* gutter so table + scrollbar not clipped */
+
+  /* give gutter on ALL sides so sticky header/first column aren't clipped */
+  padding: 12px;
   box-sizing: border-box;
+
+  /* prevent content from sitting under scrollbars and avoid radius bleed */
+  scrollbar-gutter: stable both-edges;
+  background-clip: padding-box;
 }
 
 /* ===== Table base ===== */
 #detailed-table{
   border-collapse: collapse;
   border-spacing: 0;
-  min-width: 1200px;        /* force horizontal scroll if needed */
-  width: max-content;       /* grows with content */
+  min-width: 1200px;             /* force horizontal scroll if needed */
+  width: max-content;            /* grows with content */
   table-layout: fixed;
+  margin: 0;
 }
 
 /* Sticky header */
 .results-table-wrapper #detailed-table thead th{
   position: sticky;
   top: 0;
-  background: #e91e63;      /* your pink */
+  background: #e91e63;           /* your pink */
   color: #fff;
   z-index: 5;
 }
