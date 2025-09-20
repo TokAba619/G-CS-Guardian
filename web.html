@@ -1471,13 +1471,6 @@ function authFetchJSON(url){
   return fetch(url, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }})
     .then(async r => { if(!r.ok){ throw new Error(`HTTP ${r.status} on ${url}`); } return r.json(); });
 }
-function getSelectedPid(){
-  try {
-    const pick = window.ProjectPicker?.getSelected?.();
-    if (pick?.id) return pick.id;
-  } catch(_) {}
-  return localStorage.getItem("selected_project_id") || "";
-}
 function lrISODateOnly(d){
   const p = n => String(n).padStart(2,"0");
   return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
@@ -1488,11 +1481,42 @@ function lrSetDateInputs(fromISO, toISO){
   if (f) f.value = fromISO || "";
   if (t) t.value = toISO   || "";
 }
-/* Force the date inputs to the newest scan day for a project.
-   Returns true if a date was set, false if no scans found. */
+
+/* Get a usable project id. Try picker/localStorage; if none, use most recent scan’s project_id. */
+async function lrEnsureProjectId(){
+  // 1) ProjectPicker
+  try {
+    const pick = window.ProjectPicker?.getSelected?.();
+    if (pick?.id) {
+      localStorage.setItem("selected_project_id", pick.id);
+      return pick.id;
+    }
+  } catch(_){}
+
+  // 2) localStorage
+  const stored = localStorage.getItem("selected_project_id");
+  if (stored) return stored;
+
+  // 3) fallback to most recent scan across all projects
+  const t = getToken(); if(!t) return "";
+  const res = await fetch(API_PREVIOUS_SCANS, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }});
+  if(!res.ok) return "";
+  const data  = await res.json();
+  const scans = Array.isArray(data?.my_scans) ? data.my_scans : [];
+  if (scans.length === 0) return "";
+
+  const latest = scans.sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp))[0];
+  if (latest?.project_id){
+    localStorage.setItem("selected_project_id", latest.project_id);
+    return latest.project_id;
+  }
+  return "";
+}
+
+/* Force the date inputs to the newest scan day for a project. */
 async function lrDefaultToLastScan(pid){
   const t = getToken(); if(!t) return false;
-  const res  = await fetch(API_PREVIOUS_SCANS, { headers:{ "Authorization": "Bearer "+t, "Accept":"application/json" }});
+  const res  = await fetch(API_PREVIOUS_SCANS, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }});
   if(!res.ok) return false;
   const data  = await res.json();
   const scans = Array.isArray(data?.my_scans) ? data.my_scans : [];
@@ -1501,15 +1525,14 @@ async function lrDefaultToLastScan(pid){
   if(!latest) return false;
   const ts  = new Date(latest.timestamp);
   const iso = lrISODateOnly(ts);
-  lrSetDateInputs(iso, iso);     // From = To = latest scan day
+  lrSetDateInputs(iso, iso);
   return true;
 }
 
 /* ---------- KPIs ---------- */
 function lrRenderKpis(summary){
   const totals = summary?.totals || {};
-  // We’re showing the latest scan only:
-  const put = (id,v) => { const el=document.getElementById(id); if(el) el.textContent = (v ?? "—"); };
+  const put = (id,v)=>{ const el=document.getElementById(id); if(el) el.textContent = (v ?? "—"); };
   put("kpi-total-scans", 1);
   put("kpi-buckets",      totals.buckets_scanned);
   put("kpi-risky",        totals.risky_buckets);
@@ -1519,7 +1542,6 @@ function lrRenderKpis(summary){
 /* ---------- charts ---------- */
 function lrDestroy(id){ if(LR_CHARTS[id]){ LR_CHARTS[id].destroy(); LR_CHARTS[id]=null; } }
 
-/* Risk donut with your palette */
 function lrRenderRiskLevels(summary){
   lrDestroy("risk");
   const ctx = document.getElementById("chart-risk-levels")?.getContext("2d"); if(!ctx) return;
@@ -1532,7 +1554,7 @@ function lrRenderRiskLevels(summary){
     type:"doughnut",
     data:{ labels: order.map(s=>s.toUpperCase()), datasets:[{ data, backgroundColor: colors, borderWidth:0 }] },
     options:{
-      cutout: "58%",
+      cutout:"58%",
       plugins:{
         legend:{ position:"bottom", labels:{ color:"#ddd" } },
         tooltip:{ callbacks:{ label(t){ const v=t.raw??0; return `${t.label}: ${v} bucket${v===1?"":"s"}`; } } }
@@ -1541,7 +1563,6 @@ function lrRenderRiskLevels(summary){
   });
 }
 
-/* Exposure bar: Private = green, Public = red */
 function lrRenderExposure(summary){
   lrDestroy("exposure");
   const ctx = document.getElementById("chart-exposure")?.getContext("2d"); if(!ctx) return;
@@ -1572,7 +1593,6 @@ function lrRenderExposure(summary){
   });
 }
 
-/* Trend line — will usually be a single point for the latest scan */
 function lrRenderTrend(trends){
   lrDestroy("trend");
   const ctx = document.getElementById("chart-trend")?.getContext("2d"); if(!ctx) return;
@@ -1593,7 +1613,6 @@ function lrRenderTrend(trends){
   });
 }
 
-/* Top risks table */
 function lrRenderTopRisks(items){
   const tb = document.getElementById("lr-toprisks-body"); if(!tb) return;
   tb.innerHTML = "";
@@ -1614,21 +1633,22 @@ function lrRenderTopRisks(items){
   });
 }
 
-/* ---------- main: always latest scan only ---------- */
+/* ---------- main (latest scan only) ---------- */
 async function loadLiveReports(){
-  const pid = getSelectedPid();
+  // Ensure we have a project id (picker -> localStorage -> most recent scan)
+  const pid = await lrEnsureProjectId();
   const label = document.getElementById("lr-project-label");
   if (label) label.textContent = pid || "—";
-  if(!pid){ console.warn("Live Reports: no project selected."); return; }
+  if(!pid){ console.warn("Live Reports: no project selected or no scans yet."); return; }
 
-  // 1) Force From/To to newest scan day (if exists).
+  // Force date inputs to the latest scan **for this project**
   await lrDefaultToLastScan(pid);
 
-  // 2) Read the (now forced) date inputs
+  // Read those dates
   const from = document.getElementById("lr-from")?.value?.trim() || "";
   const to   = document.getElementById("lr-to")?.value?.trim()   || "";
 
-  // 3) Build queries using latest-scan day only
+  // Build queries restricted to that single day
   const qs   = new URLSearchParams({ project_id: pid });
   const qsTop= new URLSearchParams({ project_id: pid, limit: "5" });
   if(from) qs.set("from", from), qsTop.set("from", from);
@@ -1653,16 +1673,13 @@ async function loadLiveReports(){
 /* ---------- wiring ---------- */
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("lr-refresh")?.addEventListener("click", loadLiveReports);
-  loadLiveReports();  // first paint – latest scan only
+  loadLiveReports();
 });
-
-/* When a project is picked anywhere in the app */
 window.addEventListener("gcs_project_selected", (ev)=>{
   try{ if(ev?.detail?.id) localStorage.setItem("selected_project_id", ev.detail.id); }catch(_){}
   loadLiveReports();
 });
 </script>
-
 
 <script src="https://unpkg.com/feather-icons"></script>
 <script>window.feather && feather.replace();</script>
