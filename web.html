@@ -232,6 +232,7 @@
       <li><a href="#demo" onclick="closeMenu()">Demo</a></li>
       <li><a href="#scanner" onclick="closeMenu()">Scanner</a></li>
       <li><a href="#results" onclick="closeMenu()">Results</a></li>
+      <li><a href="#live-reports" onclick="closeMenu()">Live Reports</a></li>
       <li><a href="#myscan" onclick="closeMenu()">My-Scan</a></li>
       <li><a href="#history" onclick="closeMenu()">History</a></li>
     </ul>
@@ -1476,6 +1477,227 @@ document.addEventListener("DOMContentLoaded",function(){
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+/* =========================
+   LIVE REPORTS
+========================= */
+var API_REPORTS_SUMMARY = API_BASE + "/reports/summary";
+var API_REPORTS_TRENDS  = API_BASE + "/reports/trends";
+var API_REPORTS_TOP     = API_BASE + "/reports/top-risks";
+
+let LR_CHARTS = { risk:null, exposure:null, trend:null };
+let LR_TIMER  = null;
+
+/* ---------- helpers ---------- */
+function lrQS(params){
+  const sp = new URLSearchParams();
+  Object.entries(params || {}).forEach(([k,v])=>{
+    if (v != null && String(v).trim() !== "") sp.set(k, v);
+  });
+  return sp.toString();
+}
+
+function authFetchJSON(url){
+  const t = getToken();
+  if (!t) throw new Error("No token; please log in again.");
+  return fetch(url, {
+    headers: { "Authorization": "Bearer " + t, "Accept": "application/json" }
+  }).then(async r=>{
+    if (!r.ok) {
+      const text = await r.text().catch(()=> "");
+      throw new Error(`HTTP ${r.status} on ${url}\n${text}`);
+    }
+    return r.json();
+  });
+}
+
+function lrSetLoading(on){
+  const el = document.getElementById("lr-loader");
+  if (el) el.hidden = !on;
+}
+
+function getSelectedProjectId(){
+  // Prefer an active ProjectPicker selection if present, else fallback to localStorage
+  try {
+    const pick = (window.ProjectPicker && window.ProjectPicker.getSelected && window.ProjectPicker.getSelected()) || null;
+    if (pick && pick.id) return pick.id;
+  } catch(_) {}
+  return localStorage.getItem("selected_project_id") || "";
+}
+
+/* ---------- KPIs ---------- */
+function lrRenderKpis(summary){
+  const totals = summary?.totals || {};
+  const put = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = (val ?? "—"); };
+  put("kpi-total-scans", totals.total_scans);
+  put("kpi-buckets",     totals.buckets_scanned);
+  put("kpi-risky",       totals.risky_buckets);
+  put("kpi-risky-pct",   summary?.risky_bucket_pct == null ? "—" : summary.risky_bucket_pct + "%");
+}
+
+/* ---------- charts ---------- */
+function lrDestroy(id){ if (LR_CHARTS[id]) { LR_CHARTS[id].destroy(); LR_CHARTS[id] = null; } }
+
+function lrRenderRiskLevels(summary){
+  const cv = document.getElementById("chart-risk-levels");
+  if (!cv) return;
+  const ctx = cv.getContext("2d"); if (!ctx) return;
+
+  lrDestroy("risk");
+  const counts = summary?.risk_level_counts || {};
+  const labels = ["critical","high","medium","low","info"];
+  const data   = labels.map(k => counts[k] || 0);
+
+  LR_CHARTS.risk = new Chart(ctx,{
+    type:"doughnut",
+    data:{ labels: labels.map(s=>s.toUpperCase()), datasets:[{ data }] },
+    options:{ plugins:{ legend:{ position:"bottom", labels:{ color:"#ddd" } } }, cutout:"58%" }
+  });
+}
+
+function lrRenderExposure(summary){
+  const cv = document.getElementById("chart-exposure");
+  if (!cv) return;
+  const ctx = cv.getContext("2d"); if (!ctx) return;
+
+  lrDestroy("exposure");
+  const ec = summary?.exposure_category_counts || {};
+  LR_CHARTS.exposure = new Chart(ctx,{
+    type:"bar",
+    data:{ labels:["Private","Public"], datasets:[{ data:[ec.private||0, ec.public||0] }] },
+    options:{
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ ticks:{ color:"#ddd" }, grid:{ display:false } },
+        y:{ ticks:{ color:"#aaa" }, grid:{ color:"rgba(255,255,255,.08)" }, beginAtZero:true, precision:0 }
+      }
+    }
+  });
+}
+
+function lrRenderTrend(trends){
+  const cv = document.getElementById("chart-trend");
+  if (!cv) return;
+  const ctx = cv.getContext("2d"); if (!ctx) return;
+
+  lrDestroy("trend");
+  const points = trends?.points || [];
+  const labels = points.map(p => new Date(p.timestamp).toLocaleString());
+  const avg    = points.map(p => p.avg_risk ?? 0);
+
+  LR_CHARTS.trend = new Chart(ctx,{
+    type:"line",
+    data:{ labels, datasets:[{ data: avg, tension:.25, fill:false }] },
+    options:{
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ ticks:{ color:"#ddd", maxRotation:0 }, grid:{ display:false } },
+        y:{ ticks:{ color:"#aaa" }, grid:{ color:"rgba(255,255,255,.08)" }, beginAtZero:true, suggestedMax:10 }
+      }
+    }
+  });
+}
+
+function lrRenderTopRisks(items){
+  const tb = document.getElementById("lr-toprisks-body");
+  if (!tb) return;
+
+  tb.innerHTML = "";
+  if (!items || items.length === 0){
+    tb.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No risky buckets found.</td></tr>";
+    return;
+  }
+
+  const rc = lvl => (lvl ? ("badge " + lvl.toLowerCase()) : "badge");
+
+  items.forEach(it=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      "<td>"+ (it.bucket_name||"—") +"</td>"+
+      "<td><strong>"+ (it.risk_score ?? "—") +"</strong> <span class='"+rc(it.risk_level)+"'>"+(it.risk_level||"")+"</span></td>"+
+      "<td>"+ (it.exposure_state||"—") +"</td>"+
+      "<td>"+ (it.sensitive_keyword_count ?? 0) +"</td>"+
+      "<td>"+ formatDate(it.last_seen_at) +"</td>";
+    tb.appendChild(tr);
+  });
+}
+
+/* ---------- main loader ---------- */
+async function loadLiveReports(){
+  const pid = getSelectedProjectId();
+  const label = document.getElementById("lr-project-label");
+  if (label) label.textContent = pid || "—";
+
+  if (!pid){
+    // friendly message if you want: keep charts blank
+    console.warn("Live Reports: no project selected.");
+    return;
+  }
+
+  // read dates; do NOT pass empty strings
+  const fromEl = document.getElementById("lr-from");
+  const toEl   = document.getElementById("lr-to");
+  const from = fromEl ? fromEl.value.trim() : "";
+  const to   = toEl   ? toEl.value.trim()   : "";
+
+  try{
+    lrSetLoading(true);
+
+    const qs   = lrQS({ project_id: pid, ...(from && {from}), ...(to && {to}) });
+    const lim5 = lrQS({ project_id: pid, limit: 5, ...(from && {from}), ...(to && {to}) });
+
+    const [summary, trends, topRisks] = await Promise.all([
+      authFetchJSON(API_REPORTS_SUMMARY + "?" + qs),
+      authFetchJSON(API_REPORTS_TRENDS  + "?" + qs),
+      authFetchJSON(API_REPORTS_TOP     + "?" + lim5)
+    ]);
+
+    console.debug("Live Reports summary:", summary);
+    console.debug("Live Reports trends:", trends);
+    console.debug("Live Reports top:", topRisks);
+
+    lrRenderKpis(summary);
+    lrRenderRiskLevels(summary);
+    lrRenderExposure(summary);
+    lrRenderTrend(trends);
+    lrRenderTopRisks(topRisks?.items || []);
+  }catch(e){
+    console.error("Live Reports error:", e);
+    // Optional: surface an inline error message here
+  }finally{
+    lrSetLoading(false);
+  }
+}
+
+/* ---------- wiring ---------- */
+document.addEventListener("DOMContentLoaded", function(){
+  const btn  = document.getElementById("lr-refresh");
+  const auto = document.getElementById("lr-autorefresh");
+
+  if (btn)  btn.addEventListener("click", loadLiveReports);
+  if (auto){
+    auto.addEventListener("change", function(){
+      if (LR_TIMER){ clearInterval(LR_TIMER); LR_TIMER = null; }
+      if (this.checked){ LR_TIMER = setInterval(loadLiveReports, 30_000); }
+    });
+  }
+
+  // initial load if a project is already in storage
+  loadLiveReports();
+});
+
+// Listen to project selection from the picker
+window.addEventListener("gcs_project_selected", function(ev){
+  // optional: reset date filters when project changes
+  const f = document.getElementById("lr-from"), t = document.getElementById("lr-to");
+  if (f) f.value = ""; if (t) t.value = "";
+  // also keep latest id in localStorage for good measure
+  try{ if (ev?.detail?.id) localStorage.setItem("selected_project_id", ev.detail.id); } catch(_){}
+  loadLiveReports();
+});
+</script>
+
 <script src="https://unpkg.com/feather-icons"></script>
 <script>window.feather && feather.replace();</script>
 <script src="web.js"></script>
