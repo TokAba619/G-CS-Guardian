@@ -43,6 +43,7 @@
     .badge { display:inline-block; padding:.25rem .5rem; border-radius:999px; font-size:.8rem; }
     .badge-public { background:#ff0000; color:#000000 !important; font-weight:700; }
     .badge-private { background:#00ff00; color:#000000 !important; font-weight:700; }
+    .risk-info {background:#00eeff; color:#000000 !important; font-weight:700;}
     .risk-low { background:#00ff37; color:#000000 !important; font-weight:700; }
     .risk-medium { background:#ffee00; color:#000000 !important; font-weight:700; }
     .risk-high { background:#7a0c0c; color:#000000 !important; font-weight:700; }
@@ -1540,41 +1541,65 @@ function lrRenderKpis(summary){
 function lrDestroy(id){ if (LR_CHARTS[id]) { LR_CHARTS[id].destroy(); LR_CHARTS[id] = null; } }
 
 function lrRenderRiskLevels(summary){
-  const cv = document.getElementById("chart-risk-levels");
-  if (!cv) return;
-  const ctx = cv.getContext("2d"); if (!ctx) return;
-
   lrDestroy("risk");
+  const ctx = document.getElementById("chart-risk-levels").getContext("2d");
+
+  const labels = ["CRITICAL","HIGH","MEDIUM","LOW","INFO"];
   const counts = summary?.risk_level_counts || {};
-  const labels = ["critical","high","medium","low","info"];
-  const data   = labels.map(k => counts[k] || 0);
+  const data   = [
+    counts.critical || 0,
+    counts.high     || 0,
+    counts.medium   || 0,
+    counts.low      || 0,
+    counts.info     || 0
+  ];
+
+  // your specified colors
+  const bg = [
+    "#ff0000", // critical
+    "#7a0c0c", // high
+    "#ffee00", // medium
+    "#00ff37", // low
+    "#00eeff"  // info
+  ];
 
   LR_CHARTS.risk = new Chart(ctx,{
     type:"doughnut",
-    data:{ labels: labels.map(s=>s.toUpperCase()), datasets:[{ data }] },
-    options:{ plugins:{ legend:{ position:"bottom", labels:{ color:"#ddd" } } }, cutout:"58%" }
+    data:{ labels, datasets:[{ data, backgroundColor:bg, borderWidth:0 }] },
+    options:{
+      plugins:{ legend:{ position:"bottom", labels:{ color:"#ddd" } } },
+      cutout:"58%"
+    }
   });
 }
 
-function lrRenderExposure(summary){
-  const cv = document.getElementById("chart-exposure");
-  if (!cv) return;
-  const ctx = cv.getContext("2d"); if (!ctx) return;
 
+function lrRenderExposure(summary){
   lrDestroy("exposure");
+  const ctx = document.getElementById("chart-exposure").getContext("2d");
   const ec = summary?.exposure_category_counts || {};
+
   LR_CHARTS.exposure = new Chart(ctx,{
     type:"bar",
-    data:{ labels:["Private","Public"], datasets:[{ data:[ec.private||0, ec.public||0] }] },
+    data:{
+      labels:["Private","Public"],
+      datasets:[{
+        data:[ ec.private || 0, ec.public || 0 ],
+        backgroundColor:["#00ff00","#ff0000"],   // private green, public red
+        borderWidth:0
+      }]
+    },
     options:{
       plugins:{ legend:{ display:false } },
       scales:{
         x:{ ticks:{ color:"#ddd" }, grid:{ display:false } },
-        y:{ ticks:{ color:"#aaa" }, grid:{ color:"rgba(255,255,255,.08)" }, beginAtZero:true, precision:0 }
+        y:{ ticks:{ color:"#aaa" }, grid:{ color:"rgba(255,255,255,.08)" },
+            beginAtZero:true, precision:0 }
       }
     }
   });
 }
+
 
 function lrRenderTrend(trends){
   const cv = document.getElementById("chart-trend");
@@ -1670,22 +1695,53 @@ async function loadLiveReports(){
   }
 }
 
+// YYYY-MM-DD for <input type="date">
+function lrIsoDay(d){ return d.toISOString().slice(0, 10); }
+
+// Seed defaults if fields are empty (last 30 days)
+function lrEnsureDates(){
+  const fromEl = document.getElementById("lr-from");
+  const toEl   = document.getElementById("lr-to");
+  if(!fromEl || !toEl) return;
+
+  const today = new Date();
+  const start = new Date();
+  start.setDate(today.getDate() - 30);   // last 30 days
+
+  if(!fromEl.value) fromEl.value = lrIsoDay(start);
+  if(!toEl.value)   toEl.value   = lrIsoDay(today);
+
+  // Optional: constrain selection
+  fromEl.max = lrIsoDay(today);
+  toEl.max   = lrIsoDay(today);
+}
+
+
 /* ---------- wiring ---------- */
-document.addEventListener("DOMContentLoaded", function(){
+document.addEventListener("DOMContentLoaded", function () {
+  lrEnsureDates();            // auto-fill From/To if empty
+
   const btn  = document.getElementById("lr-refresh");
   const auto = document.getElementById("lr-autorefresh");
-
-  if (btn)  btn.addEventListener("click", loadLiveReports);
-  if (auto){
+  if(btn)  btn.addEventListener("click", loadLiveReports);
+  if(auto){
     auto.addEventListener("change", function(){
-      if (LR_TIMER){ clearInterval(LR_TIMER); LR_TIMER = null; }
-      if (this.checked){ LR_TIMER = setInterval(loadLiveReports, 30_000); }
+      if(LR_TIMER){ clearInterval(LR_TIMER); LR_TIMER = null; }
+      if(this.checked){ LR_TIMER = setInterval(loadLiveReports, 30_000); }
     });
   }
 
-  // initial load if a project is already in storage
+  loadLiveReports();          // first paint uses the defaulted dates
+});
+
+window.addEventListener("gcs_project_selected", function(){
+  // Optional: clear any manual values first
+  document.getElementById("lr-from").value = "";
+  document.getElementById("lr-to").value   = "";
+  lrEnsureDates();             // <-- reseed to last 30 days
   loadLiveReports();
 });
+
 
 // Listen to project selection from the picker
 window.addEventListener("gcs_project_selected", function(ev){
