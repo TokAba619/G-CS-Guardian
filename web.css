@@ -1398,3 +1398,7 @@ td.download-col {
   background: #222;
 }
 
+.results-table-wrapper table {
+  min-width: 1200px;  /* force table to be wider than container */
+  width: max-content; /* table grows with its content */
+}
