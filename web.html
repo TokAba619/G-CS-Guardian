@@ -1481,93 +1481,72 @@ const API_PREVIOUS_SCANS  = (typeof API_PREVIOUS_SCANS !== "undefined")
 
 let LR_CHARTS = { risk:null, exposure:null, trend:null };
 
-/* ---------- tiny inline notice ---------- */
-function lrNotice(msg){
-  console.warn("[LiveReports]", msg);
-  const label = document.getElementById("lr-project-label");
-  if (label) label.textContent = `— ${msg}`;
-}
-
 /* ---------- helpers ---------- */
 function authFetchJSON(url){
-  const t = (typeof getToken === "function") ? getToken() : null;
-  if(!t){ lrNotice("please sign in"); throw new Error("No token"); }
-  return fetch(url, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }})
-    .then(async r => { if(!r.ok){ throw new Error(`HTTP ${r.status} on ${url}`); } return r.json(); });
+  const t = getToken(); if(!t){ throw new Error("No token (not signed in)"); }
+  return fetch(url, {
+    headers: { "Authorization": "Bearer " + t, "Accept":"application/json" }
+  }).then(async r => {
+    if(!r.ok){
+      const body = await r.text().catch(()=> "");
+      throw new Error(`HTTP ${r.status} on ${url}\n${body}`);
+    }
+    return r.json();
+  });
 }
-function lrISODateOnly(d){
-  const p = n => String(n).padStart(2,"0");
-  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+function setProjectLabel(pid){
+  const el = document.getElementById("lr-project-label");
+  if(el) el.textContent = pid || "—";
 }
-function lrSetDateInputs(fromISO, toISO){
-  const f = document.getElementById("lr-from");
-  const t = document.getElementById("lr-to");
-  if (f) f.value = fromISO || "";
-  if (t) t.value = toISO   || "";
+function showInlineMessage(msg){
+  // put the message inside KPI tiles if you want; here we set labels only
+  console.warn(msg);
 }
 
-/* Get a usable project id. Try picker/localStorage; if none, use most recent scan’s project_id. */
-async function lrEnsureProjectId(){
-  try {
+/* Get a usable project id. Try picker → localStorage → newest scan. */
+async function resolveProjectId(){
+  // 1) ProjectPicker
+  try{
     const pick = window.ProjectPicker?.getSelected?.();
-    if (pick?.id) {
+    if(pick?.id){
       localStorage.setItem("selected_project_id", pick.id);
       return pick.id;
     }
-  } catch(_){}
+  }catch(_){}
 
+  // 2) stored
   const stored = localStorage.getItem("selected_project_id");
-  if (stored) return stored;
+  if(stored) return stored;
 
-  const t = (typeof getToken === "function") ? getToken() : null;
-  if(!t){ lrNotice("please sign in"); return ""; }
-
-  const res = await fetch(API_PREVIOUS_SCANS, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }});
-  if(!res.ok){ lrNotice("cannot load scans"); return ""; }
+  // 3) fallback to newest scan across all projects
+  const t = getToken(); if(!t) return "";
+  const res = await fetch(API_PREVIOUS_SCANS, {
+    headers: { "Authorization":"Bearer "+t, "Accept":"application/json" }
+  });
+  if(!res.ok) return "";
   const data  = await res.json();
   const scans = Array.isArray(data?.my_scans) ? data.my_scans : [];
-  if (scans.length === 0){ lrNotice("no scans yet"); return ""; }
+  if(scans.length === 0) return "";
 
   const latest = scans.sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp))[0];
-  if (latest?.project_id){
+  if(latest?.project_id){
     localStorage.setItem("selected_project_id", latest.project_id);
     return latest.project_id;
   }
-  lrNotice("no project id found");
   return "";
 }
 
-/* Force the date inputs to the newest scan day for a project. */
-async function lrDefaultToLastScan(pid){
-  const t = (typeof getToken === "function") ? getToken() : null;
-  if(!t) return false;
+/* ---------- renderers ---------- */
+function lrDestroy(id){ if(LR_CHARTS[id]){ LR_CHARTS[id].destroy(); LR_CHARTS[id]=null; } }
 
-  const res  = await fetch(API_PREVIOUS_SCANS, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }});
-  if(!res.ok) return false;
-  const data  = await res.json();
-  const scans = Array.isArray(data?.my_scans) ? data.my_scans : [];
-  const latest = scans.filter(s => s.project_id === pid)
-                      .sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp))[0];
-  if(!latest) return false;
-  const ts  = new Date(latest.timestamp);
-  const iso = lrISODateOnly(ts);
-  lrSetDateInputs(iso, iso);
-  return true;
-}
-
-/* ---------- KPIs ---------- */
 function lrRenderKpis(summary){
   const totals = summary?.totals || {};
   const put = (id,v)=>{ const el=document.getElementById(id); if(el) el.textContent = (v ?? "—"); };
-  put("kpi-total-scans", 1);
-  put("kpi-buckets",      totals.buckets_scanned);
-  put("kpi-risky",        totals.risky_buckets);
-  const pct = summary?.risky_bucket_pct;
-  put("kpi-risky-pct", (pct == null ? "—" : `${Number(pct).toFixed(1)}%`));
+  put("kpi-total-scans", 1); // latest scan only
+  put("kpi-buckets", totals.buckets_scanned);
+  put("kpi-risky",   totals.risky_buckets);
+  put("kpi-risky-pct", summary?.risky_bucket_pct == null ? "—" : (summary.risky_bucket_pct + "%"));
 }
-
-/* ---------- charts ---------- */
-function lrDestroy(id){ if(LR_CHARTS[id]){ LR_CHARTS[id].destroy(); LR_CHARTS[id]=null; } }
 
 function lrRenderRiskLevels(summary){
   lrDestroy("risk");
@@ -1579,7 +1558,7 @@ function lrRenderRiskLevels(summary){
 
   LR_CHARTS.risk = new Chart(ctx,{
     type:"doughnut",
-    data:{ labels: order.map(s=>s.toUpperCase()), datasets:[{ data, backgroundColor: colors, borderWidth:0 }] },
+    data:{ labels: order.map(s=>s.toUpperCase()), datasets:[{ data, backgroundColor:colors, borderWidth:0 }] },
     options:{
       cutout:"58%",
       plugins:{
@@ -1593,7 +1572,7 @@ function lrRenderRiskLevels(summary){
 function lrRenderExposure(summary){
   lrDestroy("exposure");
   const ctx = document.getElementById("chart-exposure")?.getContext("2d"); if(!ctx) return;
-  const ec  = summary?.exposure_category_counts || {};
+  const ec   = summary?.exposure_category_counts || {};
   const vals = [ec.private||0, ec.public||0];
 
   LR_CHARTS.exposure = new Chart(ctx,{
@@ -1602,7 +1581,7 @@ function lrRenderExposure(summary){
       labels:["Private","Public"],
       datasets:[{
         data: vals,
-        backgroundColor:["#00ff00","#ff0000"],
+        backgroundColor:["#00ff00","#ff0000"],   // private (green), public (red)
         borderColor:["#00cc00","#cc0000"],
         borderWidth:1
       }]
@@ -1649,7 +1628,7 @@ function lrRenderTopRisks(items){
   }
   const badge = lvl => (lvl ? `badge ${lvl.toLowerCase()}` : "badge");
   items.forEach(it=>{
-    const tr=document.createElement("tr");
+    const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${it.bucket_name || "—"}</td>
       <td><strong>${it.risk_score ?? "—"}</strong> <span class="${badge(it.risk_level)}">${it.risk_level || ""}</span></td>
@@ -1662,32 +1641,18 @@ function lrRenderTopRisks(items){
 
 /* ---------- main (latest scan only) ---------- */
 async function loadLiveReports(){
-  console.debug("[LiveReports] start");
-  const pid = await lrEnsureProjectId();
-  const label = document.getElementById("lr-project-label");
-  if (label) label.textContent = pid || "—";
-  if(!pid){ lrNotice("select a project / run a scan"); return; }
-  console.debug("[LiveReports] project id:", pid);
+  // 1) ensure we have a project id, prefer picker → localStorage → newest scan
+  const pid = await resolveProjectId();
+  setProjectLabel(pid);
 
-  const seeded = await lrDefaultToLastScan(pid);
-  if (!seeded){
-    lrNotice("no scans for this project yet");
-    lrRenderKpis({ totals:{} });
-    lrRenderRiskLevels({ risk_level_counts:{} });
-    lrRenderExposure({ exposure_category_counts:{} });
-    lrRenderTrend({ points:[] });
-    lrRenderTopRisks([]);
+  if(!pid){
+    showInlineMessage("No project selected (and no previous scans found).");
     return;
   }
 
-  const from = document.getElementById("lr-from")?.value?.trim() || "";
-  const to   = document.getElementById("lr-to")?.value?.trim()   || "";
-  console.debug("[LiveReports] range:", from, "→", to);
-
-  const qs   = new URLSearchParams({ project_id: pid });
-  const qsTop= new URLSearchParams({ project_id: pid, limit: "5" });
-  if(from) qs.set("from", from), qsTop.set("from", from);
-  if(to)   qs.set("to",   to),   qsTop.set("to",   to);
+  // 2) Build queries (no from/to → backend will use latest scan)
+  const qs    = new URLSearchParams({ project_id: pid });
+  const qsTop = new URLSearchParams({ project_id: pid, limit: "5" });
 
   try{
     const [summary, trends, topRisks] = await Promise.all([
@@ -1695,7 +1660,7 @@ async function loadLiveReports(){
       authFetchJSON(`${API_REPORTS_TRENDS}?${qs}`),
       authFetchJSON(`${API_REPORTS_TOP}?${qsTop}`)
     ]);
-    console.debug("[LiveReports] summary:", summary);
+
     lrRenderKpis(summary);
     lrRenderRiskLevels(summary);
     lrRenderExposure(summary);
@@ -1703,15 +1668,17 @@ async function loadLiveReports(){
     lrRenderTopRisks(topRisks?.items || []);
   }catch(err){
     console.error("Live Reports error:", err);
-    lrNotice("failed to load");
+    showInlineMessage("Failed to load Live Reports (see console).");
   }
 }
 
 /* ---------- wiring ---------- */
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("lr-refresh")?.addEventListener("click", loadLiveReports);
-  loadLiveReports(); // first render
+  loadLiveReports(); // initial paint
 });
+
+// when your app emits a project selection
 window.addEventListener("gcs_project_selected", (ev)=>{
   try{ if(ev?.detail?.id) localStorage.setItem("selected_project_id", ev.detail.id); }catch(_){}
   loadLiveReports();
