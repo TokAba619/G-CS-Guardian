@@ -372,7 +372,7 @@
   <div class="container">
     <h2 class="section-title">Live Reports</h2>
     <p class="section-content">
-      Real-time insights for the currently selected project. Pick a project above — or hit Refresh.
+      Real-time insights for the currently selected project. Pick a project above or hit Refresh.
     </p>
 
     <!-- Controls -->
@@ -426,7 +426,7 @@
         <canvas id="chart-exposure" height="160"></canvas>
       </div>
       <div class="lr-card lr-wide">
-        <div class="lr-card-title">Risk Trend</div>
+        <div class="lr-card-title">Risk Trend of this Project</div>
         <canvas id="chart-trend" height="200"></canvas>
       </div>
     </div>
@@ -1542,32 +1542,26 @@ function lrDestroy(id){ if (LR_CHARTS[id]) { LR_CHARTS[id].destroy(); LR_CHARTS[
 
 function lrRenderRiskLevels(summary){
   lrDestroy("risk");
-  const ctx = document.getElementById("chart-risk-levels").getContext("2d");
-
-  const labels = ["CRITICAL","HIGH","MEDIUM","LOW","INFO"];
+  const c = document.getElementById("chart-risk-levels").getContext("2d");
   const counts = summary?.risk_level_counts || {};
-  const data   = [
-    counts.critical || 0,
-    counts.high     || 0,
-    counts.medium   || 0,
-    counts.low      || 0,
-    counts.info     || 0
-  ];
+  const labels = ["critical","high","medium","low","info"];
+  const data   = labels.map(k => counts[k]||0);
 
-  // your specified colors
-  const bg = [
-    "#ff0000", // critical
-    "#7a0c0c", // high
-    "#ffee00", // medium
-    "#00ff37", // low
-    "#00eeff"  // info
-  ];
-
-  LR_CHARTS.risk = new Chart(ctx,{
+  LR_CHARTS.risk = new Chart(c,{
     type:"doughnut",
-    data:{ labels, datasets:[{ data, backgroundColor:bg, borderWidth:0 }] },
+    data:{ labels: labels.map(s=>s.toUpperCase()), datasets:[{ data }] },
     options:{
-      plugins:{ legend:{ position:"bottom", labels:{ color:"#ddd" } } },
+      plugins:{
+        legend:{ position:"bottom", labels:{ color:"#ddd" } },
+        tooltip:{
+          callbacks:{
+            label(ctx){
+              const v = ctx.raw ?? 0;
+              return `${ctx.label}: ${v} bucket${v===1?'':'s'}`;
+            }
+          }
+        }
+      },
       cutout:"58%"
     }
   });
@@ -1576,25 +1570,29 @@ function lrRenderRiskLevels(summary){
 
 function lrRenderExposure(summary){
   lrDestroy("exposure");
-  const ctx = document.getElementById("chart-exposure").getContext("2d");
+  const c = document.getElementById("chart-exposure").getContext("2d");
   const ec = summary?.exposure_category_counts || {};
-
-  LR_CHARTS.exposure = new Chart(ctx,{
+  LR_CHARTS.exposure = new Chart(c,{
     type:"bar",
     data:{
       labels:["Private","Public"],
-      datasets:[{
-        data:[ ec.private || 0, ec.public || 0 ],
-        backgroundColor:["#00ff00","#ff0000"],   // private green, public red
-        borderWidth:0
-      }]
+      datasets:[{ data:[ec.private||0, ec.public||0] }]
     },
     options:{
-      plugins:{ legend:{ display:false } },
+      plugins:{
+        legend:{ display:false },
+        tooltip:{
+          callbacks:{
+            label(ctx){
+              const v = (ctx.parsed?.y ?? ctx.raw ?? 0);
+              return `${ctx.label}: ${v} bucket${v===1?'':'s'}`;
+            }
+          }
+        }
+      },
       scales:{
         x:{ ticks:{ color:"#ddd" }, grid:{ display:false } },
-        y:{ ticks:{ color:"#aaa" }, grid:{ color:"rgba(255,255,255,.08)" },
-            beginAtZero:true, precision:0 }
+        y:{ ticks:{ color:"#aaa" }, grid:{ color:"rgba(255,255,255,.08)" }, beginAtZero:true, precision:0 }
       }
     }
   });
