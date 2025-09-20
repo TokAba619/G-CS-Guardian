@@ -376,9 +376,10 @@
         <strong id="lr-project-label">—</strong>
       </div>
 
-      <!-- hidden date inputs (needed by script to lock to latest scan) -->
-      <input type="date" id="lr-from" style="display:none" aria-hidden="true">
-      <input type="date" id="lr-to" style="display:none" aria-hidden="true">
+     <!-- put this right under the header controls in your Live Reports section -->
+     <input type="date" id="lr-from" hidden>
+     <input type="date" id="lr-to"   hidden>
+
 
       <button id="lr-refresh" class="cta-pink">Refresh</button>
     </div>
@@ -1467,7 +1468,6 @@ document.addEventListener("DOMContentLoaded",function(){
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
 /* =========================
    LIVE REPORTS — LATEST SCAN ONLY
@@ -1481,9 +1481,17 @@ const API_PREVIOUS_SCANS  = (typeof API_PREVIOUS_SCANS !== "undefined")
 
 let LR_CHARTS = { risk:null, exposure:null, trend:null };
 
+/* ---------- tiny inline notice ---------- */
+function lrNotice(msg){
+  console.warn("[LiveReports]", msg);
+  const label = document.getElementById("lr-project-label");
+  if (label) label.textContent = `— ${msg}`;
+}
+
 /* ---------- helpers ---------- */
 function authFetchJSON(url){
-  const t = getToken(); if(!t) throw new Error("No token");
+  const t = (typeof getToken === "function") ? getToken() : null;
+  if(!t){ lrNotice("please sign in"); throw new Error("No token"); }
   return fetch(url, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }})
     .then(async r => { if(!r.ok){ throw new Error(`HTTP ${r.status} on ${url}`); } return r.json(); });
 }
@@ -1500,7 +1508,6 @@ function lrSetDateInputs(fromISO, toISO){
 
 /* Get a usable project id. Try picker/localStorage; if none, use most recent scan’s project_id. */
 async function lrEnsureProjectId(){
-  // 1) ProjectPicker
   try {
     const pick = window.ProjectPicker?.getSelected?.();
     if (pick?.id) {
@@ -1509,29 +1516,32 @@ async function lrEnsureProjectId(){
     }
   } catch(_){}
 
-  // 2) localStorage
   const stored = localStorage.getItem("selected_project_id");
   if (stored) return stored;
 
-  // 3) fallback to most recent scan across all projects
-  const t = getToken(); if(!t) return "";
+  const t = (typeof getToken === "function") ? getToken() : null;
+  if(!t){ lrNotice("please sign in"); return ""; }
+
   const res = await fetch(API_PREVIOUS_SCANS, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }});
-  if(!res.ok) return "";
+  if(!res.ok){ lrNotice("cannot load scans"); return ""; }
   const data  = await res.json();
   const scans = Array.isArray(data?.my_scans) ? data.my_scans : [];
-  if (scans.length === 0) return "";
+  if (scans.length === 0){ lrNotice("no scans yet"); return ""; }
 
   const latest = scans.sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp))[0];
   if (latest?.project_id){
     localStorage.setItem("selected_project_id", latest.project_id);
     return latest.project_id;
   }
+  lrNotice("no project id found");
   return "";
 }
 
 /* Force the date inputs to the newest scan day for a project. */
 async function lrDefaultToLastScan(pid){
-  const t = getToken(); if(!t) return false;
+  const t = (typeof getToken === "function") ? getToken() : null;
+  if(!t) return false;
+
   const res  = await fetch(API_PREVIOUS_SCANS, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }});
   if(!res.ok) return false;
   const data  = await res.json();
@@ -1549,11 +1559,9 @@ async function lrDefaultToLastScan(pid){
 function lrRenderKpis(summary){
   const totals = summary?.totals || {};
   const put = (id,v)=>{ const el=document.getElementById(id); if(el) el.textContent = (v ?? "—"); };
-
   put("kpi-total-scans", 1);
   put("kpi-buckets",      totals.buckets_scanned);
   put("kpi-risky",        totals.risky_buckets);
-
   const pct = summary?.risky_bucket_pct;
   put("kpi-risky-pct", (pct == null ? "—" : `${Number(pct).toFixed(1)}%`));
 }
@@ -1654,16 +1662,16 @@ function lrRenderTopRisks(items){
 
 /* ---------- main (latest scan only) ---------- */
 async function loadLiveReports(){
-  // Ensure we have a project id (picker -> localStorage -> most recent scan)
+  console.debug("[LiveReports] start");
   const pid = await lrEnsureProjectId();
   const label = document.getElementById("lr-project-label");
   if (label) label.textContent = pid || "—";
-  if(!pid){ console.warn("Live Reports: no project selected or no scans yet."); return; }
+  if(!pid){ lrNotice("select a project / run a scan"); return; }
+  console.debug("[LiveReports] project id:", pid);
 
-  // Force date inputs to the latest scan **for this project**
   const seeded = await lrDefaultToLastScan(pid);
   if (!seeded){
-    // No scans found for this project; clear UI and exit
+    lrNotice("no scans for this project yet");
     lrRenderKpis({ totals:{} });
     lrRenderRiskLevels({ risk_level_counts:{} });
     lrRenderExposure({ exposure_category_counts:{} });
@@ -1672,11 +1680,10 @@ async function loadLiveReports(){
     return;
   }
 
-  // Read those dates
   const from = document.getElementById("lr-from")?.value?.trim() || "";
   const to   = document.getElementById("lr-to")?.value?.trim()   || "";
+  console.debug("[LiveReports] range:", from, "→", to);
 
-  // Build queries restricted to that single day
   const qs   = new URLSearchParams({ project_id: pid });
   const qsTop= new URLSearchParams({ project_id: pid, limit: "5" });
   if(from) qs.set("from", from), qsTop.set("from", from);
@@ -1688,6 +1695,7 @@ async function loadLiveReports(){
       authFetchJSON(`${API_REPORTS_TRENDS}?${qs}`),
       authFetchJSON(`${API_REPORTS_TOP}?${qsTop}`)
     ]);
+    console.debug("[LiveReports] summary:", summary);
     lrRenderKpis(summary);
     lrRenderRiskLevels(summary);
     lrRenderExposure(summary);
@@ -1695,13 +1703,14 @@ async function loadLiveReports(){
     lrRenderTopRisks(topRisks?.items || []);
   }catch(err){
     console.error("Live Reports error:", err);
+    lrNotice("failed to load");
   }
 }
 
 /* ---------- wiring ---------- */
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("lr-refresh")?.addEventListener("click", loadLiveReports);
-  loadLiveReports();
+  loadLiveReports(); // first render
 });
 window.addEventListener("gcs_project_selected", (ev)=>{
   try{ if(ev?.detail?.id) localStorage.setItem("selected_project_id", ev.detail.id); }catch(_){}
