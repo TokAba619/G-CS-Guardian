@@ -1606,3 +1606,15 @@ td.download-col {
 .badge[style*="background:#fff"] {
   color: #000 !important; /* force black text if white background */
 }
+
+/* sample file links inside cards */
+.bucket-card .files a.file-link{
+  display:block;
+  color:#cfe8ff;
+  text-decoration:none;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  margin:.15rem 0;
+}
