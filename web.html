@@ -346,8 +346,13 @@
         type="text"
         id="results-filter"
         placeholder="Filter buckets (bucket name)…"
-        aria-label="Filter buckets"
-      />
+        aria-label="Filter buckets"/>
+
+        <!-- NEW: Fix button -->
+<button id="fixPublicBtn" type="button" class="cta-pink" title="Open AI fix wizard in a new tab">
+  Fix the Public Bucket
+</button>
+
       <span class="chip" id="results-count">0 buckets</span>
     </div>
 
@@ -541,6 +546,9 @@
                placeholder="Enter Project ID (required for Project Owner)"
                aria-label="Project ID for history">
         <button id="historyFetchBtn" type="button" class="cta-pink">Filter</button>
+        <!-- next to Filter -->
+<span id="historyAccessBadge" class="badge" style="margin-left:10px;">—</span>
+
       </div>
       <p id="historyHint" class="muted" style="text-align:center;margin-top:8px;"></p>
 
@@ -1390,7 +1398,7 @@ document.addEventListener("DOMContentLoaded", loadPreviousScans);
 <script>
 /* =========================
    HISTORY (Owner / Creator)
-   Better prefill + better 403 diagnostics
+   Prefill from picker + guard non-owner + better errors
 ========================= */
 function normalizeRole(r){
   const s = String(r || "").trim().toLowerCase();
@@ -1403,16 +1411,15 @@ async function fetchHistory(projectId, limit=100, offset=0){
   const token = getToken();
   if (!token) throw new Error("Not logged in");
 
-  const params = new URLSearchParams();
-  if (projectId) params.set("project_id", projectId);
-  params.set("limit", String(limit));
-  params.set("offset", String(offset));
+  const q = new URLSearchParams();
+  if (projectId) q.set("project_id", projectId);
+  q.set("limit", String(limit));
+  q.set("offset", String(offset));
 
-  const res = await fetch(`${API_BASE}/history?${params.toString()}`, {
-    headers: { "Accept":"application/json", "Authorization": "Bearer " + token }
+  const res = await fetch(`${API_BASE}/history?${q.toString()}`, {
+    headers: { "Accept": "application/json", "Authorization": "Bearer " + token }
   });
 
-  // Try to extract a helpful error from the server for non-2xx
   if (!res.ok) {
     let detail = `${res.status}: ${res.statusText || "Error"}`;
     try {
@@ -1424,24 +1431,21 @@ async function fetchHistory(projectId, limit=100, offset=0){
         const txt = await res.text();
         if (txt) detail = `${res.status}: ${txt}`;
       }
-    } catch(_){}
+    } catch(_) {}
     const e = new Error(detail);
     e.status = res.status;
     throw e;
   }
-
   return res.json();
 }
 
 function renderHistoryRows(rows){
   const tbody = document.querySelector("#historyTable tbody");
   if (!tbody) return;
-
   if (!rows.length) {
     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No history found.</td></tr>`;
     return;
   }
-
   tbody.innerHTML = "";
   rows.forEach(item => {
     const tr = document.createElement("tr");
@@ -1458,9 +1462,7 @@ function renderHistoryRows(rows){
 async function loadHistory(projectId, limit=100, offset=0){
   const tbody = document.querySelector("#historyTable tbody");
   if (!tbody) return;
-
   tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Loading…</td></tr>`;
-
   try {
     const data = await fetchHistory(projectId, limit, offset);
     const rows = Array.isArray(data?.history) ? data.history : [];
@@ -1473,47 +1475,52 @@ async function loadHistory(projectId, limit=100, offset=0){
 }
 
 document.addEventListener("DOMContentLoaded", function(){
-  // UI bits
   const projectInput = document.getElementById("historyProjectId");
   const fetchBtn     = document.getElementById("historyFetchBtn");
   const hint         = document.getElementById("historyHint");
+  const accessBadge  = document.getElementById("historyAccessBadge"); // optional
   const tbody        = document.querySelector("#historyTable tbody");
   if (!projectInput || !fetchBtn || !hint || !tbody) return;
 
-  // Prefill from Project Picker if possible (this avoids typos)
-  try {
-    const sel = window.ProjectPicker?.getSelected?.();
-    if (sel?.id) projectInput.value = sel.id; // exact id
-  } catch(_){}
+  const appRole = normalizeRole(localStorage.getItem("role")); // frontend hint only
 
-  // Also fallback to cached project id if no picker selection
+  function applyPickerSelectionToUI(){
+    const sel = window.ProjectPicker?.getSelected?.();
+    const id  = sel?.id || "";
+    const access = String(sel?.access || "").toLowerCase();
+
+    if (id) projectInput.value = id;
+    if (accessBadge) {
+      accessBadge.textContent = access ? access : "—";
+      accessBadge.className = "badge " + (access === "owner" ? "risk-low" : "risk-high");
+    }
+
+    // Guard: if not owner and not creator, disable the Filter to avoid guaranteed 403
+    const isOwner   = access === "owner";
+    const isCreator = appRole === "creator";
+    fetchBtn.disabled = (!isOwner && !isCreator);
+
+    if (!isOwner && !isCreator) {
+      hint.textContent = "History requires Project Owner (selected project shows: " +
+                         (sel?.access || "unknown") + "). You can still try another project.";
+    } else if (isCreator) {
+      hint.textContent = "Creator: you may leave Project ID empty to view all history.";
+    } else {
+      hint.textContent = "Enter your Project ID and click Filter. (You must be the GCP Owner of that project.)";
+    }
+  }
+
+  // Prefill from picker (best) or from cached selection
+  applyPickerSelectionToUI();
   if (!projectInput.value) {
     const cached = localStorage.getItem("selected_project_id") || "";
     if (cached) projectInput.value = cached;
   }
 
-  // Determine *app* role, but we still trust the server as the source of truth
-  const appRole = normalizeRole(localStorage.getItem("role"));
+  // React when the user changes the selected project in the picker
+  window.addEventListener("gcs_project_selected", applyPickerSelectionToUI);
 
-  // If we have a picker selection, show a helpful hint about access
-  try {
-    const sel = window.ProjectPicker?.getSelected?.();
-    if (sel?.id) {
-      const access = String(sel.access || "").toLowerCase();
-      if (access !== "owner") {
-        hint.textContent = "History requires Project Owner. You have: " + (sel.access || "unknown") +
-                           ". You can still try — the server will verify and may return 403.";
-      } else {
-        hint.textContent = "Enter your Project ID and click Filter. (You must be the GCP Owner of that project.)";
-      }
-    } else {
-      hint.textContent = "Enter a Project ID and click Filter. The server will verify your access.";
-    }
-  } catch(_){
-    hint.textContent = "Enter a Project ID and click Filter. The server will verify your access.";
-  }
-
-  // Wire the Filter button
+  // Filter click
   fetchBtn.addEventListener("click", function(){
     const pid = (projectInput.value || "").trim();
     if (!pid && appRole !== "creator") {
@@ -1523,20 +1530,15 @@ document.addEventListener("DOMContentLoaded", function(){
     loadHistory(pid, 100, 0);
   });
 
-  // Optional: Auto-load for creators (no project id) if you want
+  // Auto-load for creators (optional)
   if (appRole === "creator") {
     loadHistory("", 100, 0);
   } else {
-    // For owners, wait until they click Filter (or you can auto-load if a pid is present)
-    if (projectInput.value) {
-      // Uncomment to auto-load when a PID is already there:
-      // loadHistory(projectInput.value.trim(), 100, 0);
-    } else {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Enter a Project ID to view history.</td></tr>`;
-    }
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Enter a Project ID to view history.</td></tr>`;
   }
 });
 </script>
+
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -1841,6 +1843,15 @@ window.addEventListener("gcs_project_selected", (ev)=>{
   try{ if(ev?.detail?.id) localStorage.setItem("selected_project_id", ev.detail.id); }catch(_){}
   loadLiveReports();
 });
+</script>
+
+<script>
+  // assuming you already have scanId available on this page
+  const fixBtn = document.getElementById('fixPublicBtn');
+  fixBtn.addEventListener('click', () => {
+    const url = `/fix.html?scan_id=${encodeURIComponent(window.scanId)}`;
+    window.open(url, '_blank', 'noopener');
+  });
 </script>
 
 <script src="https://unpkg.com/feather-icons"></script>
