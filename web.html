@@ -1608,13 +1608,14 @@ document.addEventListener("DOMContentLoaded",function(){
 <script>
 /* =========================
    LIVE REPORTS — RANGE FILTERS (Latest | Today | All)
-   Latest uses the SINGLE newest scan (not the whole day)
+   Latest now uses the exact newest scan_id and counts ALL buckets.
 ========================= */
 const API_REPORTS_SUMMARY = API_BASE + "/reports/summary";
 const API_REPORTS_TRENDS  = API_BASE + "/reports/trends";
 const API_REPORTS_TOP     = API_BASE + "/reports/top-risks";
 const API_PREVIOUS_SCANS_URL =
   (window.API_PREVIOUS_SCANS || (window.API_PREVIOUS_SCANS = API_BASE + "/my-scans/"));
+const API_SCAN_DETAILS = API_BASE + "/my-scans/{scan_id}";
 
 let LR_RANGE = "latest";
 let LR_CHARTS = { risk:null, exposure:null, trend:null };
@@ -1625,12 +1626,27 @@ function authFetchJSON(url){
   return fetch(url, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }})
     .then(async r => { if(!r.ok) throw new Error(`HTTP ${r.status} on ${url}`); return r.json(); });
 }
+function authFetchScanDetails(scanId){
+  const t = getToken(); if(!t) throw new Error("No token");
+  const url = API_SCAN_DETAILS.replace("{scan_id}", encodeURIComponent(scanId));
+  return fetch(url, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }})
+    .then(async r => { if(!r.ok) throw new Error(`HTTP ${r.status} on ${url}`); return r.json(); });
+}
 function isoLocalDate(d){
   const pad = n => String(n).padStart(2,"0");
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 }
 function formatScanDay(ts){ return isoLocalDate(new Date(ts)); }
+function setRangeBadge(text){
+  let b = document.getElementById("lr-range-badge");
+  if(!b){
+    const holder = document.querySelector(".lr-header") || document.querySelector("#live-reports .container");
+    if(holder){ b=document.createElement("div"); b.id="lr-range-badge"; b.style.cssText="margin-top:6px;font-size:.85rem;opacity:.7;"; holder.appendChild(b); }
+  }
+  if(b) b.textContent = text ? `Loaded: ${text}` : "";
+}
 
+/* Project id picking */
 async function ensureProjectId(){
   try { const pick = window.ProjectPicker?.getSelected?.(); if (pick?.id) {
     localStorage.setItem("selected_project_id", pick.id); return pick.id; } } catch(_){}
@@ -1647,18 +1663,16 @@ async function ensureProjectId(){
   return "";
 }
 
-/* Newest scan (full timestamp + scan_id) */
+/* Newest scan metadata (from /reports/trends) */
 async function getLatestScanInfo(pid){
-  // Use /reports/trends (no from/to) and pick the newest point
   const qs = new URLSearchParams({ project_id: pid });
   const trends = await authFetchJSON(`${API_REPORTS_TRENDS}?${qs}`);
   const points = Array.isArray(trends?.points) ? trends.points : [];
   if(!points.length) return null;
-  const latest = points.sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp))[0];
-  return latest; // {scan_id, timestamp, counts:{...}, avg_risk, ...}
+  return points.sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp))[0];
 }
 
-/* ---------- renderers ---------- */
+/* ---------- simple UI renderers ---------- */
 function renderKpis(summary){
   const totals = summary?.totals || {};
   const put = (id,v)=>{ const el=document.getElementById(id); if(el) el.textContent = (v ?? "—"); };
@@ -1667,9 +1681,7 @@ function renderKpis(summary){
   put("kpi-risky",       totals.risky_buckets ?? "—");
   put("kpi-risky-pct",   (summary?.risky_bucket_pct == null) ? "—" : (summary.risky_bucket_pct + "%"));
 }
-
 function destroyChart(id){ if(LR_CHARTS[id]){ LR_CHARTS[id].destroy(); LR_CHARTS[id]=null; } }
-
 function renderRiskLevels(summary){
   destroyChart("risk");
   const ctx = document.getElementById("chart-risk-levels")?.getContext("2d"); if(!ctx) return;
@@ -1677,42 +1689,22 @@ function renderRiskLevels(summary){
   const order  = ["critical","high","medium","low","info"];
   const colors = ["#ff0000","#7a0c0c","#ffee00","#00ff37","#00eeff"];
   const data   = order.map(k => counts[k] || 0);
-
   LR_CHARTS.risk = new Chart(ctx,{
     type:"doughnut",
     data:{ labels: order.map(s=>s.toUpperCase()), datasets:[{ data, backgroundColor: colors, borderWidth:0 }] },
-    options:{
-      cutout:"58%",
-      plugins:{
-        legend:{ position:"bottom", labels:{ color:"#ddd" } },
-        tooltip:{ callbacks:{ label(t){ const v=t.raw??0; return `${t.label}: ${v} bucket${v===1?"":"s"}`; } } }
-      }
-    }
+    options:{ cutout:"58%", plugins:{ legend:{ position:"bottom", labels:{ color:"#ddd" } } } }
   });
 }
-
 function renderExposure(summary){
   destroyChart("exposure");
   const ctx = document.getElementById("chart-exposure")?.getContext("2d"); if(!ctx) return;
   const ec  = summary?.exposure_category_counts || {};
   const vals = [ec.private||0, ec.public||0];
-
   LR_CHARTS.exposure = new Chart(ctx,{
     type:"bar",
-    data:{
-      labels:["Private","Public"],
-      datasets:[{
-        data: vals,
-        backgroundColor:["#00ff00","#ff0000"],
-        borderColor:["#00cc00","#cc0000"],
-        borderWidth:1
-      }]
-    },
+    data:{ labels:["Private","Public"], datasets:[{ data: vals, backgroundColor:["#00ff00","#ff0000"], borderColor:["#00cc00","#cc0000"], borderWidth:1 }] },
     options:{
-      plugins:{
-        legend:{ display:false },
-        tooltip:{ callbacks:{ label(t){ const v=t.parsed?.y ?? 0; return `${t.label}: ${v} bucket${v===1?"":"s"}`; } } }
-      },
+      plugins:{ legend:{ display:false } },
       scales:{
         x:{ ticks:{ color:"#ddd" }, grid:{ display:false } },
         y:{ beginAtZero:true, suggestedMax: Math.max(10, ...vals)+1, ticks:{ color:"#aaa" }, grid:{ color:"rgba(255,255,255,.08)" } }
@@ -1720,27 +1712,21 @@ function renderExposure(summary){
     }
   });
 }
-
 function renderTrend(trends){
   destroyChart("trend");
   const ctx = document.getElementById("chart-trend")?.getContext("2d"); if(!ctx) return;
   const points = trends?.points || [];
   const labels = points.map(p => new Date(p.timestamp).toLocaleString());
   const avg    = points.map(p => p.avg_risk ?? 0);
-
   LR_CHARTS.trend = new Chart(ctx,{
     type:"line",
     data:{ labels, datasets:[{ data: avg, tension:.25, fill:false, borderWidth:2, borderColor:"#ff4070", pointRadius:2 }] },
-    options:{
-      plugins:{ legend:{ display:false } },
-      scales:{
-        x:{ ticks:{ color:"#ddd", maxRotation:0 }, grid:{ display:false } },
-        y:{ beginAtZero:true, suggestedMax:10, ticks:{ color:"#aaa" }, grid:{ color:"rgba(255,255,255,.08)" } }
-      }
+    options:{ plugins:{ legend:{ display:false } },
+      scales:{ x:{ ticks:{ color:"#ddd", maxRotation:0 }, grid:{ display:false } },
+               y:{ beginAtZero:true, suggestedMax:10, ticks:{ color:"#aaa" }, grid:{ color:"rgba(255,255,255,.08)" } } }
     }
   });
 }
-
 function renderTopRisks(items){
   const tb = document.getElementById("lr-toprisks-body"); if(!tb) return;
   tb.innerHTML = "";
@@ -1761,15 +1747,6 @@ function renderTopRisks(items){
   });
 }
 
-function setRangeBadge(text){
-  let b = document.getElementById("lr-range-badge");
-  if(!b){
-    const holder = document.querySelector(".lr-header") || document.querySelector("#live-reports .container");
-    if(holder){ b=document.createElement("div"); b.id="lr-range-badge"; b.style.cssText="margin-top:6px;font-size:.85rem;opacity:.7;"; holder.appendChild(b); }
-  }
-  if(b) b.textContent = text ? `Loaded: ${text}` : "";
-}
-
 /* ---------- main loader ---------- */
 async function loadLiveReports(){
   const pid = await ensureProjectId();
@@ -1778,30 +1755,34 @@ async function loadLiveReports(){
   if(!pid){ setRangeBadge(""); return; }
 
   if (LR_RANGE === "latest") {
-    // 1) Get newest scan point
+    // 1) Get newest scan point (scan_id + timestamp + avg_risk + level counts)
     const latest = await getLatestScanInfo(pid);
     if(!latest){ setRangeBadge("Latest scan"); renderKpis({totals:{}, risky_bucket_pct:null}); return; }
 
-    // 2) Synthesize "summary" from that single scan
-    const c = latest.counts || {};
-    const totalBuckets = (c.critical||0)+(c.high||0)+(c.medium||0)+(c.low||0)+(c.info||0);
-    const riskyBuckets = (c.critical||0)+(c.high||0)+(c.medium||0);
-    const riskyPct = totalBuckets ? Math.round((riskyBuckets/totalBuckets)*1000)/10 : null; // one decimal
+    // 2) Fetch FULL details for that scan_id to count ALL buckets & exposure
+    const details = await authFetchScanDetails(latest.scan_id);
+    const buckets = Array.isArray(details?.buckets) ? details.buckets : [];
 
-    // 3) Get Top Risks for that day, then filter by scan_id to only keep this scan
-    const day = formatScanDay(latest.timestamp);
-    const qsTop = new URLSearchParams({ project_id: pid, from: day, to: day, limit: "100" });
-    const topRes = await authFetchJSON(`${API_REPORTS_TOP}?${qsTop}`);
-    const topItemsAll = Array.isArray(topRes?.items) ? topRes.items : [];
-    const topItems = topItemsAll.filter(x => x.scan_id === latest.scan_id);
+    // 3) Compute summary from the real bucket list
+    const levelCounts = { critical:0, high:0, medium:0, low:0, info:0 };
+    let expPrivate = 0, expPublic = 0, riskyBuckets = 0;
 
-    // 4) Derive exposure split from the filtered items
-    let expPrivate = 0, expPublic = 0;
-    topItems.forEach(it=>{
-      const s = (it.exposure_state || "").toLowerCase();
-      if (s === "private") expPrivate++;
-      else expPublic++; // treat public/object_public as public
+    buckets.forEach(b=>{
+      const score = Number(b.risk_score||0);
+      let level = "low";
+      if(score>=10) level="critical";
+      else if(score>=7) level="high";
+      else if(score>=4) level="medium";
+      levelCounts[level]++;
+
+      if(level==="critical"||level==="high"||level==="medium") riskyBuckets++;
+
+      const exposure = (b.exposure_state || (b.public ? "public" : "private")).toLowerCase();
+      if(exposure==="private") expPrivate++; else expPublic++;
     });
+
+    const totalBuckets = buckets.length;
+    const riskyPct = totalBuckets ? Math.round((riskyBuckets/totalBuckets)*1000)/10 : null;
 
     const summarySynth = {
       totals: {
@@ -1810,18 +1791,23 @@ async function loadLiveReports(){
         risky_buckets: riskyBuckets
       },
       risky_bucket_pct: (riskyPct == null ? null : riskyPct),
-      risk_level_counts: {
-        critical: c.critical||0, high: c.high||0, medium: c.medium||0, low: c.low||0, info: c.info||0
-      },
+      risk_level_counts: levelCounts,
       exposure_category_counts: { private: expPrivate, public: expPublic }
     };
 
-    // 5) Render everything using ONLY this scan
+    // 4) Top risks: fetch for that day then filter to this scan_id
+    const day = formatScanDay(latest.timestamp);
+    const qsTop = new URLSearchParams({ project_id: pid, from: day, to: day, limit: "100" });
+    const topRes = await authFetchJSON(`${API_REPORTS_TOP}?${qsTop}`);
+    const topItemsAll = Array.isArray(topRes?.items) ? topRes.items : [];
+    const topItems = topItemsAll.filter(x => x.scan_id === latest.scan_id);
+
+    // 5) Render
     setRangeBadge("Latest scan");
     renderKpis(summarySynth);
     renderRiskLevels(summarySynth);
     renderExposure(summarySynth);
-    renderTrend({ points: [latest] }); // trend = just one point
+    renderTrend({ points: [latest] }); // keep the single latest point for the sparkline
     renderTopRisks(topItems);
     return;
   }
@@ -1876,6 +1862,7 @@ window.addEventListener("gcs_project_selected", (ev)=>{
   loadLiveReports();
 });
 </script>
+
 
 <script src="https://unpkg.com/feather-icons"></script>
 <script>window.feather && feather.replace();</script>
