@@ -28,6 +28,19 @@
     <div id="bucketList"></div>
   </div>
 
+  <noscript style="color:#fca5a5;display:block;text-align:center;margin:12px 0;">
+    This page needs JavaScript enabled.
+  </noscript>
+
+  <!-- Optional: override API base (else ai.js uses its own default Cloud Run URL) -->
+  <script>
+    window.API_BASE = window.API_BASE || "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app";
+  </script>
+
+  <!-- If you have web.js in the root and want getToken(), uncomment the next line -->
+  <!-- <script src="web.js"></script> -->
+
+  <!-- Keep this as a RELATIVE path (no leading slash) since you're on GitHub Pages -->
   <script src="ai.js"></script>
 </body>
 </html>
