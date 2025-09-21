@@ -3,34 +3,31 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Fix Public Buckets</title>
+  <title>Fix the Public Bucket</title>
   <link rel="stylesheet" href="web.css">
   <style>
-    :root { --accent: #E91E63; }
-    body { background:#0b0b0b; color:#eee; }
+    body { background:#0b0b0b; color:#eee; font-family:Inter, sans-serif; }
     .wrap { max-width:1100px; margin:40px auto; padding:0 16px; }
-    .page-title { font-size:2rem; margin-bottom:8px; }
-    .sub { opacity:.8; margin-bottom:18px; }
-    .card { background:#111; border-radius:14px; padding:18px; margin:14px 0; box-shadow:0 8px 28px rgba(0,0,0,.35); }
-    .row { display:flex; gap:14px; flex-wrap:wrap; }
-    .pill { display:inline-block; padding:6px 10px; border-radius:999px; background:#1a1a1a; border:1px solid #222; }
-    .btn { border:0; border-radius:10px; padding:10px 12px; cursor:pointer; }
-    .btn-primary { background:var(--accent); color:#000; font-weight:700; }
-    .cmd { background:#0a0a0a; border:1px solid #222; border-radius:10px; padding:12px; overflow:auto; font-family:ui-monospace, Menlo, Consolas, monospace; white-space:pre-wrap; }
-    .muted { opacity:.85; }
-    .risk { font-weight:700; }
-    .risk.low{ color:#67e8f9; } .risk.medium{ color:#facc15; } .risk.high{ color:#fb7185; } .risk.critical{ color:#ef4444; }
+    h1 { font-size:2rem; margin-bottom:10px; }
+    .sub { opacity:.8; margin-bottom:20px; }
+    .card { background:#111; border-radius:12px; padding:16px; margin:14px 0; box-shadow:0 8px 24px rgba(0,0,0,.35); }
+    .cmd { background:#0a0a0a; border:1px solid #222; border-radius:10px; padding:12px; margin-top:8px; font-family:monospace; white-space:pre-wrap; overflow-x:auto; }
+    .risk { font-weight:700; margin-bottom:6px; }
+    .risk.low{ color:#67e8f9; }
+    .risk.medium{ color:#facc15; }
+    .risk.high{ color:#fb7185; }
+    .risk.critical{ color:#ef4444; }
+    button.copy-btn { margin-top:6px; background:#E91E63; color:#000; border:0; border-radius:8px; padding:8px 10px; font-weight:600; cursor:pointer; }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1 class="page-title">Fix Public Buckets</h1>
-    <div class="sub">AI will generate safe, step-by-step guidance and ready-to-copy commands. No settings are changed automatically.</div>
-
-    <div id="publicSummary" class="pill" style="margin-bottom:16px;">Loading…</div>
+    <h1>Fix the Public Bucket</h1>
+    <div class="sub">AI will generate secure recommendations for buckets detected as public.</div>
+    <div id="publicSummary">Loading…</div>
     <div id="bucketList"></div>
   </div>
 
-  <script src="fix.js"></script>
+  <script src="ai.js"></script>
 </body>
 </html>
