@@ -1389,7 +1389,8 @@ document.addEventListener("DOMContentLoaded", loadPreviousScans);
 
 
 /* =========================
-   HISTORY (owner/creator) — GUARDED INIT
+   HISTORY (Owner/Creator)
+   Client never blocks — server enforces auth.
 ========================= */
 function normalizeRole(r){
   const s = String(r||"").trim().toLowerCase();
@@ -1399,11 +1400,11 @@ function normalizeRole(r){
 }
 
 function getCurrentRole() {
-  // Prefer explicit role if you already store it
+  // Prefer explicit role if present
   let role = (localStorage.getItem("role") || "").trim().toLowerCase();
   if (role) return role;
 
-  // Fall back to the selected project's access level
+  // Fall back to selected project access saved by the picker
   const access = (localStorage.getItem("selected_project_access") || "").trim().toLowerCase();
   if (access === "owner") return "project_owner";
   if (access === "creator") return "creator";
@@ -1411,122 +1412,110 @@ function getCurrentRole() {
 }
 
 async function loadHistory(projectId, limit=100, offset=0){
-  var token=getToken();
-  var tbody=document.querySelector("#historyTable tbody");
-  if(!tbody){ return; } // no UI present
-  if(!token){
-    tbody.innerHTML="<tr><td colspan='5' style='text-align:center;'>Please log in</td></tr>";
+  const token = getToken();
+  const tbody = document.querySelector("#historyTable tbody");
+  if (!tbody) return;
+
+  if (!token){
+    tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Please log in</td></tr>";
     return;
   }
 
-  var params=new URLSearchParams();
-  if(projectId) params.set("project_id", projectId);
+  const params = new URLSearchParams();
+  if (projectId) params.set("project_id", projectId);
   params.set("limit", String(limit));
   params.set("offset", String(offset));
 
-  tbody.innerHTML="<tr><td colspan='5' style='text-align:center;'>Loading…</td></tr>";
+  tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Loading…</td></tr>";
 
   try{
-    var resp=await fetch(API_BASE+"/history?"+params.toString(), {
-      headers:{ "Accept":"application/json", "Authorization":"Bearer "+token }
+    const resp = await fetch(API_BASE + "/history?" + params.toString(), {
+      headers: { "Accept":"application/json", "Authorization":"Bearer " + token }
     });
 
-    if(resp.status===403){
-      tbody.innerHTML="<tr><td colspan='5' style='text-align:center;color:#ff6b6b;'>403: Not authorized. Project Owner must supply a valid project ID and be GCP Owner of that project.</td></tr>";
+    if (resp.status === 403){
+      tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;color:#ff6b6b;'>403: Not authorized for this request.</td></tr>";
       return;
     }
-    if(!resp.ok) throw new Error("Failed ("+resp.status+")");
+    if (!resp.ok) throw new Error("Failed (" + resp.status + ")");
 
-    var data=await resp.json();
-    var rows=Array.isArray(data&&data.history)?data.history:[];
-    if(!rows.length){
-      tbody.innerHTML="<tr><td colspan='5' style='text-align:center;'>No history found.</td></tr>";
+    const data = await resp.json();
+    const rows = Array.isArray(data?.history) ? data.history : [];
+    if (!rows.length){
+      tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No history found.</td></tr>";
       return;
     }
 
-    tbody.innerHTML="";
-    rows.forEach(function(item){
-      var tr=document.createElement("tr");
-      tr.innerHTML="<td>"+(item.scan_id||"")+"</td>"+
-                   "<td>"+(item.project_id||"")+"</td>"+
-                   "<td>"+(item.user_email||"")+"</td>"+
-                   "<td>"+formatDate(item.timestamp)+"</td>"+
-                   "<td>"+(item.result_summary||"")+"</td>";
+    tbody.innerHTML = "";
+    rows.forEach(item=>{
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>"+(item.scan_id||"")+"</td>"+
+        "<td>"+(item.project_id||"")+"</td>"+
+        "<td>"+(item.user_email||"")+"</td>"+
+        "<td>"+formatDate(item.timestamp)+"</td>"+
+        "<td>"+(item.result_summary||"")+"</td>";
       tbody.appendChild(tr);
     });
   }catch(err){
-    console.error("History error:",err);
-    tbody.innerHTML="<tr><td colspan='5' style='text-align:center;color:#ff6b6b;'>Error loading history: "+(err.message||err)+"</td></tr>";
+    console.error("History error:", err);
+    tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;color:#ff6b6b;'>Error loading history: "+(err.message||err)+"</td></tr>";
   }
 }
 
-document.addEventListener("DOMContentLoaded",function(){
-  const projectInput=document.getElementById("historyProjectId");
-  const fetchBtn=document.getElementById("historyFetchBtn");
-  const hint=document.getElementById("historyHint");
-  const tbody=document.querySelector("#historyTable tbody");
-  if(!projectInput || !fetchBtn || !hint || !tbody){ return; }
+document.addEventListener("DOMContentLoaded", function(){
+  const projectInput = document.getElementById("historyProjectId");
+  const fetchBtn     = document.getElementById("historyFetchBtn");
+  const hint         = document.getElementById("historyHint");
+  const tbody        = document.querySelector("#historyTable tbody");
+  if (!projectInput || !fetchBtn || !hint || !tbody) return;
 
-  // Figure out the role
-  let role=normalizeRole(getCurrentRole());
+  // Determine role (used only for hints / default behavior)
+  let role = normalizeRole(getCurrentRole());
 
-  // Prefill from the selected project in picker, if any
-  const prefill=localStorage.getItem("selected_project_id")||"";
-  projectInput.value=prefill;
+  // Prefill from picker if available
+  projectInput.value = localStorage.getItem("selected_project_id") || "";
 
-  function lockAsUser(){
-    projectInput.disabled=true;
-    fetchBtn.disabled=true;
-    hint.textContent="History is restricted to Project Owners and Creators.";
-    tbody.innerHTML="<tr><td colspan='5' style='text-align:center;'>Not authorized (Owner/Creator only)</td></tr>";
+  // Friendly hint (no blocking)
+  if (role === "project_owner") {
+    hint.textContent = "Enter your Project ID and click Filter. (The server will verify your ownership.)";
+  } else if (role === "creator") {
+    hint.textContent = "As Creator, you can fetch all scans or filter by Project ID.";
+    // Auto-load all to start
+    loadHistory("", 100, 0);
+  } else {
+    hint.textContent = "History is restricted to Project Owners and Creators. You can still try a Project ID — the server will verify.";
   }
 
-  function setupOwner(){
-    hint.textContent="Enter your Project ID and click Fetch. (You must be the GCP Owner of that project.)";
-    if (!projectInput.value) {
-      tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Enter a Project ID to view history.</td></tr>";
-    } else {
-      loadHistory(projectInput.value.trim(),100,0);
-    }
-    fetchBtn.disabled=false;
-    projectInput.disabled=false;
-  }
-
-  function setupCreator(){
-    hint.textContent="As Creator, you can fetch all scans or filter by Project ID.";
-    loadHistory("",100,0); // auto-load all
-    fetchBtn.disabled=false;
-    projectInput.disabled=false;
-  }
-
-  if(role==="project_owner")      setupOwner();
-  else if(role==="creator")       setupCreator();
-  else                            lockAsUser();
-
-  // Wire the Filter button
-  fetchBtn.addEventListener("click",function(){
-    const pid=projectInput.value.trim();
-    if(role==="project_owner" && !pid){
-      alert("Project ID is required for Project Owners.");
+  // Filter click — let server enforce permissions
+  fetchBtn.addEventListener("click", function(){
+    const pid = (projectInput.value || "").trim();
+    // For creators, empty pid -> all; for owners/users, allow trying with a PID
+    if (!pid && role !== "creator"){
+      alert("Please enter a Project ID.");
       return;
     }
-    loadHistory(pid,100,0);
+    loadHistory(pid, 100, 0);
   });
 
-  // Update role dynamically if user re-selects a project in the picker
-  window.addEventListener("gcs_project_selected",(ev)=>{
+  // If user selects a new project in the picker, update inputs and hint
+  window.addEventListener("gcs_project_selected", (ev)=>{
     try{
-      if(ev?.detail?.id){
-        localStorage.setItem("selected_project_id",ev.detail.id);
-        localStorage.setItem("selected_project_access",(ev.detail.access||"").toLowerCase());
+      if (ev?.detail?.id){
+        localStorage.setItem("selected_project_id", ev.detail.id);
+        localStorage.setItem("selected_project_access", (ev.detail.access||"").toLowerCase());
+        projectInput.value = ev.detail.id;
       }
     }catch(_){}
-    role=normalizeRole(getCurrentRole());
-    projectInput.value=localStorage.getItem("selected_project_id")||"";
-
-    if(role==="project_owner")      setupOwner();
-    else if(role==="creator")       setupCreator();
-    else                            lockAsUser();
+    role = normalizeRole(getCurrentRole());
+    if (role === "creator"){
+      hint.textContent = "As Creator, you can fetch all scans or filter by Project ID.";
+      loadHistory("", 100, 0);
+    } else if (role === "project_owner"){
+      hint.textContent = "Enter your Project ID and click Filter. (The server will verify your ownership.)";
+    } else {
+      hint.textContent = "History is restricted to Project Owners and Creators. You can still try a Project ID — the server will verify.";
+    }
   });
 });
 </script>
