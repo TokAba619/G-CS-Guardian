@@ -1046,15 +1046,16 @@ async function runScan(projectId, ethicalMode){
         </div>`;
     }
 
-    // Render as CARDS
-    renderResultsCards({
-      buckets: Array.isArray(apiData.buckets) ? apiData.buckets : [],
-      ethicalMode: !!ethicalMode,
-      targetEl: resultsCards,          // <div id="results-cards">
-      toolsEl: resultsTools,           // keeps your filter/count row
-      countEl: resultsCount,
-      filterInput: resultsFilter
-    });
+    // Render as CARDS via the public shim (keeps your filter/count row)
+renderResultsTable({
+  buckets: Array.isArray(apiData.buckets) ? apiData.buckets : [],
+  ethicalMode: !!ethicalMode,
+  tableEl: legacyTable,            // will be hidden by the shim
+  toolsEl: resultsTools,
+  countEl: resultsCount,
+  filterInput: resultsFilter
+});
+
 
   } catch (e) {
     if (scanLoader) scanLoader.classList.remove("show");
