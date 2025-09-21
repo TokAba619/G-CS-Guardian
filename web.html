@@ -311,66 +311,53 @@
     </div>
   </section>
 
-  <!-- RESULTS SECTION -->
-  <section class="content-section results" id="results">
-    <div class="container">
-      <h2 class="section-title">Your Scan is Complete!</h2>
-      <p class="section-content">This report provides detailed insights into the configuration status of your scanned Google Cloud Storage buckets.</p>
+<!-- RESULTS SECTION -->
+<section class="content-section results" id="results">
+  <div class="container">
+    <h2 class="section-title">Your Scan is Complete!</h2>
+    <p class="section-content">
+      This report provides detailed insights into the configuration status of your scanned Google Cloud Storage buckets.
+    </p>
 
-<!-- Loader (hidden by default) -->
-<div id="scan-loader" class="scan-loader" aria-live="polite">
-  <div class="loader-wrapper">
-    <span class="loader-letter">S</span>
-    <span class="loader-letter">C</span>
-    <span class="loader-letter">A</span>
-    <span class="loader-letter">N</span>
-    <span class="loader-letter">N</span>
-    <span class="loader-letter">I</span>
-    <span class="loader-letter">N</span>
-    <span class="loader-letter">G</span>
+    <!-- Loader (hidden by default) -->
+    <div id="scan-loader" class="scan-loader" aria-live="polite">
+      <div class="loader-wrapper">
+        <span class="loader-letter">S</span>
+        <span class="loader-letter">C</span>
+        <span class="loader-letter">A</span>
+        <span class="loader-letter">N</span>
+        <span class="loader-letter">N</span>
+        <span class="loader-letter">I</span>
+        <span class="loader-letter">N</span>
+        <span class="loader-letter">G</span>
 
-    <div class="loader-bg-1"></div>
-    <div class="loader-bg-2"></div>
-    <div class="loader"></div>
+        <div class="loader-bg-1"></div>
+        <div class="loader-bg-2"></div>
+        <div class="loader"></div>
+      </div>
+    </div>
+
+    <!-- Summary (scan id, role, bucket count, etc.) -->
+    <div id="results-summary" class="results-container"></div>
+
+    <!-- Tools -->
+    <div class="table-tools" id="results-tools" style="display:none;">
+      <input
+        type="text"
+        id="results-filter"
+        placeholder="Filter buckets (bucket name)…"
+        aria-label="Filter buckets"
+      />
+      <span class="chip" id="results-count">0 buckets</span>
+    </div>
+
+    <!-- Cards container (replaces the old table) -->
+    <div id="results-cards" class="results-cards" aria-live="polite">
+      <!-- Cards are injected here by JS -->
+    </div>
   </div>
-</div>
+</section>
 
-      
-      <div id="results-summary" class="results-container"></div>
-
-      <div class="table-tools" id="results-tools" style="display:none;">
-        <input type="text" id="results-filter" placeholder="Filter buckets (bucket name)..." aria-label="Filter buckets">
-        <span class="chip" id="results-count">0 buckets</span>
-      </div><br>
-
-      
-     <div class="results-table-wrapper">
-  <table class="dashboard-table" id="results-table" style="display:none;">
-    <colgroup>
-      <col style="width: 220px;">  <!-- Bucket Name -->
-      <col style="width: 90px;">   <!-- Status -->
-      <col style="width: 90px;">   <!-- Risk Score -->
-      <col style="width: 110px;">  <!-- Risk Level -->
-      <col style="width: 560px;">  <!-- Risk Reason -->
-      <col style="width: 360px;">  <!-- Sensitive Keywords -->
-      <col style="width: 220px;">  <!-- Sample Files -->
-    </colgroup>
-    <thead>
-      <tr>
-        <th data-key="bucket_name">Bucket Name<span class="sort-ind">↕</span></th>
-        <th data-key="public" class="nowrap">Status<span class="sort-ind">↕</span></th>
-        <th data-key="risk_score" class="nowrap">Risk Score<span class="sort-ind">↕</span></th>
-        <th data-key="risk_level" class="nowrap">Risk Level<span class="sort-ind">↕</span></th>
-        <th data-key="risk_reason" class="risk-reason-col">Risk Reason <span class="sort-ind">↕</span></th>
-        <th data-key="sensitive_keywords_detected">Sensitive Keywords<span class="sort-ind">↕</span></th>
-        <th data-key="sample_files" class="sample-col" style="display:none;">Sample Files<span class="sort-ind">↕</span></th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
-
-  </section>
 
 
 <!-- LIVE REPORTS -->
@@ -763,122 +750,170 @@ tr.addEventListener("click", function(){
 
 
 /* =========================
-   RESULTS TABLE RENDER
+   RESULTS — CARD RENDER (drop-in)
+   Replaces the old table renderer but keeps the same API:
+   renderResultsTable({ buckets, ethicalMode, toolsEl, countEl, filterInput })
 ========================= */
-function htmlEscape(s){
-  return String(s).replace(/[&<>"']/g, c => (
-    { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]
-  ));
-}
 
-function formatRiskReasonHTML(reason){
-  if (!reason) return "N/A";
+(function(){
+  // --- helpers ---
+  function esc(s){
+    return String(s==null?"":s)
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&#39;");
+  }
+  function riskBadge(level){
+    if(!level) return "";
+    const key = String(level).toLowerCase();
+    const cls = {
+      critical:"risk-critical",
+      high:"risk-high",
+      medium:"risk-medium",
+      low:"risk-low",
+      info:"risk-info"
+    }[key] || "risk-info";
+    return `<span class="badge ${cls}">${esc(level)}</span>`;
+  }
+  function exposureBadge(state, isPublicFlag){
+    // support both boolean "public" OR string exposure_state
+    const isPublic = (isPublicFlag === true) || /^(public|object_public)$/i.test(String(state||""));
+    return `<span class="badge ${isPublic ? "badge-public" : "badge-private"}">${isPublic ? "Public" : "Private"}</span>`;
+  }
+  function scoreBadge(score){
+    const s = (score==null ? "—" : Number(score).toFixed(1));
+    return `<span class="badge" style="background:#fff;color:#000;font-weight:900;">Score: ${s}</span>`;
+  }
+  function reasonsHTML(reason){
+    if(!reason) return `<div class="muted">No risk reasons recorded.</div>`;
+    // strip keyword sentence that you show separately
+    const text = String(reason).replace(/Sensitive keywords detected:[^|.]+[|.]?/ig, "").trim();
+    const parts = text
+      .split(/(?:\.,\s*|\. (?=[A-Z])|\s*\|\s*)/g)
+      .map(s=>s.trim())
+      .filter(Boolean);
+    if(!parts.length) return `<div class="muted">No risk reasons recorded.</div>`;
+    return `<ul class="reasons">${parts.map(p=>`<li>${esc(p)}</li>`).join("")}</ul>`;
+  }
+  function keywordsHTML(list){
+    let kws = list;
+    if(typeof kws === "string") kws = kws.split(/\s*,\s*/).filter(Boolean);
+    if(!Array.isArray(kws) || !kws.length) return `<div class="muted">No sensitive keywords detected.</div>`;
+    return `<div class="kw">${
+      kws.map(k=>{
+        const label = typeof k==="string" ? k : (k?.keyword || JSON.stringify(k));
+        return `<span class="chip">${esc(label)}</span>`;
+      }).join("")
+    }</div>`;
+  }
 
-  // Drop the keywords sentence (shown in the next column)
-  const text = String(reason)
-    .replace(/Sensitive keywords detected:[^|.]+[|.]?/ig, "")
-    .trim();
+  // main renderer (cards)
+  function renderResultsCards(buckets, opts){
+    const wrap = document.getElementById("results-cards");
+    if(!wrap) return;
 
-  // Split into bullets on "., ", sentence end + capital, or pipe
-  const parts = text
-    .split(/(?:\.,\s*|\. (?=[A-Z])|\s*\|\s*)/g)
-    .map(s => s.trim())
-    .filter(Boolean);
+    const filterInput = opts?.filterInput || null;
+    const countEl     = opts?.countEl || null;
 
-  // Light emphasis
-  const emphasize = (s) => s
-    .replace(/\b(public|private)\b/gi, '<strong>$1</strong>')
-    .replace(/\bIAM\b/g, '<strong>IAM</strong>')
-    .replace(/\bexposed_objects\b/g, '<strong>exposed_objects</strong>');
+    const term = (filterInput?.value || "").trim().toLowerCase();
+    const filtered = (Array.isArray(buckets)? buckets:[]).filter(b=>{
+      if(!term) return true;
+      return String(b.bucket_name||"").toLowerCase().includes(term);
+    });
 
-  const items = parts.map(p => `<li>${emphasize(p)}</li>`).join("");
-  return `<ul class="risk-reason-list">${items}</ul>`;
-}
-
-/* NEW: sample files -> clickable list */
-function buildSampleLinks(samples){
-  if(!samples||!samples.length) return "";
-  return "<ul class='sample-list'>"+samples.map(function(s){
-    var href=String(s),label=href;
-    try{
-      var u=new URL(href);
-      var tail=u.pathname.split("/").pop()||u.host;
-      label=decodeURIComponent(tail);
-    }catch(_){
-      label=decodeURIComponent(href.split("/").pop()||href);
+    if(countEl){
+      const n = filtered.length;
+      countEl.textContent = `${n} bucket${n===1?"":"s"}`;
     }
-    return "<li><a class='sample-link' href='"+href+"' target='_blank' rel='noopener'>"+label+"</a></li>";
-  }).join("")+"</ul>";
-}
 
-function renderResultsTable(opts){
-  var buckets=Array.isArray(opts.buckets)?opts.buckets:[];
-  var ethicalMode=opts.ethicalMode,tableEl=opts.tableEl,toolsEl=opts.toolsEl,countEl=opts.countEl,filterInput=opts.filterInput;
-  var sortKey=opts.defaultSortKey||"risk_score",sortDir=opts.defaultSortDir||"desc";
-  tableEl.querySelectorAll(".sample-col").forEach(function(el){el.style.display=ethicalMode?"":"none";});
-  var tbody=tableEl.querySelector("tbody");var thead=tableEl.querySelector("thead");
-  function normalizedText(v){return v==null?"":String(v).toLowerCase();}
-  function applyFilter(){
-    var q=normalizedText((filterInput&&filterInput.value)||"");
-    return buckets.filter(function(b){
-      var name=normalizedText(b.bucket_name);var reason=normalizedText(b.risk_reason);
-      var kws=Array.isArray(b.sensitive_keywords_detected)?normalizedText(b.sensitive_keywords_detected.join(",")):normalizedText(b.sensitive_keywords_detected);
-      return !q||name.includes(q)||reason.includes(q)||kws.includes(q);
-    });
-  }
-  function sortData(arr){
-    var dir=sortDir==="asc"?1:-1;
-    return arr.sort(function(a,b){
-      var va=(sortKey==="risk_level")?riskLevelFromScore(a.risk_score):a[sortKey];
-      var vb=(sortKey==="risk_level")?riskLevelFromScore(b.risk_score):b[sortKey];
-      if(sortKey==="risk_score")return (Number(va||0)-Number(vb||0))*dir;
-      if(sortKey==="public")return ((va?1:0)-(vb?1:0))*dir;
-      var sa=String(va||"").toLowerCase(),sb=String(vb||"").toLowerCase();
-      if(sa<sb)return -1*dir;if(sa>sb)return 1*dir;return 0;
-    });
-  }
-  function render(){
-    var filtered=sortData(applyFilter());tbody.innerHTML="";
-    filtered.forEach(function(b){
-      var level=riskLevelFromScore(b.risk_score);
-      let kwList = b.sensitive_keywords_detected;
-// allow string or array from backend
-if (typeof kwList === "string") {
-  kwList = kwList.split(/\s*,\s*/).filter(Boolean);
-}
-const sens = (Array.isArray(kwList) && kwList.length)
-  ? kwList.map(prettyKeyword)
-          .map(kw => `<span class="kw-chip">${htmlEscape(kw)}</span>`)
-          .join(" ")
-  : `<span class="kw-chip">None</span>`;
+    if(filtered.length===0){
+      wrap.innerHTML = `<div class="bucket-card"><div class="name">No matching buckets.</div></div>`;
+      return;
+    }
 
-      var samplesHtml = (ethicalMode && b.sample_files && b.sample_files.length)
-  ? "<div class='cell-scroll'>" + buildSampleLinks(b.sample_files) + "</div>"
-  : "";
-      var tr=document.createElement("tr");
-      tr.innerHTML=
-        "<td>"+(b.bucket_name||"Unknown")+"</td>"+
-        "<td>"+(b.public?"<span class='badge badge-public'>Public</span>":"<span class='badge badge-private'>Private</span>")+"</td>"+
-        "<td>"+(b.risk_score||"0")+"</td>"+
-        "<td><span class='badge "+riskClass(level)+"'>"+level+"</span></td>"+
-        "<td class='risk-reason-col'>"+formatRiskReasonHTML(b.risk_reason)+"</td>"+
-        "<td>"+ sens +"</td>"+
-        "<td class='sample-col' style='"+(ethicalMode?"":"display:none;")+"'>"+samplesHtml+"</td>";
-      tbody.appendChild(tr);
-    });
-    if(toolsEl)toolsEl.style.display="flex";if(tableEl)tableEl.style.display="table";
-    if(countEl)countEl.textContent=filtered.length+" buckets";
+    wrap.innerHTML = filtered.map(b=>{
+      const name  = esc(b.bucket_name || "—");
+      const expos = b.exposure_state || (b.public ? "public" : "private");
+      const level = b.risk_level || "";
+      const score = b.risk_score;
+
+      // sample files (optional, shown only if you later want to)
+      // const filesHTML = (opts?.ethicalMode && b.sample_files?.length)
+      //   ? `<div class="section"><h4>Sample Files</h4>${
+      //        b.sample_files.map(href=>{
+      //          let label = href;
+      //          try{
+      //            const u = new URL(href);
+      //            label = decodeURIComponent(u.pathname.split("/").pop() || u.host);
+      //          }catch(_){
+      //            label = decodeURIComponent(href.split("/").pop() || href);
+      //          }
+      //          return `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(label)}</a>`;
+      //        }).join("")
+      //      }</div>`
+      //   : "";
+
+      return `
+        <div class="bucket-card">
+          <div class="head">
+            <div class="name">${name}</div>
+            <div class="badges">
+              ${exposureBadge(expos, b.public === true)}
+              ${riskBadge(level)}
+              ${scoreBadge(score)}
+            </div>
+          </div>
+
+          <div class="section">
+            <h4>Risk Reasons</h4>
+            ${reasonsHTML(b.risk_reason)}
+          </div>
+
+          <div class="section">
+            <h4>Sensitive Keywords</h4>
+            ${keywordsHTML(b.sensitive_keywords_detected)}
+          </div>
+
+          <!-- ${'{filesHTML}'} -->
+        </div>
+      `;
+    }).join("");
   }
-  thead.querySelectorAll("th[data-key]").forEach(function(th){
-    th.addEventListener("click",function(){
-      var key=th.getAttribute("data-key");
-      if(key===sortKey)sortDir=(sortDir==="asc"?"desc":"asc");else{sortKey=key;sortDir=(key==="risk_score"?"desc":"asc");}
-      render();
-    });
-  });
-  if(filterInput)filterInput.addEventListener("input",render);
-  render();
-}
+
+  // ---- PUBLIC API (compat shim) ----
+  // Keep your old signature so existing calls continue to work:
+  // renderResultsTable({ buckets, ethicalMode, tableEl, toolsEl, countEl, filterInput })
+  window.renderResultsTable = function(opts){
+    const buckets     = Array.isArray(opts?.buckets) ? opts.buckets : [];
+    const toolsEl     = opts?.toolsEl || null;
+    const filterInput = opts?.filterInput || null;
+    const countEl     = opts?.countEl || null;
+
+    // show tools
+    if(toolsEl){ toolsEl.style.display = "flex"; }
+
+    // keep a reference for live filtering
+    window._LAST_BUCKETS = buckets;
+
+    // initial draw
+    renderResultsCards(buckets, { filterInput, countEl, ethicalMode: opts?.ethicalMode });
+
+    // wire filter once
+    if(filterInput && !filterInput._wiredForCards){
+      filterInput._wiredForCards = true;
+      filterInput.addEventListener("input", ()=>{
+        renderResultsCards(window._LAST_BUCKETS || [], { filterInput, countEl, ethicalMode: opts?.ethicalMode });
+      });
+    }
+
+    // no longer show the old table element (if it exists)
+    if (opts?.tableEl) { opts.tableEl.style.display = "none"; }
+  };
+
+})();
+
 
 /* =========================
    CONSENT HELPERS (new)
@@ -1769,4 +1804,3 @@ window.addEventListener("gcs_project_selected", (ev)=>{
 <script src="web.js"></script>
 </body>
 </html>
-
