@@ -785,10 +785,11 @@ tr.addEventListener("click", function(){
     const isPublic = (isPublicFlag === true) || /^(public|object_public)$/i.test(String(state||""));
     return `<span class="badge ${isPublic ? "badge-public" : "badge-private"}">${isPublic ? "Public" : "Private"}</span>`;
   }
-  function scoreBadge(score){
-    const s = (score==null ? "—" : Number(score).toFixed(1));
-    return `<span class="badge" style="background:#fff;color:#000;font-weight:900;">Score: ${s}</span>`;
-  }
+ function scoreBadge(score){
+  const s = (score==null ? "—" : Number(score).toFixed(0)); // whole number
+  return `<span class="badge" style="background:#fff;color:#000;font-weight:900;">Risk Score: ${s}</span>`;
+}
+
   function reasonsHTML(reason){
     if(!reason) return `<div class="muted">No risk reasons recorded.</div>`;
     // strip keyword sentence that you show separately
@@ -819,54 +820,68 @@ tr.addEventListener("click", function(){
 
     const filterInput = opts?.filterInput || null;
     const countEl     = opts?.countEl || null;
+    const ethicalMode = !!opts?.ethicalMode;
+
+    // helper for sample-file links
+    const linkHTML = (href) => {
+      let label = href;
+      try{
+        const u = new URL(href);
+        label = decodeURIComponent(u.pathname.split("/").pop() || u.host);
+      }catch(_){
+        label = decodeURIComponent((href || "").split("/").pop() || href);
+      }
+      return `<a class="file-link" href="${esc(href)}" target="_blank" rel="noopener">${esc(label)}</a>`;
+    };
 
     const term = (filterInput?.value || "").trim().toLowerCase();
-    const filtered = (Array.isArray(buckets)? buckets:[]).filter(b=>{
-      if(!term) return true;
-      return String(b.bucket_name||"").toLowerCase().includes(term);
+    const filtered = (Array.isArray(buckets) ? buckets : []).filter(b => {
+      if (!term) return true;
+      return String(b.bucket_name || "").toLowerCase().includes(term);
     });
 
-    if(countEl){
+    if (countEl){
       const n = filtered.length;
-      countEl.textContent = `${n} bucket${n===1?"":"s"}`;
+      countEl.textContent = `${n} bucket${n===1 ? "" : "s"}`;
     }
 
-    if(filtered.length===0){
+    if (filtered.length === 0){
       wrap.innerHTML = `<div class="bucket-card"><div class="name">No matching buckets.</div></div>`;
       return;
     }
 
-    wrap.innerHTML = filtered.map(b=>{
+    wrap.innerHTML = filtered.map(b => {
       const name  = esc(b.bucket_name || "—");
       const expos = b.exposure_state || (b.public ? "public" : "private");
-      const level = b.risk_level || "";
+      const level = b.risk_level || riskLevelFromScore(b.risk_score); // fallback from score
       const score = b.risk_score;
 
-      // sample files (optional, shown only if you later want to)
-      // const filesHTML = (opts?.ethicalMode && b.sample_files?.length)
-      //   ? `<div class="section"><h4>Sample Files</h4>${
-      //        b.sample_files.map(href=>{
-      //          let label = href;
-      //          try{
-      //            const u = new URL(href);
-      //            label = decodeURIComponent(u.pathname.split("/").pop() || u.host);
-      //          }catch(_){
-      //            label = decodeURIComponent(href.split("/").pop() || href);
-      //          }
-      //          return `<a href="${esc(href)}" target="_blank" rel="noopener">${esc(label)}</a>`;
-      //        }).join("")
-      //      }</div>`
-      //   : "";
+      // Sample Files section (only when ethicalMode is ON and files exist)
+      const filesHTML = (ethicalMode && Array.isArray(b.sample_files) && b.sample_files.length)
+        ? `<div class="section files">
+             <h4>Sample Files</h4>
+             ${b.sample_files.map(linkHTML).join("")}
+           </div>`
+        : "";
 
       return `
         <div class="bucket-card">
           <div class="head">
             <div class="name">${name}</div>
             <div class="badges">
-              ${exposureBadge(expos, b.public === true)}
-              ${riskBadge(level)}
-              ${scoreBadge(score)}
+              ${((expos||"").toLowerCase().startsWith("public") || b.public === true)
+                  ? `<span class="badge badge-public">Public</span>`
+                  : `<span class="badge badge-private">Private</span>`}
+              <span class="badge ${riskClass(level)}">${esc(level)}</span>
+              <span class="badge" style="background:#fff;color:#000;font-weight:900;">
+                Risk Score: ${ (score==null ? "—" : Number(score).toFixed(0)) }
+              </span>
             </div>
+          </div>
+
+          <div class="section">
+            <h4>Risk Level</h4>
+            <span class="badge ${riskClass(level)}">${esc(level)}</span>
           </div>
 
           <div class="section">
@@ -879,10 +894,14 @@ tr.addEventListener("click", function(){
             ${keywordsHTML(b.sensitive_keywords_detected)}
           </div>
 
-          <!-- ${'{filesHTML}'} -->
+          ${filesHTML}
         </div>
       `;
     }).join("");
+
+    // show filter/count tools row
+    const toolsEl = opts?.toolsEl;
+    if (toolsEl) toolsEl.style.display = "flex";
   }
 
   // ---- PUBLIC API (compat shim) ----
@@ -895,7 +914,7 @@ tr.addEventListener("click", function(){
     const countEl     = opts?.countEl || null;
 
     // show tools
-    if(toolsEl){ toolsEl.style.display = "flex"; }
+    if (toolsEl){ toolsEl.style.display = "flex"; }
 
     // keep a reference for live filtering
     window._LAST_BUCKETS = buckets;
@@ -904,14 +923,14 @@ tr.addEventListener("click", function(){
     renderResultsCards(buckets, { filterInput, countEl, ethicalMode: opts?.ethicalMode });
 
     // wire filter once
-    if(filterInput && !filterInput._wiredForCards){
+    if (filterInput && !filterInput._wiredForCards){
       filterInput._wiredForCards = true;
       filterInput.addEventListener("input", ()=>{
         renderResultsCards(window._LAST_BUCKETS || [], { filterInput, countEl, ethicalMode: opts?.ethicalMode });
       });
     }
 
-    // no longer show the old table element (if it exists)
+    // hide old table if it exists
     if (opts?.tableEl) { opts.tableEl.style.display = "none"; }
   };
 
