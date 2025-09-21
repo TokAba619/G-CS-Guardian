@@ -58,12 +58,13 @@
     }
 
     // fallback: use rows cached by the scan page
-    const cached = sessionStorage.getItem("last_scan_rows");
-    if (cached) {
-      console.log("Using cached rows from sessionStorage.");
-      return { buckets: JSON.parse(cached) };
-    }
-    throw new Error("Scan not found (404) and no cached rows available.");
+const cached = sessionStorage.getItem("last_scan_rows") || localStorage.getItem("last_scan_rows");
+if (cached) {
+  console.log("Using cached rows from", sessionStorage.getItem("last_scan_rows") ? "sessionStorage" : "localStorage");
+  return { buckets: JSON.parse(cached) };
+}
+throw new Error("Scan not found (404) and no cached rows available.");
+
   }
 
   let scan;
