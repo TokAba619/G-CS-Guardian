@@ -1367,127 +1367,242 @@ td.download-col {
   z-index: 2;
 }
 
+/* Card grid wrapper */
+.results-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
 
-
-/* ===== Scrollable wrapper (both axes) ===== */
-.results-table-wrapper{
-  display: block;
-  width: 100%;
-  max-height: 1800px;            /* vertical limit */
-  overflow: auto;                /* X + Y scroll as needed */
-  border-radius: 10px;
+/* Each card */
+.bucket-card {
   background: #111;
   border: 1px solid rgba(255,255,255,.08);
-
-  /* give gutter on ALL sides so sticky header/first column aren't clipped */
-  padding: 10px 10px 12px 18px;  /* top right bottom left */
-  box-sizing: border-box;
-
-  /* prevent content from sitting under scrollbars and avoid radius bleed */
-  scrollbar-gutter: stable both-edges;
-  background-clip: padding-box;
-}
-
-/* ===== Table base ===== */
-#detailed-table{
-  border-collapse: collapse;
-  border-spacing: 0;
-  width: 1600px !important;      /* force a wider table */
-  min-width: 1600px !important;  /* keep it from shrinking below this */
-  table-layout: fixed;
-  margin: 0;
-}
-
-/* Sticky header */
-.results-table-wrapper #detailed-table thead th{
-  position: sticky;
-  top: 0;
-  background: #e91e63;           /* your pink */
-  color: #fff;
-  z-index: 5;
-}
-.results-table-wrapper #detailed-table thead th:first-child{
-  border-top-left-radius: 10px;
-}
-.results-table-wrapper #detailed-table thead th:last-child{
-  border-top-right-radius: 10px;
-}
-
-/* Cells */
-#detailed-table th,
-#detailed-table td{
-  padding: 14px 16px;
-  vertical-align: top;
-  border-bottom: 1px solid rgba(255,255,255,.08);
+  border-radius: 12px;
+  padding: 1.2rem;
   color: #ddd;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  white-space: normal;
+  box-shadow: 0 4px 12px rgba(0,0,0,.4);
+  transition: transform .2s ease;
+}
+.bucket-card:hover {
+  transform: translateY(-4px);
 }
 
-/* Bucket name */
-#detailed-table td:nth-child(1){
-  font-weight: 500;
+/* Card header */
+.bucket-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: .5rem;
   color: #fff;
-  min-width: 220px;
 }
 
-/* Status / Score / Level — compact */
-#detailed-table td:nth-child(2),
-#detailed-table td:nth-child(3),
-#detailed-table td:nth-child(4){
-  white-space: nowrap;
-  min-width: 100px;
-  text-align: center;
+/* Meta row (status/score/level) */
+.bucket-meta {
+  display: flex;
+  gap: 10px;
+  margin-bottom: .8rem;
+  flex-wrap: wrap;
+}
+.status {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: .85rem;
+  font-weight: 600;
+}
+.status.public { background: #c62828; color: #fff; }
+.status.private { background: #2e7d32; color: #fff; }
+
+.score { font-weight: 500; }
+.level {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: .85rem;
+  font-weight: 600;
+}
+.level.critical { background: #ff1744; color: #fff; }
+.level.high { background: #d32f2f; color: #fff; }
+.level.medium { background: #fbc02d; color: #000; }
+.level.low { background: #388e3c; color: #fff; }
+
+/* Sections inside card */
+.bucket-section { margin-bottom: 1rem; }
+.bucket-section h4 {
+  margin: 0 0 .5rem 0;
+  font-size: 1rem;
+  color: #e91e63;
 }
 
-/* Risk Reason column */
-#detailed-table td:nth-child(5){
-  min-width: 400px;
-}
-#detailed-table td:nth-child(5) ul{
+/* Risk reasons list */
+.bucket-section ul {
   margin: 0;
   padding-left: 1.2rem;
-  max-height: 10.5rem;
-  overflow: auto;
 }
-#detailed-table td:nth-child(5) li{
-  line-height: 1.35;
-  margin: .25rem 0;
+.bucket-section li {
+  line-height: 1.4;
+  margin-bottom: .25rem;
 }
 
-/* Sensitive Keywords */
-#detailed-table td:nth-child(6){
-  max-height: 8.5rem;
-  overflow: auto;
-  min-width: 280px;
-}
-#detailed-table td:nth-child(6) .chip,
-#detailed-table td:nth-child(6) .tag{
-  display: inline-block;
-  margin: 4px 6px 0 0;
-  white-space: nowrap;
+/* Tags for keywords */
+.tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+.tag {
+  background: #333;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: .85rem;
+  color: #fff;
 }
 
 /* Sample files */
-#detailed-table td:nth-child(7){
-  min-width: 220px;
-}
-#detailed-table td:nth-child(7) a{
+.bucket-section a {
   display: block;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  margin: 4px 0;
+  color: #00b0ff;
+  text-decoration: none;
+  margin: .2rem 0;
+}
+.bucket-section a:hover { text-decoration: underline; }
+
+
+
+
+/* ============ RESULTS: CARD LAYOUT ============ */
+
+.results-cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:16px;
+  margin-top:16px;
 }
 
-/* Scrollbar theming */
-.results-table-wrapper::-webkit-scrollbar{ width: 10px; height: 10px; }
-.results-table-wrapper::-webkit-scrollbar-thumb{
-  background: #fff; border-radius: 6px;
+/* single card */
+.bucket-card{
+  background:#0f0f0f;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  color:#ddd;
+  box-shadow:0 2px 6px rgba(0,0,0,.35);
 }
 
-.results-table-wrapper::-webkit-scrollbar-track{ background: #222; }
+/* header row (name + badges) */
+.bucket-card .head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+.bucket-card .name{
+  font-weight:700;
+  color:#fff;
+  word-break:break-word;
+  line-height:1.2;
+}
 
-.results-table-wrapper > #detailed-table { width: 1600px !important; min-width: 1600px !important; }
+/* badges row */
+.bucket-card .badges{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  justify-content:flex-end;
+}
+
+/* generic badge (base) */
+.badge{
+  display:inline-block;
+  padding:.28rem .6rem;
+  border-radius:999px;
+  font-size:.85rem;
+  font-weight:800;
+  line-height:1;
+  border:1px solid rgba(0,0,0,.2);
+  white-space:nowrap;
+}
+
+/* risk badges (your palette) */
+.risk-critical{ background:#ff0000; color:#000 !important; }
+.risk-high    { background:#7a0c0c; color:#000 !important; }
+.risk-medium  { background:#ffee00; color:#000 !important; }
+.risk-low     { background:#00ff37; color:#000 !important; }
+.risk-info    { background:#00eeff; color:#000 !important; }
+
+/* exposure badges */
+.badge-public  { background:#ff0000; color:#000 !important; font-weight:800; }
+.badge-private { background:#00ff00; color:#000 !important; font-weight:800; }
+
+/* sections inside card */
+.bucket-card .section{
+  background:#101010;
+  border:1px dashed rgba(255,255,255,.06);
+  border-radius:10px;
+  padding:10px 12px;
+}
+
+/* titles inside sections */
+.bucket-card .section h4{
+  margin:0 0 6px 0;
+  font-size:.95rem;
+  color:#e2e2e2;
+  font-weight:700;
+}
+
+/* list styling for risk reasons */
+.bucket-card .reasons{
+  margin:0;
+  padding-left:1.1rem;
+  max-height:9rem;          /* scroll if very long */
+  overflow:auto;
+  scrollbar-width:thin;
+}
+.bucket-card .reasons li{
+  margin:.25rem 0;
+  line-height:1.35;
+  color:#ddd;
+}
+
+/* keyword chips */
+.bucket-card .kw{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  max-height:8rem;          /* scroll if many chips */
+  overflow:auto;
+  scrollbar-width:thin;
+}
+.bucket-card .kw .chip{
+  background:#1a1a1a;
+  color:#ddd;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:999px;
+  padding:.25rem .55rem;
+  font-size:.85rem;
+  white-space:nowrap;
+}
+
+/* sample files (optional) */
+.bucket-card .files a{
+  display:block;
+  color:#cfe8ff;
+  text-decoration:none;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  margin:.15rem 0;
+}
+
+/* subtle dark scrollbars (WebKit) */
+.bucket-card .reasons::-webkit-scrollbar,
+.bucket-card .kw::-webkit-scrollbar{
+  height:8px; width:8px;
+}
+.bucket-card .reasons::-webkit-scrollbar-thumb,
+.bucket-card .kw::-webkit-scrollbar-thumb{
+  background:#444; border-radius:6px;
+}
+.bucket-card .reasons::-webkit-scrollbar-track,
+.bucket-card .kw::-webkit-scrollbar-track{
+  background:#1a1a1a;
+}
