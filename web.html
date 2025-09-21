@@ -1959,6 +1959,62 @@ window.addEventListener("gcs_project_selected", (ev)=>{
 })();
 </script>
 
+<script>
+  (function () {
+    const links = Array.from(document.querySelectorAll('.nav-links a[href^="#"]'));
+    const byId = id => document.getElementById(id);
+
+    // Remove and set .active on nav links
+    function setActive(hash) {
+      links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === hash));
+    }
+
+    // Click = smooth scroll + active state immediately
+    links.forEach(a => {
+      a.addEventListener('click', e => {
+        const hash = a.getAttribute('href');
+        const target = byId(hash.slice(1));
+        if (target) {
+          e.preventDefault();
+          setActive(hash);
+          // account for fixed navbar height (adjust 80 if your navbar is taller/shorter)
+          const offset = 80;
+          const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+          window.scrollTo({ top, behavior: 'smooth' });
+          history.replaceState(null, '', hash); // keep URL in sync
+          if (typeof closeMenu === 'function') closeMenu();
+        }
+      });
+    });
+
+    // Scroll spy via IntersectionObserver
+    const sections = links
+      .map(a => byId(a.getAttribute('href').slice(1)))
+      .filter(Boolean);
+
+    // Use rootMargin to trigger when a section crosses below the navbar
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = '#' + entry.target.id;
+          setActive(id);
+        }
+      });
+    }, {
+      // Top margin = navbar height, bottom margin large so one section at a time
+      root: null,
+      rootMargin: '-80px 0px -60% 0px', // tweak -80 to your navbar height
+      threshold: 0.1
+    });
+
+    sections.forEach(sec => io.observe(sec));
+
+    // On load (e.g., direct link to /#live-reports)
+    if (location.hash && byId(location.hash.slice(1))) {
+      setActive(location.hash);
+    }
+  })();
+</script>
 
 <script src="https://unpkg.com/feather-icons"></script>
 <script>window.feather && feather.replace();</script>
