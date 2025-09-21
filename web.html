@@ -1639,23 +1639,42 @@ function isoLocalDate(d){
 function formatScanDay(ts){ return isoLocalDate(new Date(ts)); }
 
 async function ensureProjectId(){
+  // 1) If the picker already has a selection, use it
   try {
     const pick = window.ProjectPicker?.getSelected?.();
-    if (pick?.id) { localStorage.setItem("selected_project_id", pick.id); return pick.id; }
-  } catch(_){}
+    if (pick?.id) {
+      localStorage.setItem("selected_project_id", pick.id);
+      return pick.id;
+    }
+  } catch(_) {}
+
+  // 2) If we saved one before, use that
   const stored = localStorage.getItem("selected_project_id");
   if (stored) return stored;
 
-  const t = getToken(); if(!t) return "";
-  const res = await fetch(API_PREVIOUS_SCANS_URL, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }});
-  if(!res.ok) return "";
-  const data  = await res.json();
-  const scans = Array.isArray(data?.my_scans) ? data.my_scans : [];
-  if(!scans.length) return "";
-  const latest = scans.sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp))[0];
-  if(latest?.project_id){ localStorage.setItem("selected_project_id", latest.project_id); return latest.project_id; }
+  // 3) Fall back to the newest scan we can find
+  const t = getToken(); 
+  if (!t) return "";
+
+  try {
+    const res = await fetch(API_PREVIOUS_SCANS_URL, {
+      headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }
+    });
+    if (!res.ok) return "";
+    const data  = await res.json();
+    const scans = Array.isArray(data?.my_scans) ? data.my_scans : [];
+    if (!scans.length) return "";
+    // newest by timestamp
+    const latest = scans.sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp))[0];
+    if (latest?.project_id){
+      localStorage.setItem("selected_project_id", latest.project_id);
+      return latest.project_id;
+    }
+  } catch(_) {}
+
   return "";
 }
+
 
 /* Newest scan meta (scan_id + timestamp + avg_risk + counts) */
 async function getLatestScanInfo(pid){
@@ -1771,8 +1790,19 @@ function setRangeBadge(text){
 async function loadLiveReports(){
   const pid = await ensureProjectId();
   const label = document.getElementById("lr-project-label");
-  if(label) label.textContent = pid || "—";
-  if(!pid){ setRangeBadge(""); return; }
+  if (label) label.textContent = pid || "—";
+
+  if (!pid){
+    setRangeBadge("Select a project to see data");
+    // Optional: try again shortly in case the picker just finished loading
+    setTimeout(() => {
+      // If user picked something after page load, this will re-render
+      ensureProjectId().then(id => {
+        if (id){ localStorage.setItem("selected_project_id", id); loadLiveReports(); }
+      });
+    }, 800);
+    return;
+  }
 
   if (LR_RANGE === "latest") {
     // 1) newest scan metadata
