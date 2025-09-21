@@ -19,6 +19,27 @@
     .risk.critical{ color:#ef4444; }
     button.copy-btn { margin-top:6px; background:#E91E63; color:#000; border:0; border-radius:8px; padding:8px 10px; font-weight:600; cursor:pointer; }
   </style>
+  <style>
+  /* --- tidy cards --- */
+  .plan-card{border:1px solid #1f2937;background:linear-gradient(180deg,#121212,#0e0e0e);
+    border-radius:16px;padding:16px 18px;margin:14px 0;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+  .plan-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+  .plan-title{font-weight:800;font-size:1rem;letter-spacing:.2px;color:#e5e7eb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .risk-badge{padding:4px 10px;border-radius:999px;font-weight:800;font-size:.8rem;text-transform:capitalize}
+  .risk-badge.low{background:#a7f3d0;color:#064e3b}
+  .risk-badge.medium{background:#fde68a;color:#5b3a00}
+  .risk-badge.high{background:#fecaca;color:#7f1d1d}
+  .risk-badge.critical{background:#ef4444;color:#fff}
+  .section{margin-top:12px}
+  .section h4{font-size:.95rem;margin:0 0 6px;color:#cbd5e1}
+  .list{margin:0;padding-left:18px}
+  .cmd{background:#0a0a0a;border:1px solid #1f2937;border-radius:10px;padding:10px;margin:8px 0 0;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap}
+  .copy-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:6px}
+  .copy-btn{background:#f472b6;color:#111;border:0;border-radius:8px;padding:8px 10px;font-weight:700;cursor:pointer}
+  .copy-btn:hover{filter:brightness(1.06)}
+</style>
+
 </head>
 <body>
   <div class="wrap">
