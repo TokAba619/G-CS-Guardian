@@ -1091,16 +1091,21 @@ async function runScan(projectId, ethicalMode){
     // Hide loader
     if (scanLoader) scanLoader.classList.remove("show");
 
-    // ✅ Save scan id for button + fallbacks
-    const sid = apiData.scan_id || apiData.scanId || apiData.id;
-    window.scanId = sid;
-    try { localStorage.setItem("last_scan_id", sid); } catch {}
+   // ✅ Save scan id for button + fallbacks
+const sid = apiData.scan_id || apiData.scanId || apiData.id;
+window.scanId = sid;
+try { localStorage.setItem("last_scan_id", sid); } catch {}
 
-    // ✅ cache rows for ai.html fallback (used if /history/scan/{id} is 404)
+// ✅ cache rows for ai.html fallback (used if /history/scan/{id} is 404)
+//    Use BOTH sessionStorage (same-tab) and localStorage (new tab)
 try {
+  const rows = apiData.buckets || apiData.results || [];
   sessionStorage.setItem('last_scan_id', sid || '');
-  sessionStorage.setItem('last_scan_rows', JSON.stringify(apiData.buckets || apiData.results || []));
+  sessionStorage.setItem('last_scan_rows', JSON.stringify(rows));
+  localStorage.setItem('last_scan_id', sid || '');
+  localStorage.setItem('last_scan_rows', JSON.stringify(rows));
 } catch {}
+
 
     // Summary
     if (resultsSummary) {
