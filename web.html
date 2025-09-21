@@ -921,10 +921,12 @@ tr.addEventListener("click", function(){
     const filterInput = opts?.filterInput || null;
     const countEl     = opts?.countEl || null;
 
-    // ✅ A) persist scan id if provided by the caller
-    if (opts?.scan_id && !window.scanId) {
-      window.scanId = opts.scan_id;
-    }
+    // A persist the current scan id for this page and as a fallback
+if (opts?.scan_id) {
+  window.scanId = opts.scan_id;                       // always refresh
+  try { localStorage.setItem('last_scan_id', opts.scan_id); } catch {}
+}
+
 
     // show tools
     if (toolsEl){ toolsEl.style.display = "flex"; }
@@ -947,19 +949,20 @@ tr.addEventListener("click", function(){
     if (opts?.tableEl) { opts.tableEl.style.display = "none"; }
 
     // ✅ B) wire "Fix the Public Bucket" button (only once)
-    const fixBtn = document.getElementById("fixPublicBtn");
-    if (fixBtn && !fixBtn._wiredForAI) {
-      fixBtn._wiredForAI = true;
-      fixBtn.addEventListener("click", () => {
-        const sid = window.scanId || opts?.scan_id;
-        if (!sid) {
-          alert("No scan ID available.");
-          return;
-        }
-        const url = `/ai.html?scan_id=${encodeURIComponent(sid)}`;
-        window.open(url, "_blank", "noopener");
-      });
-    }
+const fixBtn = document.getElementById('fixPublicBtn');
+if (fixBtn && !fixBtn._wiredForAI) {
+  fixBtn._wiredForAI = true;
+  fixBtn.addEventListener('click', () => {
+    // use current scanId, or fallback to last saved one
+    const sid = window.scanId || localStorage.getItem('last_scan_id') || opts?.scan_id;
+    if (!sid) { alert('No scan ID available.'); return; }
+
+    // IMPORTANT for GitHub Pages: no leading slash
+    const u = new URL('ai.html', location.href);
+    u.searchParams.set('scan_id', sid);
+    window.open(u.toString(), '_blank', 'noopener');
+  });
+}
   };
 
 })();
@@ -1866,13 +1869,23 @@ window.addEventListener("gcs_project_selected", (ev)=>{
 </script>
 
 <script>
-  // assuming you already have scanId available on this page
+(() => {
   const fixBtn = document.getElementById('fixPublicBtn');
+  if (!fixBtn) return;
+
   fixBtn.addEventListener('click', () => {
-    const url = `/ai.html?scan_id=${encodeURIComponent(window.scanId)}`;
-    window.open(url, '_blank', 'noopener');
+    // use window.scanId if set, otherwise fallback to what you saved earlier
+    const sid = window.scanId || localStorage.getItem('last_scan_id');
+    if (!sid) { alert('No scan ID available.'); return; }
+
+    // IMPORTANT: no leading slash for GitHub Pages project sites
+    const u = new URL('ai.html', location.href);
+    u.searchParams.set('scan_id', sid);
+    window.open(u.toString(), '_blank', 'noopener');
   });
+})();
 </script>
+
 
 <script src="https://unpkg.com/feather-icons"></script>
 <script>window.feather && feather.replace();</script>
