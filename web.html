@@ -921,11 +921,15 @@ tr.addEventListener("click", function(){
     const filterInput = opts?.filterInput || null;
     const countEl     = opts?.countEl || null;
 
-    // ✅ A) persist the current scan id for this page and as a fallback
-    if (opts?.scan_id) {
-      window.scanId = opts.scan_id;                       // always refresh
-      try { localStorage.setItem('last_scan_id', opts.scan_id); } catch {}
-    }
+    // DEBUG: did the caller pass a scan id?
+  console.log('renderResultsTable scan_id (opts):', opts?.scan_id);
+
+   // ✅ A) persist the current scan id for this page and as a fallback
+if (opts?.scan_id) {
+  window.scanId = opts.scan_id;                       // always refresh
+  try { localStorage.setItem('last_scan_id', opts.scan_id); } catch {}
+}
+console.log('renderResultsTable window.scanId now =', window.scanId);
 
     // show tools
     if (toolsEl){ toolsEl.style.display = "flex"; }
@@ -1087,6 +1091,11 @@ async function runScan(projectId, ethicalMode){
     // Hide loader
     if (scanLoader) scanLoader.classList.remove("show");
 
+    // ✅ Save scan id for button + fallbacks
+    const sid = apiData.scan_id || apiData.scanId || apiData.id;
+    window.scanId = sid;
+    try { localStorage.setItem("last_scan_id", sid); } catch {}
+
     // Summary
     if (resultsSummary) {
       const bucketsCount = Array.isArray(apiData.buckets) ? apiData.buckets.length : 0;
@@ -1097,18 +1106,20 @@ async function runScan(projectId, ethicalMode){
           <p><strong>Detected Role:</strong> ${apiData.project_role ?? "N/A"}</p>
           <p><strong>Bucket Count:</strong> ${bucketsCount}</p>
         </div>`;
+      // ✅ also keep it on the DOM for another fallback
+      resultsSummary.dataset.scanId = sid || "";
     }
 
-    // Render as CARDS via the public shim (keeps your filter/count row)
-renderResultsTable({
-  buckets: Array.isArray(apiData.buckets) ? apiData.buckets : [],
-  ethicalMode: !!ethicalMode,
-  tableEl: legacyTable,            // will be hidden by the shim
-  toolsEl: resultsTools,
-  countEl: resultsCount,
-  filterInput: resultsFilter
-});
-
+    // ✅ Render as CARDS via the public shim (and pass scan_id)
+    const normalizedEthical = (apiData.ethical_mode !== undefined) ? apiData.ethical_mode : ethicalMode;
+    renderResultsTable({
+      buckets: apiData.buckets || [],
+      ethicalMode: normalizedEthical,
+      toolsEl: resultsTools,
+      countEl: resultsCount,
+      filterInput: resultsFilter,
+      scan_id: sid // important: so the Fix button can pick it up
+    });
 
   } catch (e) {
     if (scanLoader) scanLoader.classList.remove("show");
@@ -1117,6 +1128,7 @@ renderResultsTable({
     }
   }
 }
+
 
 /* Scan button */
 document.addEventListener("DOMContentLoaded", function () {
@@ -1877,11 +1889,15 @@ window.addEventListener("gcs_project_selected", (ev)=>{
   if (!fixBtn) return;
 
   fixBtn.addEventListener('click', () => {
-    // use window.scanId if set, otherwise fallback to what you saved earlier
-    const sid = window.scanId || localStorage.getItem('last_scan_id');
+    // Try multiple sources for the scan id
+    const sid =
+      window.scanId ||
+      document.getElementById('results-summary')?.dataset?.scanId ||
+      localStorage.getItem('last_scan_id');
+
     if (!sid) { alert('No scan ID available.'); return; }
 
-    // IMPORTANT: no leading slash for GitHub Pages project sites
+    // Build a repo-relative URL (important on GitHub Pages)
     const u = new URL('ai.html', location.href);
     u.searchParams.set('scan_id', sid);
     window.open(u.toString(), '_blank', 'noopener');
