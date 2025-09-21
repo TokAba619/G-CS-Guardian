@@ -1577,12 +1577,17 @@ td.download-col {
 .bucket-card .files a{
   display:block;
   color:#cfe8ff;
-  text-decoration:none;
+  text-decoration:underline;
   max-width:100%;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
   margin:.15rem 0;
+}
+
+.bucket-card .files a:hover {
+  color: #ffffff;               /* brighten on hover */
+  text-decoration: underline;   /* keep underline */
 }
 
 .bucket-card {
@@ -1611,12 +1616,17 @@ td.download-col {
 .bucket-card .files a.file-link{
   display:block;
   color:#cfe8ff;
-  text-decoration:none;
+  text-decoration:underline;
   max-width:100%;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
   margin:.15rem 0;
+}
+
+bucket-card .files a:hover {
+  color: #ffffff;               /* brighten on hover */
+  text-decoration: underline;   /* keep underline */
 }
 
 /* Wider bucket cards */
