@@ -1869,7 +1869,7 @@ window.addEventListener("gcs_project_selected", (ev)=>{
   // assuming you already have scanId available on this page
   const fixBtn = document.getElementById('fixPublicBtn');
   fixBtn.addEventListener('click', () => {
-    const url = `/fix.html?scan_id=${encodeURIComponent(window.scanId)}`;
+    const url = `/ai.html?scan_id=${encodeURIComponent(window.scanId)}`;
     window.open(url, '_blank', 'noopener');
   });
 </script>
@@ -1879,3 +1879,4 @@ window.addEventListener("gcs_project_selected", (ev)=>{
 <script src="web.js"></script>
 </body>
 </html>
+
