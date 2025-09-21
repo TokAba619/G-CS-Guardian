@@ -221,10 +221,52 @@
 </head>
 <body>
   <nav class="navbar" id="navbar">
-    <a href="index.html" class="navbar-brand">
-      <img src="logo.png" alt="G-CS Guardian Logo" class="brand-logo">
-      <span>G-CS Guardian</span>
-    </a>
+    <a href="#" class="navbar-brand" id="logoutLogo" aria-label="Log out">
+  <img src="logo.png" alt="G-CS Guardian Logo" class="brand-logo">
+  <span>G-CS Guardian</span>
+</a>
+
+<script>
+  // Centralized logout
+  function logoutUser(redirectTo = "login.html") {
+    try {
+      // Remove your app tokens & state
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("last_scan_id");
+      localStorage.removeItem("user");        // if you store user info
+      sessionStorage.clear();
+
+      // OPTIONAL: revoke Google OAuth token if you saved it separately
+      const gcpToken = localStorage.getItem("gcp_token");
+      if (gcpToken) {
+        // Fire-and-forget; don't block the redirect
+        fetch("https://oauth2.googleapis.com/revoke?token=" + encodeURIComponent(gcpToken), {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" }
+        }).catch(() => {});
+        localStorage.removeItem("gcp_token");
+      }
+    } finally {
+      // Use replace so back button doesn’t return to an authed page
+      window.location.replace(redirectTo);
+    }
+  }
+
+  // Make the logo perform logout
+  document.getElementById("logoutLogo")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    logoutUser();
+  });
+
+  // (Optional) also support keyboard users if the link is focused and Enter is pressed
+  document.getElementById("logoutLogo")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      logoutUser();
+    }
+  });
+</script>
+
 
     <div class="hamburger-menu" id="hamburgerMenu" aria-label="Open menu" role="button" tabindex="0">
       <i class="fas fa-bars"></i>
