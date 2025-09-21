@@ -1127,9 +1127,9 @@ document.addEventListener("DOMContentLoaded", function () {
 /* =========================
    MY-SCAN (list, detail, pdf/csv/json)
 ========================= */
-var API_PREVIOUS_SCANS = API_BASE + "/my-scans/";
-var API_SCAN_DETAILS   = API_BASE + "/my-scans/{scan_id}";
-var API_REPORT_PDF     = API_BASE + "/reports/{scan_id}/report.pdf";
+window.API_PREVIOUS_SCANS = window.API_PREVIOUS_SCANS || (API_BASE + "/my-scans/");
+window.API_SCAN_DETAILS   = window.API_SCAN_DETAILS   || (API_BASE + "/my-scans/{scan_id}");
+window.API_REPORT_PDF     = window.API_REPORT_PDF     || (API_BASE + "/reports/{scan_id}/report.pdf");
 
 /* ---------- helpers ---------- */
 function getFilenameFromDisposition(header, fallback){
