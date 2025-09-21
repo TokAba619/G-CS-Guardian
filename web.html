@@ -502,6 +502,9 @@
           <span class="chip" id="detailed-count">0 buckets</span>
         </div>
 
+        <!-- NEW: Card grid target -->
+<div id="detailed-cards" class="results-cards"></div>
+
         <table class="dashboard-table" id="detailed-table" style="display:none;">
           <thead>
             <tr>
@@ -978,109 +981,128 @@ function prettyKeyword(s) {
 }
 
 /* =========================
-   SCAN FLOW
+   SCAN FLOW  — card layout
 ========================= */
 async function runScan(projectId, ethicalMode){
   const token = getToken();
-  if(!token){ window.location.href="signup.html"; return; }
+  if (!token) { window.location.href = "signup.html"; return; }
 
+  // DOM refs
   const resultsSection = document.getElementById("results");
   const resultsSummary = document.getElementById("results-summary");
   const resultsTools   = document.getElementById("results-tools");
-  const resultsTable   = document.getElementById("results-table");
   const resultsFilter  = document.getElementById("results-filter");
   const resultsCount   = document.getElementById("results-count");
-  const scanLoader     = document.getElementById("scan-loader");  // <-- new
+  const scanLoader     = document.getElementById("scan-loader");
 
-  // SHOW loader, hide content
-  resultsSummary.innerHTML = "";
-  resultsTools.style.display = "none";
-  resultsTable.style.display = "none";
-  scanLoader.classList.add("show");              // <-- show
-  // scanLoader.classList.add("fullscreen");     // (optional) taller while waiting
-  resultsSection.scrollIntoView({ behavior: "smooth" });
+  // NEW: cards container (replaces table)
+  const resultsCards   = document.getElementById("results-cards");
+
+  // (If the old table still exists in the DOM, we just ignore/hide it)
+  const legacyTable    = document.getElementById("results-table");
+
+  // Show loader, reset UI safely
+  if (resultsSummary) resultsSummary.innerHTML = "";
+  if (resultsTools)   resultsTools.style.display = "none";
+  if (resultsCards)   resultsCards.innerHTML = "";
+  if (legacyTable)    legacyTable.style.display = "none";
+  if (scanLoader)     scanLoader.classList.add("show");
+
+  resultsSection?.scrollIntoView({ behavior: "smooth" });
 
   try {
-    const apiUrl = `${API_BASE}/scan?project_id=${encodeURIComponent(projectId)}&ethical_mode=${ethicalMode?"true":"false"}`;
+    const apiUrl = `${API_BASE}/scan?project_id=${encodeURIComponent(projectId)}&ethical_mode=${ethicalMode ? "true" : "false"}`;
     const response = await fetch(apiUrl, {
       method: "GET",
-      headers: { "Authorization":"Bearer "+token, "Accept":"application/json" }
+      headers: { "Authorization": "Bearer " + token, "Accept": "application/json" }
     });
 
-    if(!response.ok){
+    if (!response.ok) {
       let detail = "";
-      try{
+      try {
         const err = await response.json();
-        if(err && err.detail){
-          detail = typeof err.detail === "string" ? ` (${err.detail})` : ` (${JSON.stringify(err.detail)})`;
+        if (err?.detail) {
+          detail = typeof err.detail === "string" ? ` (${err.detail})`
+                                                  : ` (${JSON.stringify(err.detail)})`;
         }
-      }catch(_){}
+      } catch {}
       throw new Error("Scan failed: " + response.status + detail);
     }
 
     const apiData = await response.json();
 
-    // HIDE loader
-    scanLoader.classList.remove("show");
-    // scanLoader.classList.remove("fullscreen");
+    // Hide loader
+    if (scanLoader) scanLoader.classList.remove("show");
 
-    // SHOW results
-    resultsSummary.innerHTML =
-      `<div class='result-card'><h3>Scan Summary</h3>
-        <p><strong>Scan ID:</strong> ${apiData.scan_id}</p>
-        <p><strong>Detected Role:</strong> ${apiData.project_role||"N/A"}</p>
-        <p><strong>Bucket Count:</strong> ${(Array.isArray(apiData.buckets)?apiData.buckets.length:0)}</p>
-      </div>`;
+    // Summary
+    if (resultsSummary) {
+      const bucketsCount = Array.isArray(apiData.buckets) ? apiData.buckets.length : 0;
+      resultsSummary.innerHTML = `
+        <div class="result-card">
+          <h3>Scan Summary</h3>
+          <p><strong>Scan ID:</strong> ${apiData.scan_id ?? "—"}</p>
+          <p><strong>Detected Role:</strong> ${apiData.project_role ?? "N/A"}</p>
+          <p><strong>Bucket Count:</strong> ${bucketsCount}</p>
+        </div>`;
+    }
 
-    renderResultsTable({
+    // Render as CARDS
+    renderResultsCards({
       buckets: Array.isArray(apiData.buckets) ? apiData.buckets : [],
-      ethicalMode,
-      tableEl: resultsTable,
-      toolsEl: resultsTools,
+      ethicalMode: !!ethicalMode,
+      targetEl: resultsCards,          // <div id="results-cards">
+      toolsEl: resultsTools,           // keeps your filter/count row
       countEl: resultsCount,
       filterInput: resultsFilter
     });
-  } catch(e){
-    // HIDE loader, show error
-    scanLoader.classList.remove("show");
-    resultsSummary.innerHTML = `<p style="color:red;">Error: ${e.message||e}</p>`;
+
+  } catch (e) {
+    if (scanLoader) scanLoader.classList.remove("show");
+    if (resultsSummary) {
+      resultsSummary.innerHTML = `<p style="color:red;">Error: ${e.message || e}</p>`;
+    }
   }
 }
 
+/* Scan button */
+document.addEventListener("DOMContentLoaded", function () {
+  const btn = document.getElementById("learn-more");
+  if (!btn) return;
 
-
-/* Scan button: prefer selected project from picker, else typed input */
-document.addEventListener("DOMContentLoaded",function(){
-  document.getElementById("learn-more").addEventListener("click",async function(){
+  btn.addEventListener("click", async function () {
     // Ensure consent first
-    if(!(await ensureConsentBeforeScan())) return;
+    if (!(await ensureConsentBeforeScan())) return;
 
-    var ethicalToggleEl=document.getElementById("ethicalModeToggle");
-    var ethicalMode=ethicalToggleEl.checked;
+    const ethicalToggleEl = document.getElementById("ethicalModeToggle");
+    let ethicalMode = !!ethicalToggleEl?.checked;
 
-    var picked=window.ProjectPicker&&window.ProjectPicker.getSelected?window.ProjectPicker.getSelected():{id:null,access:null};
+    // Prefer picker selection
+    const picked = (window.ProjectPicker?.getSelected?.()) || { id: null, access: null };
 
-    // SAFE: guard if #projectId input doesn't exist
-    var projectIdInputEl = document.getElementById("projectId");
-    var typed = projectIdInputEl ? (projectIdInputEl.value||"").trim() : "";
-    var projectId = picked.id || typed;
+    // Fallback to typed input (guard if input missing)
+    const projectIdInputEl = document.getElementById("projectId");
+    const typed = projectIdInputEl ? (projectIdInputEl.value || "").trim() : "";
+    const projectId = picked.id || typed;
 
-    if(!projectId){alert("Please select a project (or type one).");return;}
+    if (!projectId) { alert("Please select a project (or type one)."); return; }
 
-    // Allow ethical mode only if a project is SELECTED and you are Owner
-    var selectedAccess=(picked && picked.access)?String(picked.access).toLowerCase():null;
-    var isOwner=(selectedAccess==="owner");
-    if(ethicalMode && !isOwner){
-      ethicalMode=false;
-      ethicalToggleEl.checked=false;
+    // Ethical mode allowed only if selected project and you’re Owner
+    const selectedAccess = String(picked.access || "").toLowerCase();
+    const isOwner = (selectedAccess === "owner");
+    if (ethicalMode && !isOwner) {
+      ethicalMode = false;
+      if (ethicalToggleEl) ethicalToggleEl.checked = false;
       alert("Full Access Scan requires Owner access on the SELECTED project. It has been turned off.");
     }
 
-    runScan(projectId,ethicalMode).catch(function(e){
-      document.getElementById("results-summary").innerHTML="<p style='color:red;'>Error: "+(e.message||e)+"</p>";
+    runScan(projectId, ethicalMode).catch(e => {
+      const resultsSummary = document.getElementById("results-summary");
+      if (resultsSummary) resultsSummary.innerHTML =
+        "<p style='color:red;'>Error: " + (e.message || e) + "</p>";
     });
   });
 });
+
 
 /* =========================
    MY-SCAN (list, detail, pdf/csv/json)
@@ -1194,7 +1216,9 @@ async function downloadCsv(scanId, btnEl){
 /* ---------- list previous scans ---------- */
 async function loadPreviousScans(){
   var tableBody = document.getElementById("previous-scan-table");
+  if (!tableBody) return;
   tableBody.innerHTML = "<tr><td colspan='4'>Loading...</td></tr>";
+
   var token = getToken();
   if(!token){
     tableBody.innerHTML = "<tr><td colspan='4'>Please log in to view scans</td></tr>";
@@ -1213,32 +1237,33 @@ async function loadPreviousScans(){
     tableBody.innerHTML = "";
     scans.forEach(function(scan){
       var row = document.createElement("tr");
-  row.innerHTML =
-  "<td>"+formatDate(scan.timestamp)+"</td>" +
-  "<td class='scan-id'>"+(scan.scan_id || "N/A")+"</td>" +
-  "<td>"+(scan.project_id || "N/A")+"</td>" +
-  "<td class='download-col'>" +
-    "<div class='download-actions'>" +
-      "<button class='btn-chip btn-pdf'  data-scan='"+scan.scan_id+"'>PDF</button>" +
-      "<button class='btn-chip btn-csv'  data-scan='"+scan.scan_id+"'>CSV</button>" +
-      "<button class='btn-chip btn-json' data-scan='"+scan.scan_id+"'>JSON</button>" +
-    "</div>" +
-  "</td>";
+      row.innerHTML =
+        "<td>"+formatDate(scan.timestamp)+"</td>" +
+        "<td class='scan-id'>"+(scan.scan_id || "N/A")+"</td>" +
+        "<td>"+(scan.project_id || "N/A")+"</td>" +
+        "<td class='download-col'>" +
+          "<div class='download-actions'>" +
+            "<button class='btn-chip btn-pdf'  data-scan='"+scan.scan_id+"'>PDF</button>" +
+            "<button class='btn-chip btn-csv'  data-scan='"+scan.scan_id+"'>CSV</button>" +
+            "<button class='btn-chip btn-json' data-scan='"+scan.scan_id+"'>JSON</button>" +
+          "</div>" +
+        "</td>";
 
-row.querySelector(".scan-id").addEventListener("click", function(){
-  document.getElementById("scanIdInput").value = scan.scan_id;
-  fetchDetailedScan();
-});
+      row.querySelector(".scan-id").addEventListener("click", function(){
+        var input = document.getElementById("scanIdInput");
+        if (input) input.value = scan.scan_id;
+        fetchDetailedScan();
+      });
 
-row.querySelector(".btn-pdf")
-   .addEventListener("click", function(){ downloadPdf(scan.scan_id, this); });
-row.querySelector(".btn-csv")
-   .addEventListener("click", function(){ downloadCsv(scan.scan_id, this); });
-row.querySelector(".btn-json")
-   .addEventListener("click", function(){ downloadJson(scan.scan_id, this); });
+      row.querySelector(".btn-pdf")
+         .addEventListener("click", function(){ downloadPdf(scan.scan_id, this); });
+      row.querySelector(".btn-csv")
+         .addEventListener("click", function(){ downloadCsv(scan.scan_id, this); });
+      row.querySelector(".btn-json")
+         .addEventListener("click", function(){ downloadJson(scan.scan_id, this); });
 
-tableBody.appendChild(row);
-});
+      tableBody.appendChild(row);
+    });
 
   }catch(error){
     console.error(error);
@@ -1246,18 +1271,31 @@ tableBody.appendChild(row);
   }
 }
 
-/* ---------- scan details (unchanged) ---------- */
+/* ---------- scan details (now supports cards) ---------- */
 async function fetchDetailedScan(){
-  var scanId = (document.getElementById("scanIdInput").value || "").trim();
-  var resultsContainer = document.getElementById("detailed-scan-results");
-  var tableEl = document.getElementById("detailed-table");
-  var toolsEl = document.getElementById("detailed-tools");
-  var filterEl = document.getElementById("detailed-filter");
-  var countEl = document.getElementById("detailed-count");
+  var scanIdEl = document.getElementById("scanIdInput");
+  var scanId = (scanIdEl ? scanIdEl.value : "").trim();
 
-  resultsContainer.innerHTML = "<p>Loading...</p>";
-  toolsEl.style.display = "none"; tableEl.style.display = "none";
-  if(!scanId){ resultsContainer.innerHTML = "<p>Please enter a Scan ID.</p>"; return; }
+  var resultsContainer = document.getElementById("detailed-scan-results");
+  var toolsEl   = document.getElementById("detailed-tools");
+  var filterEl  = document.getElementById("detailed-filter");
+  var countEl   = document.getElementById("detailed-count");
+
+  // NEW: cards container (optional)
+  var cardsEl   = document.getElementById("detailed-cards");
+
+  // Legacy table (kept for fallback)
+  var tableEl   = document.getElementById("detailed-table");
+
+  if (resultsContainer) resultsContainer.innerHTML = "<p>Loading...</p>";
+  if (toolsEl) { toolsEl.style.display = "none"; }
+  if (tableEl) { tableEl.style.display = "none"; }
+  if (cardsEl) { cardsEl.innerHTML = ""; }
+
+  if(!scanId){
+    if (resultsContainer) resultsContainer.innerHTML = "<p>Please enter a Scan ID.</p>";
+    return;
+  }
 
   var token = getToken();
   try{
@@ -1277,33 +1315,53 @@ async function fetchDetailedScan(){
     var buckets = Array.isArray(data && data.buckets) ? data.buckets : [];
     var ethicalMode = Boolean(data && data.ethical_mode);
 
-    resultsContainer.innerHTML =
-      "<div class='result-card'>" +
-        "<h4>Scan "+data.scan_id+"</h4>" +
-        "<p><strong>Project:</strong> "+(data.project_id||"N/A")+"</p>" +
-        "<p><strong>Time:</strong> "+formatDate(data.timestamp)+"</p>" +
-        "<p><strong>Role:</strong> "+(data.project_role||"N/A")+" | <strong>Ethical Mode:</strong> "+(ethicalMode?"On":"Off")+"</p>" +
-        "<p><strong>Bucket Count:</strong> "+buckets.length+"</p>" +
-      "</div>";
+    if (resultsContainer) {
+      resultsContainer.innerHTML =
+        "<div class='result-card'>" +
+          "<h4>Scan "+(data.scan_id||"")+"</h4>" +
+          "<p><strong>Project:</strong> "+(data.project_id||"N/A")+"</p>" +
+          "<p><strong>Time:</strong> "+formatDate(data.timestamp)+"</p>" +
+          "<p><strong>Role:</strong> "+(data.project_role||"N/A")+" | <strong>Ethical Mode:</strong> "+(ethicalMode?"On":"Off")+"</p>" +
+          "<p><strong>Bucket Count:</strong> "+buckets.length+"</p>" +
+        "</div>";
+    }
 
-    if(buckets.length === 0){
-      resultsContainer.insertAdjacentHTML("beforeend", "<p>No bucket results stored for this scan.</p>");
+    if (buckets.length === 0){
+      resultsContainer?.insertAdjacentHTML("beforeend", "<p>No bucket results stored for this scan.</p>");
       return;
     }
 
-    renderResultsTable({
-      buckets: buckets,
-      ethicalMode: ethicalMode,
-      tableEl: tableEl,
-      toolsEl: toolsEl,
-      countEl: countEl,
-      filterInput: filterEl,
-      defaultSortKey: "risk_score",
-      defaultSortDir: "desc"
-    });
+    // Prefer card layout if the container is present; else fall back to table
+    if (cardsEl && typeof renderResultsCards === "function"){
+      renderResultsCards({
+        buckets: buckets,
+        ethicalMode: ethicalMode,
+        targetEl: cardsEl,
+        toolsEl: toolsEl,
+        countEl: countEl,
+        filterInput: filterEl
+      });
+    } else {
+      // fallback: old table
+      if (typeof renderResultsTable === "function"){
+        renderResultsTable({
+          buckets: buckets,
+          ethicalMode: ethicalMode,
+          tableEl: tableEl,
+          toolsEl: toolsEl,
+          countEl: countEl,
+          filterInput: filterEl,
+          defaultSortKey: "risk_score",
+          defaultSortDir: "desc"
+        });
+      } else {
+        resultsContainer?.insertAdjacentHTML("beforeend",
+          "<p style='color:#f66'>Renderer missing: add #detailed-cards or include renderResultsTable/renderResultsCards.</p>");
+      }
+    }
   }catch(error){
     console.error(error);
-    resultsContainer.innerHTML = "<p style='color:red;'>Error: "+error.message+"</p>";
+    if (resultsContainer) resultsContainer.innerHTML = "<p style='color:red;'>Error: "+error.message+"</p>";
   }
 }
 
