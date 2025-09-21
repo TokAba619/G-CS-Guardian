@@ -1096,6 +1096,12 @@ async function runScan(projectId, ethicalMode){
     window.scanId = sid;
     try { localStorage.setItem("last_scan_id", sid); } catch {}
 
+    // ✅ cache rows for ai.html fallback (used if /history/scan/{id} is 404)
+try {
+  sessionStorage.setItem('last_scan_id', sid || '');
+  sessionStorage.setItem('last_scan_rows', JSON.stringify(apiData.buckets || apiData.results || []));
+} catch {}
+
     // Summary
     if (resultsSummary) {
       const bucketsCount = Array.isArray(apiData.buckets) ? apiData.buckets.length : 0;
