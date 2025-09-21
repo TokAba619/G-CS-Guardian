@@ -1899,6 +1899,7 @@ window.addEventListener("gcs_project_selected", (ev)=>{
 
     // Build a repo-relative URL (important on GitHub Pages)
     const u = new URL('ai.html', location.href);
+    
     u.searchParams.set('scan_id', sid);
     window.open(u.toString(), '_blank', 'noopener');
   });
