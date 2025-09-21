@@ -350,7 +350,7 @@
 
         <!-- NEW: Fix button -->
 <button id="fixPublicBtn" type="button" class="cta-pink" title="Open AI fix wizard in a new tab">
-  Fix the Public Bucket
+  Fix the Public Bucket with AI
 </button>
 
       <span class="chip" id="results-count">0 buckets</span>
@@ -763,7 +763,7 @@ tr.addEventListener("click", function(){
 /* =========================
    RESULTS — CARD RENDER (drop-in)
    Replaces the old table renderer but keeps the same API:
-   renderResultsTable({ buckets, ethicalMode, toolsEl, countEl, filterInput })
+   renderResultsTable({ buckets, ethicalMode, toolsEl, countEl, filterInput, scan_id })
 ========================= */
 
 (function(){
@@ -793,10 +793,10 @@ tr.addEventListener("click", function(){
     const isPublic = (isPublicFlag === true) || /^(public|object_public)$/i.test(String(state||""));
     return `<span class="badge ${isPublic ? "badge-public" : "badge-private"}">${isPublic ? "Public" : "Private"}</span>`;
   }
- function scoreBadge(score){
-  const s = (score==null ? "—" : Number(score).toFixed(0)); // whole number
-  return `<span class="badge" style="background:#fff;color:#000;font-weight:900;">Risk Score: ${s}</span>`;
-}
+  function scoreBadge(score){
+    const s = (score==null ? "—" : Number(score).toFixed(0)); // whole number
+    return `<span class="badge" style="background:#fff;color:#000;font-weight:900;">Risk Score: ${s}</span>`;
+  }
 
   function reasonsHTML(reason){
     if(!reason) return `<div class="muted">No risk reasons recorded.</div>`;
@@ -914,12 +914,17 @@ tr.addEventListener("click", function(){
 
   // ---- PUBLIC API (compat shim) ----
   // Keep your old signature so existing calls continue to work:
-  // renderResultsTable({ buckets, ethicalMode, tableEl, toolsEl, countEl, filterInput })
+  // renderResultsTable({ buckets, ethicalMode, tableEl, toolsEl, countEl, filterInput, scan_id })
   window.renderResultsTable = function(opts){
     const buckets     = Array.isArray(opts?.buckets) ? opts.buckets : [];
     const toolsEl     = opts?.toolsEl || null;
     const filterInput = opts?.filterInput || null;
     const countEl     = opts?.countEl || null;
+
+    // ✅ A) persist scan id if provided by the caller
+    if (opts?.scan_id && !window.scanId) {
+      window.scanId = opts.scan_id;
+    }
 
     // show tools
     if (toolsEl){ toolsEl.style.display = "flex"; }
@@ -940,6 +945,21 @@ tr.addEventListener("click", function(){
 
     // hide old table if it exists
     if (opts?.tableEl) { opts.tableEl.style.display = "none"; }
+
+    // ✅ B) wire "Fix the Public Bucket" button (only once)
+    const fixBtn = document.getElementById("fixPublicBtn");
+    if (fixBtn && !fixBtn._wiredForAI) {
+      fixBtn._wiredForAI = true;
+      fixBtn.addEventListener("click", () => {
+        const sid = window.scanId || opts?.scan_id;
+        if (!sid) {
+          alert("No scan ID available.");
+          return;
+        }
+        const url = `/ai.html?scan_id=${encodeURIComponent(sid)}`;
+        window.open(url, "_blank", "noopener");
+      });
+    }
   };
 
 })();
