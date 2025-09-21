@@ -1608,13 +1608,14 @@ document.addEventListener("DOMContentLoaded",function(){
 <script>
 /* =========================
    LIVE REPORTS — RANGE FILTERS (Latest | Today | All)
-   Latest uses the SINGLE newest scan (not the whole day)
+   FIX: “Latest” now counts exposure from the full scan, not Top Risks.
 ========================= */
 const API_REPORTS_SUMMARY = API_BASE + "/reports/summary";
 const API_REPORTS_TRENDS  = API_BASE + "/reports/trends";
 const API_REPORTS_TOP     = API_BASE + "/reports/top-risks";
 const API_PREVIOUS_SCANS_URL =
   (window.API_PREVIOUS_SCANS || (window.API_PREVIOUS_SCANS = API_BASE + "/my-scans/"));
+const API_SCAN_DETAILS = API_BASE + "/my-scans/{scan_id}";   // <-- added
 
 let LR_RANGE = "latest";
 let LR_CHARTS = { risk:null, exposure:null, trend:null };
@@ -1625,6 +1626,12 @@ function authFetchJSON(url){
   return fetch(url, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }})
     .then(async r => { if(!r.ok) throw new Error(`HTTP ${r.status} on ${url}`); return r.json(); });
 }
+function authFetchScanDetails(scanId){
+  const t = getToken(); if(!t) throw new Error("No token");
+  const url = API_SCAN_DETAILS.replace("{scan_id}", encodeURIComponent(scanId));
+  return fetch(url, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }})
+    .then(async r => { if(!r.ok) throw new Error(`HTTP ${r.status} on ${url}`); return r.json(); });
+}
 function isoLocalDate(d){
   const pad = n => String(n).padStart(2,"0");
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -1632,9 +1639,12 @@ function isoLocalDate(d){
 function formatScanDay(ts){ return isoLocalDate(new Date(ts)); }
 
 async function ensureProjectId(){
-  try { const pick = window.ProjectPicker?.getSelected?.(); if (pick?.id) {
-    localStorage.setItem("selected_project_id", pick.id); return pick.id; } } catch(_){}
-  const stored = localStorage.getItem("selected_project_id"); if (stored) return stored;
+  try {
+    const pick = window.ProjectPicker?.getSelected?.();
+    if (pick?.id) { localStorage.setItem("selected_project_id", pick.id); return pick.id; }
+  } catch(_){}
+  const stored = localStorage.getItem("selected_project_id");
+  if (stored) return stored;
 
   const t = getToken(); if(!t) return "";
   const res = await fetch(API_PREVIOUS_SCANS_URL, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }});
@@ -1647,15 +1657,13 @@ async function ensureProjectId(){
   return "";
 }
 
-/* Newest scan (full timestamp + scan_id) */
+/* Newest scan meta (scan_id + timestamp + avg_risk + counts) */
 async function getLatestScanInfo(pid){
-  // Use /reports/trends (no from/to) and pick the newest point
   const qs = new URLSearchParams({ project_id: pid });
   const trends = await authFetchJSON(`${API_REPORTS_TRENDS}?${qs}`);
   const points = Array.isArray(trends?.points) ? trends.points : [];
   if(!points.length) return null;
-  const latest = points.sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp))[0];
-  return latest; // {scan_id, timestamp, counts:{...}, avg_risk, ...}
+  return points.sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp))[0];
 }
 
 /* ---------- renderers ---------- */
@@ -1683,10 +1691,7 @@ function renderRiskLevels(summary){
     data:{ labels: order.map(s=>s.toUpperCase()), datasets:[{ data, backgroundColor: colors, borderWidth:0 }] },
     options:{
       cutout:"58%",
-      plugins:{
-        legend:{ position:"bottom", labels:{ color:"#ddd" } },
-        tooltip:{ callbacks:{ label(t){ const v=t.raw??0; return `${t.label}: ${v} bucket${v===1?"":"s"}`; } } }
-      }
+      plugins:{ legend:{ position:"bottom", labels:{ color:"#ddd" } } }
     }
   });
 }
@@ -1701,18 +1706,10 @@ function renderExposure(summary){
     type:"bar",
     data:{
       labels:["Private","Public"],
-      datasets:[{
-        data: vals,
-        backgroundColor:["#00ff00","#ff0000"],
-        borderColor:["#00cc00","#cc0000"],
-        borderWidth:1
-      }]
+      datasets:[{ data: vals, backgroundColor:["#00ff00","#ff0000"], borderColor:["#00cc00","#cc0000"], borderWidth:1 }]
     },
     options:{
-      plugins:{
-        legend:{ display:false },
-        tooltip:{ callbacks:{ label(t){ const v=t.parsed?.y ?? 0; return `${t.label}: ${v} bucket${v===1?"":"s"}`; } } }
-      },
+      plugins:{ legend:{ display:false } },
       scales:{
         x:{ ticks:{ color:"#ddd" }, grid:{ display:false } },
         y:{ beginAtZero:true, suggestedMax: Math.max(10, ...vals)+1, ticks:{ color:"#aaa" }, grid:{ color:"rgba(255,255,255,.08)" } }
@@ -1778,57 +1775,61 @@ async function loadLiveReports(){
   if(!pid){ setRangeBadge(""); return; }
 
   if (LR_RANGE === "latest") {
-    // 1) Get newest scan point
+    // 1) newest scan metadata
     const latest = await getLatestScanInfo(pid);
     if(!latest){ setRangeBadge("Latest scan"); renderKpis({totals:{}, risky_bucket_pct:null}); return; }
 
-    // 2) Synthesize "summary" from that single scan
-    const c = latest.counts || {};
-    const totalBuckets = (c.critical||0)+(c.high||0)+(c.medium||0)+(c.low||0)+(c.info||0);
-    const riskyBuckets = (c.critical||0)+(c.high||0)+(c.medium||0);
-    const riskyPct = totalBuckets ? Math.round((riskyBuckets/totalBuckets)*1000)/10 : null; // one decimal
+    // 2) fetch FULL scan details -> count ALL buckets
+    const details = await authFetchScanDetails(latest.scan_id);
+    const buckets = Array.isArray(details?.buckets) ? details.buckets : [];
 
-    // 3) Get Top Risks for that day, then filter by scan_id to only keep this scan
+    // 3) compute risk levels + exposure from buckets
+    const levelCounts = { critical:0, high:0, medium:0, low:0, info:0 };
+    let expPrivate = 0, expPublic = 0, riskyBuckets = 0;
+
+    buckets.forEach(b=>{
+      const score = Number(b.risk_score||0);
+      let level = "low";
+      if(score>=10) level="critical";
+      else if(score>=7) level="high";
+      else if(score>=4) level="medium";
+      levelCounts[level]++;
+      if(level==="critical"||level==="high"||level==="medium") riskyBuckets++;
+
+      const exposure = (b.exposure_state || (b.public ? "public" : "private")).toLowerCase();
+      if(exposure==="private") expPrivate++; else expPublic++;
+    });
+
+    const totalBuckets = buckets.length;
+    const riskyPct = totalBuckets ? Math.round((riskyBuckets/totalBuckets)*1000)/10 : null;
+
+    const summarySynth = {
+      totals: { total_scans: 1, buckets_scanned: totalBuckets, risky_buckets: riskyBuckets },
+      risky_bucket_pct: (riskyPct == null ? null : riskyPct),
+      risk_level_counts: levelCounts,
+      exposure_category_counts: { private: expPrivate, public: expPublic }
+    };
+
+    // 4) Top risks for that same scan (optional)
     const day = formatScanDay(latest.timestamp);
     const qsTop = new URLSearchParams({ project_id: pid, from: day, to: day, limit: "100" });
     const topRes = await authFetchJSON(`${API_REPORTS_TOP}?${qsTop}`);
     const topItemsAll = Array.isArray(topRes?.items) ? topRes.items : [];
     const topItems = topItemsAll.filter(x => x.scan_id === latest.scan_id);
 
-    // 4) Derive exposure split from the filtered items
-    let expPrivate = 0, expPublic = 0;
-    topItems.forEach(it=>{
-      const s = (it.exposure_state || "").toLowerCase();
-      if (s === "private") expPrivate++;
-      else expPublic++; // treat public/object_public as public
-    });
-
-    const summarySynth = {
-      totals: {
-        total_scans: 1,
-        buckets_scanned: totalBuckets,
-        risky_buckets: riskyBuckets
-      },
-      risky_bucket_pct: (riskyPct == null ? null : riskyPct),
-      risk_level_counts: {
-        critical: c.critical||0, high: c.high||0, medium: c.medium||0, low: c.low||0, info: c.info||0
-      },
-      exposure_category_counts: { private: expPrivate, public: expPublic }
-    };
-
-    // 5) Render everything using ONLY this scan
+    // 5) render
     setRangeBadge("Latest scan");
     renderKpis(summarySynth);
     renderRiskLevels(summarySynth);
     renderExposure(summarySynth);
-    renderTrend({ points: [latest] }); // trend = just one point
+    renderTrend({ points: [latest] }); // mini sparkline = the newest point
     renderTopRisks(topItems);
     return;
   }
 
-  // ===== Today / All use server aggregation with from/to =====
+  // ===== Today / All -> server aggregates =====
   const todayISO = isoLocalDate(new Date());
-  const qs = new URLSearchParams({ project_id: pid });
+  const qs    = new URLSearchParams({ project_id: pid });
   const qsTop = new URLSearchParams({ project_id: pid, limit: "5" });
 
   if (LR_RANGE === "today"){
