@@ -1618,3 +1618,17 @@ td.download-col {
   white-space:nowrap;
   margin:.15rem 0;
 }
+
+/* Wider bucket cards */
+.results-cards {
+  display: flex;
+  flex-wrap: wrap;       /* allows wrapping if too many */
+  gap: 20px;             /* space between cards */
+}
+
+.bucket-card {
+  flex: 1 1 500px;        /* base width ~500px, but flexible */
+  max-width: 600px;       /* optional: cap it so they don’t become too huge */
+  min-width: 400px;       /* ensures at least this width */
+  word-break: break-word; /* keeps long bucket names inside */
+}
