@@ -863,6 +863,86 @@ tr.addEventListener("click", function(){
     }</div>`;
   }
 
+// --- NEW HELPERS ---
+
+// unique values
+function uniq(arr){ return Array.from(new Set((arr||[]).filter(Boolean))); }
+
+// Render per-object findings (filename/link, finding text, per-object DLP chips)
+function exposedObjectsSection(bucket, ethicalMode){
+  const objs = Array.isArray(bucket.exposed_objects) ? bucket.exposed_objects : [];
+  if (!objs.length) return "";
+
+  const fileLabel = (name, url) => {
+    if (name) return esc(name);
+    try {
+      const u = new URL(url);
+      return esc(decodeURIComponent(u.pathname.split("/").pop() || u.host));
+    } catch { return esc(url || "(object)"); }
+  };
+
+  const items = objs.map(o=>{
+    const title = (ethicalMode && o.url)
+      ? `<a class="file-link" href="${esc(o.url)}" target="_blank" rel="noopener">${fileLabel(o.name, o.url)}</a>`
+      : `<span class="file">${fileLabel(o.name, o.url)}</span>`;
+
+    const finding = o.finding ? `<div class="muted">${esc(o.finding)}</div>` : "";
+    const dlp = Array.isArray(o.dlp_findings) && o.dlp_findings.length
+      ? `<div class="kw">${o.dlp_findings.map(x=>`<span class="chip">${esc(x)}</span>`).join("")}</div>`
+      : "";
+
+    return `<li><strong>${title}</strong>${finding}${dlp}</li>`;
+  }).join("");
+
+  return `
+    <div class="section">
+      <h4>Findings</h4>
+      <ul class="reasons">${items}</ul>
+    </div>`;
+}
+
+// Collect + dedupe DLP findings from bucket and its exposed_objects
+function dlpFindingsSection(bucket){
+  let all = [];
+  if (Array.isArray(bucket.dlp_findings)) all = all.concat(bucket.dlp_findings);
+  if (Array.isArray(bucket.exposed_objects)) {
+    bucket.exposed_objects.forEach(o=>{
+      if (Array.isArray(o.dlp_findings)) all = all.concat(o.dlp_findings);
+    });
+  }
+  all = uniq(all);
+  if (!all.length) return "";
+  return `
+    <div class="section">
+      <h4>DLP Findings</h4>
+      <div class="kw">${all.map(x=>`<span class="chip">${esc(x)}</span>`).join("")}</div>
+    </div>`;
+}
+
+// Render IAM bindings (role + member chips, highlight public principals)
+function iamBindingsSection(bucket){
+  const bindings = Array.isArray(bucket.iam_bindings) ? bucket.iam_bindings : [];
+  if (!bindings.length) return "";
+
+  const rows = bindings.map(b=>{
+    const role = esc(b.role || "(role)");
+    const members = Array.isArray(b.members) ? b.members : (b.member ? [b.member] : []);
+    const chips = members.slice(0,6).map(m=>{
+      const s = String(m||"");
+      const isPublic = /allusers|allauthenticatedusers/i.test(s);
+      return `<span class="chip ${isPublic ? "badge-public" : ""}">${esc(s)}</span>`;
+    }).join("");
+    const extra = members.length > 6 ? `<span class="chip">+${members.length-6} more</span>` : "";
+    return `<li><strong>${role}</strong> ${chips}${extra}</li>`;
+  }).join("");
+
+  return `
+    <div class="section">
+      <h4>IAM Bindings</h4>
+      <ul class="reasons">${rows}</ul>
+    </div>`;
+}
+
   // main renderer (cards)
   function renderResultsCards(buckets, opts){
     const wrap = document.getElementById("results-cards");
@@ -940,11 +1020,16 @@ tr.addEventListener("click", function(){
           </div>
 
           <div class="section">
-            <h4>Sensitive Keywords</h4>
-            ${keywordsHTML(b.sensitive_keywords_detected)}
+           <h4>Sensitive Keywords</h4>
+           ${keywordsHTML(b.sensitive_keywords_detected)}
           </div>
 
+           ${exposedObjectsSection(b, ethicalMode)}
+           ${dlpFindingsSection(b)}
+           ${iamBindingsSection(b)}
+
           ${filesHTML}
+
         </div>
       `;
     }).join("");
