@@ -1642,3 +1642,32 @@ bucket-card .files a:hover {
   min-width: 400px;       /* ensures at least this width */
   word-break: break-word; /* keeps long bucket names inside */
 }
+
+/* Cards v2 polish */
+.bucket-card { border-radius: 14px; }
+.bucket-card .card-head{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  margin-bottom:8px;
+}
+.bucket-card .card-name{ font-weight:800; font-size:1.05rem }
+.bucket-card .kpis{ display:flex; gap:8px; flex-wrap:wrap }
+
+.bucket-card .actions{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0 4px }
+.bucket-card .btn{
+  background:#eab308; color:#111; border:0; border-radius:8px;
+  padding:6px 10px; font-weight:700; cursor:pointer;
+}
+.bucket-card .btn.secondary{ background:#94a3b8; color:#0b0b0b }
+.bucket-card .btn:disabled{ opacity:.6; cursor:not-allowed }
+
+.bucket-card details{ border:1px dashed #2a2a2a; border-radius:10px; padding:8px 10px; }
+.bucket-card details+details{ margin-top:8px }
+.bucket-card summary{ cursor:pointer; font-weight:700; color:#cbd5e1; outline:none }
+.bucket-card .reasons, .bucket-card .list{ margin:6px 0 0; padding-left:18px }
+.bucket-card .kw{ display:flex; gap:8px; flex-wrap:wrap }
+.bucket-card .chip.badge-public{ background:#ef4444; color:#fff }
+
+.bucket-card .actions{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0 4px }
+.bucket-card .btn{ background:#eab308; color:#111; border:0; border-radius:8px; padding:6px 10px; font-weight:700; cursor:pointer }
+.bucket-card .btn.secondary{ background:#94a3b8; color:#0b0b0b }
+.bucket-card .chip.badge-public{ background:#ef4444; color:#fff }
