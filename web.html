@@ -943,6 +943,30 @@ function iamBindingsSection(bucket){
     </div>`;
 }
 
+// NEW quick-action helpers (place below your other helpers, before renderResultsCards)
+function isPublicBucket(b){
+  const s = String(b.exposure_state || "").toLowerCase();
+  return b.public === true || s.startsWith("public") || b.iam_public === true;
+}
+function gcloudRemoveAllUsers(bucket){
+  return `gcloud storage buckets remove-iam-policy-binding gs://${bucket} --member=allUsers --role=roles/storage.objectViewer`;
+}
+function gcloudEnablePAP(bucket){
+  return `gcloud storage buckets update gs://${bucket} --public-access-prevention`;
+}
+function quickActionsHTML(bucket){
+  const name = esc(bucket.bucket_name || bucket.bucket || "");
+  const actions = [];
+  if (isPublicBucket(bucket)) {
+    actions.push(`<button class="btn copy-cmd" data-cmd="${esc(gcloudRemoveAllUsers(name))}">Remove allUsers</button>`);
+    actions.push(`<button class="btn secondary copy-cmd" data-cmd="${esc(gcloudEnablePAP(name))}">Enable PAP</button>`);
+  }
+  actions.push(`<button class="btn ai-fix" data-bucket="${name}">AI Fix for this bucket</button>`);
+  return `<div class="actions">${actions.join("")}</div>`;
+}
+
+
+
   // main renderer (cards)
   function renderResultsCards(buckets, opts){
     const wrap = document.getElementById("results-cards");
@@ -1024,6 +1048,7 @@ function iamBindingsSection(bucket){
            ${keywordsHTML(b.sensitive_keywords_detected)}
           </div>
 
+           ${quickActionsHTML(b)}
            ${exposedObjectsSection(b, ethicalMode)}
            ${dlpFindingsSection(b)}
            ${iamBindingsSection(b)}
@@ -1033,6 +1058,39 @@ function iamBindingsSection(bucket){
         </div>
       `;
     }).join("");
+
+    // wire actions once (copy command + open AI Fix)
+if (!wrap._wiredCardActions) {
+  wrap._wiredCardActions = true;
+  wrap.addEventListener('click', (e) => {
+    const t = e.target;
+
+    // copy command buttons
+    const copyBtn = t.closest('.copy-cmd');
+    if (copyBtn) {
+      const cmd = copyBtn.getAttribute('data-cmd') || '';
+      navigator.clipboard.writeText(cmd).then(() => {
+        const old = copyBtn.textContent;
+        copyBtn.textContent = 'Copied ✓';
+        setTimeout(() => (copyBtn.textContent = old), 1200);
+      });
+      return;
+    }
+
+    // AI fix button
+    const aiBtn = t.closest('.ai-fix');
+    if (aiBtn) {
+      const bucket = aiBtn.getAttribute('data-bucket') || '';
+      const sid = window.scanId || localStorage.getItem('last_scan_id');
+      const u = new URL('ai.html', location.href); // no leading slash for GH Pages
+      if (sid) u.searchParams.set('scan_id', sid);
+      if (bucket) u.searchParams.set('bucket', bucket);
+      window.open(u.toString(), '_blank', 'noopener');
+      return;
+    }
+  });
+}
+
 
     // show filter/count tools row
     const toolsEl = opts?.toolsEl;
