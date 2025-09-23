@@ -1105,3 +1105,87 @@ header .container .content .logo img{
   transition:.2s;
 }
 .btn:hover{ background:#111; color:#fff; }
+
+
+:root {
+  --accent: #E91E63; /* same as navbar underline */
+  --footer-bg: #000;
+  --footer-text: #eee;
+  --footer-dim: #aaa;
+}
+
+.gcsg-footer {
+  background: var(--footer-bg);
+  color: var(--footer-text);
+  padding-top: 40px;
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px 30px;
+  display: grid;
+  gap: 32px;
+  grid-template-columns: 1.2fr 1fr 1.2fr;
+}
+
+.footer-col { min-width: 0; }
+
+.footer-brand {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 700; font-size: 1.2rem;
+  text-decoration: none; color: var(--footer-text);
+}
+.footer-logo { width: 40px; height: 40px; }
+
+.footer-tagline {
+  margin: 12px 0 16px;
+  font-size: 0.9rem; line-height: 1.5;
+  color: var(--footer-dim);
+}
+
+.footer-social a {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; margin-right: 6px;
+  background: #111; border-radius: 50%;
+  color: var(--footer-text); font-size: 14px;
+  transition: 0.3s;
+}
+.footer-social a:hover { background: var(--accent); color: #fff; }
+
+.footer-title {
+  margin-bottom: 10px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.footer-links, .footer-contact { list-style: none; padding: 0; margin: 0; }
+.footer-links li, .footer-contact li { margin: 8px 0; }
+.footer-links a { color: var(--footer-text); text-decoration: none; }
+.footer-links a:hover {
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 2px;
+}
+
+.footer-contact i {
+  color: var(--accent);
+  margin-right: 8px;
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,0.1);
+  text-align: center;
+  padding: 12px 20px;
+  font-size: 0.85rem;
+  color: var(--footer-dim);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .footer-inner { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .footer-inner { grid-template-columns: 1fr; }
+  .footer-brand span { font-size: 1rem; }
+}
