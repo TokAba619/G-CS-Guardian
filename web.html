@@ -406,79 +406,95 @@
 </section>
 
 
-<!-- Live Report Section -->
-<section id="live-reports" class="live">
-  <div class="live-header">
-    <h2>Live Reports</h2>
-    <div class="live-controls">
-      <div class="pill">Project: <strong id="lr-project-label">—</strong></div>
 
-      <div class="seg">
-        <button class="seg-btn is-active" data-range="latest">Latest</button>
-        <button class="seg-btn" data-range="today">Today</button>
-        <button class="seg-btn" data-range="all">All</button>
+<!-- LIVE REPORTS -->
+<section class="content-section live-reports" id="live-reports">
+  <div class="container">
+    <h2 class="section-title">Live Reports</h2>
+    <p class="section-content">
+      Real-time insights for the latest scan of the currently selected project.
+    </p>
+
+    <!-- Header controls -->
+    <div class="lr-header">
+      <div class="lr-project">
+        <span>Project:</span>
+        <strong id="lr-project-label">—</strong>
       </div>
 
+     <!-- put this right under the header controls in your Live Reports section -->
+     <input type="date" id="lr-from" hidden>
+     <input type="date" id="lr-to"   hidden>
+
+
       <button id="lr-refresh" class="cta-pink">Refresh</button>
-      <small id="lr-loaded" class="muted"></small>
-    </div>
-  </div>
-
-  <div class="live-grid">
-    <!-- STAT CARDS -->
-    <div class="card stat">
-      <div class="stat-icon">🪣</div>
-      <div class="stat-title">Buckets Scanned</div>
-      <div class="stat-value" id="lr-buckets">0</div>
     </div>
 
-    <div class="card stat">
-      <div class="stat-icon">⚠️</div>
-      <div class="stat-title">Risky Buckets</div>
-      <div class="stat-value" id="lr-risky">0</div>
+<div class="lr-quick">
+      <button class="chip" data-range="latest">Latest</button>
+      <button class="chip" data-range="today">Today</button>
+      <button class="chip" data-range="all">All</button>
+</div>
+
+    <!-- KPI tiles -->
+    <div class="lr-kpis">
+      <div class="card">
+        <div class="card-title">Total Scans</div>
+        <div id="kpi-total-scans" class="kpi-val">—</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Buckets Scanned</div>
+        <div id="kpi-buckets" class="kpi-val">—</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Risky Buckets</div>
+        <div id="kpi-risky" class="kpi-val">—</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Risky %</div>
+        <div id="kpi-risky-pct" class="kpi-val">—</div>
+      </div>
     </div>
 
-    <div class="card stat">
-      <div class="stat-icon">🔑</div>
-      <div class="stat-title">Sensitive Keywords</div>
-      <div class="stat-value" id="lr-keys">0</div>
+    <!-- Charts -->
+    <div class="lr-charts">
+      <div class="card">
+        <div class="card-title">Risk Levels</div>
+        <canvas id="chart-risk-levels" height="260"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-title">Exposure (Public vs Private)</div>
+        <canvas id="chart-exposure" height="260"></canvas>
+      </div>
     </div>
 
-    <div class="card stat">
-      <div class="stat-icon">📊</div>
-      <div class="stat-title">Risky %</div>
-      <div class="stat-value" id="lr-risky-pct">0%</div>
+    <div class="card">
+      <div class="card-title">Risk Trend of this Project</div>
+      <canvas id="chart-trend" height="220"></canvas>
     </div>
 
-    <!-- CHARTS -->
-    <div class="card chart"><canvas id="lr-risk-chart"></canvas></div>
-    <div class="card chart"><canvas id="lr-expose-chart"></canvas></div>
-    <div class="card chart wide"><canvas id="lr-scans-line"></canvas></div>
-  </div>
-
-  <!-- TOP RISKS -->
-  <div class="card list">
-    <div class="list-head">
-      <h3>Top Risks</h3>
-      <span class="muted">Highest risk buckets from the loaded time range</span>
+    <!-- Top risks table -->
+    <div class="card">
+      <div class="card-title">Top Risks</div>
+      <div class="table-wrap">
+        <table class="scan-table">
+          <thead>
+            <tr>
+              <th>Bucket</th>
+              <th>Risk</th>
+              <th>Exposure</th>
+              <th>Keywords</th>
+              <th>Last Seen</th>
+            </tr>
+          </thead>
+          <tbody id="lr-toprisks-body">
+            <tr><td colspan="5" style="text-align:center;">—</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-    <table class="toprisks">
-      <thead>
-        <tr>
-          <th>Bucket</th>
-          <th>Risk</th>
-          <th>Exposure</th>
-          <th>Keywords</th>
-          <th>Last Seen</th>
-        </tr>
-      </thead>
-      <tbody id="lr-toprisks">
-        <tr><td colspan="5" class="muted">No data yet</td></tr>
-      </tbody>
-    </table>
   </div>
 </section>
-
 
 
   <!-- MY-SCAN SECTION -->
@@ -1758,7 +1774,7 @@ document.addEventListener("DOMContentLoaded", function(){
 </script>
 
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
 /* =========================
@@ -1770,7 +1786,7 @@ const API_REPORTS_TRENDS  = API_BASE + "/reports/trends";
 const API_REPORTS_TOP     = API_BASE + "/reports/top-risks";
 const API_PREVIOUS_SCANS_URL =
   (window.API_PREVIOUS_SCANS || (window.API_PREVIOUS_SCANS = API_BASE + "/my-scans/"));
-const API_SCAN_DETAILS = API_BASE + "/my-scans/{scan_id}";
+const API_SCAN_DETAILS = API_BASE + "/my-scans/{scan_id}";   // <-- added
 
 let LR_RANGE = "latest";
 let LR_CHARTS = { risk:null, exposure:null, trend:null };
@@ -1793,19 +1809,8 @@ function isoLocalDate(d){
 }
 function formatScanDay(ts){ return isoLocalDate(new Date(ts)); }
 
-/* NEW: fallback to /history to get the newest scan_id when /reports/trends doesn’t include it */
-async function authFetchHistoryLatest(pid){
-  const t = getToken(); if(!t) throw new Error("No token");
-  const qs = new URLSearchParams({ project_id: pid, limit: "1", offset: "0" });
-  const url = `${API_BASE}/history?${qs}`;
-  const r = await fetch(url, { headers:{ "Authorization":"Bearer "+t, "Accept":"application/json" }});
-  if(!r.ok) throw new Error(`HTTP ${r.status} on ${url}`);
-  const data = await r.json();
-  const row = Array.isArray(data?.history) ? data.history[0] : null;
-  return row ? { scan_id: row.scan_id, timestamp: row.timestamp } : null;
-}
-
 async function ensureProjectId(){
+  // 1) If the picker already has a selection, use it
   try {
     const pick = window.ProjectPicker?.getSelected?.();
     if (pick?.id) {
@@ -1814,10 +1819,12 @@ async function ensureProjectId(){
     }
   } catch(_) {}
 
+  // 2) If we saved one before, use that
   const stored = localStorage.getItem("selected_project_id");
   if (stored) return stored;
 
-  const t = getToken();
+  // 3) Fall back to the newest scan we can find
+  const t = getToken(); 
   if (!t) return "";
 
   try {
@@ -1828,6 +1835,7 @@ async function ensureProjectId(){
     const data  = await res.json();
     const scans = Array.isArray(data?.my_scans) ? data.my_scans : [];
     if (!scans.length) return "";
+    // newest by timestamp
     const latest = scans.sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp))[0];
     if (latest?.project_id){
       localStorage.setItem("selected_project_id", latest.project_id);
@@ -1838,29 +1846,14 @@ async function ensureProjectId(){
   return "";
 }
 
-/* CHANGED: getLatestScanInfo now merges/falls back to /history so we always have a scan_id */
+
+/* Newest scan meta (scan_id + timestamp + avg_risk + counts) */
 async function getLatestScanInfo(pid){
   const qs = new URLSearchParams({ project_id: pid });
-  try {
-    const trends = await authFetchJSON(`${API_REPORTS_TRENDS}?${qs}`);
-    const points = Array.isArray(trends?.points) ? trends.points : [];
-    if (!points.length) return await authFetchHistoryLatest(pid); // only history available
-
-    const latestPoint = points.sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp))[0];
-
-    // If the trends point already has scan_id, use it. Otherwise pull it from /history.
-    if (latestPoint?.scan_id) return latestPoint;
-
-    const fromHistory = await authFetchHistoryLatest(pid);
-    if (fromHistory) {
-      // keep avg_risk etc. from trends point and add scan_id/timestamp from history
-      return { ...latestPoint, ...fromHistory };
-    }
-    return latestPoint;
-  } catch {
-    // trends failed entirely → try history
-    return await authFetchHistoryLatest(pid);
-  }
+  const trends = await authFetchJSON(`${API_REPORTS_TRENDS}?${qs}`);
+  const points = Array.isArray(trends?.points) ? trends.points : [];
+  if(!points.length) return null;
+  return points.sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp))[0];
 }
 
 /* ---------- renderers ---------- */
@@ -1886,7 +1879,10 @@ function renderRiskLevels(summary){
   LR_CHARTS.risk = new Chart(ctx,{
     type:"doughnut",
     data:{ labels: order.map(s=>s.toUpperCase()), datasets:[{ data, backgroundColor: colors, borderWidth:0 }] },
-    options:{ cutout:"58%", plugins:{ legend:{ position:"bottom", labels:{ color:"#ddd" } } } }
+    options:{
+      cutout:"58%",
+      plugins:{ legend:{ position:"bottom", labels:{ color:"#ddd" } } }
+    }
   });
 }
 
@@ -1933,8 +1929,7 @@ function renderTrend(trends){
 }
 
 function renderTopRisks(items){
-  const tb = document.getElementById("lr-toprisks-body"); // make sure your <tbody id="lr-toprisks-body">
-  if(!tb) return;
+  const tb = document.getElementById("lr-toprisks-body"); if(!tb) return;
   tb.innerHTML = "";
   if(!items || !items.length){
     tb.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No risky buckets.</td></tr>";
@@ -1970,7 +1965,9 @@ async function loadLiveReports(){
 
   if (!pid){
     setRangeBadge("Select a project to see data");
+    // Optional: try again shortly in case the picker just finished loading
     setTimeout(() => {
+      // If user picked something after page load, this will re-render
       ensureProjectId().then(id => {
         if (id){ localStorage.setItem("selected_project_id", id); loadLiveReports(); }
       });
@@ -1979,13 +1976,9 @@ async function loadLiveReports(){
   }
 
   if (LR_RANGE === "latest") {
-    // 1) newest scan metadata (now guaranteed to have scan_id via fallback)
+    // 1) newest scan metadata
     const latest = await getLatestScanInfo(pid);
-    if(!latest || !latest.scan_id){
-      setRangeBadge("Latest scan");
-      renderKpis({totals:{}, risky_bucket_pct:null});
-      return;
-    }
+    if(!latest){ setRangeBadge("Latest scan"); renderKpis({totals:{}, risky_bucket_pct:null}); return; }
 
     // 2) fetch FULL scan details -> count ALL buckets
     const details = await authFetchScanDetails(latest.scan_id);
@@ -2030,7 +2023,7 @@ async function loadLiveReports(){
     renderKpis(summarySynth);
     renderRiskLevels(summarySynth);
     renderExposure(summarySynth);
-    renderTrend({ points: [latest] }); // sparkline with latest point
+    renderTrend({ points: [latest] }); // mini sparkline = the newest point
     renderTopRisks(topItems);
     return;
   }
@@ -2085,7 +2078,6 @@ window.addEventListener("gcs_project_selected", (ev)=>{
   loadLiveReports();
 });
 </script>
-
 
 <script>
 (() => {
