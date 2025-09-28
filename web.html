@@ -654,6 +654,8 @@ function formatDate(ts){
 function riskLevelFromScore(score){var s=Number(score||0);if(s>=10)return"Critical";if(s>=7)return"High";if(s>=4)return"Medium";return"Low";}
 function riskClass(level){switch((level||"").toLowerCase()){case"critical":return"risk-critical";case"high":return"risk-high";case"medium":return"risk-medium";default:return"risk-low";}}
 
+
+
 /* Mobile nav */
 var navLinks=document.getElementById("navLinks");
 var hamburgerMenu=document.getElementById("hamburgerMenu");
@@ -978,6 +980,88 @@ function quickActionsHTML(bucket){
   return `<div class="actions">${actions.join("")}</div>`;
 }
 
+// ===== FILTER + UTIL HELPERS (ADD THIS BLOCK) =====
+
+// If you DON'T already have this helper, add it.
+function riskLevelFromScore(score){
+  const s = Number(score || 0);
+  if (s >= 9) return 'critical';
+  if (s >= 7) return 'high';
+  if (s >= 4) return 'medium';
+  if (s >  0) return 'low';
+  return 'info';
+}
+
+// You call riskClass(level) later; define it here.
+function riskClass(level){
+  const k = String(level || '').toLowerCase();
+  return {
+    critical:'risk-critical',
+    high:'risk-high',
+    medium:'risk-medium',
+    low:'risk-low',
+    info:'risk-info'
+  }[k] || 'risk-info';
+}
+
+// Collect currently active filter buttons
+function getActiveFilters(){
+  return Array.from(document.querySelectorAll('.filter-toolbar .filter-btn.active'))
+    .map(b => b.dataset.filter);
+}
+
+// Apply filter buttons to the cards
+function applyFilters(){
+  const active = getActiveFilters();
+  const cards  = Array.from(document.querySelectorAll('#results-cards .bucket-card'));
+
+  if (active.length === 0){
+    cards.forEach(c => c.style.display = '');
+  } else {
+    cards.forEach(card => {
+      const exposure = card.dataset.exposure; // "public" | "private"
+      const risk     = card.dataset.risk;     // "critical" | "high" | ...
+      const match = active.some(f => f === exposure || f === risk);
+      card.style.display = match ? '' : 'none';
+    });
+  }
+
+  // Update the visible count chip
+  const visible = cards.filter(c => c.style.display !== 'none').length;
+  const chip = document.getElementById('results-count');
+  if (chip) chip.textContent = `${visible} buckets`;
+}
+
+// Update numbers on each filter button
+function updateCounters(){
+  const counts = { public:0, private:0, critical:0, high:0, medium:0, low:0, info:0 };
+  document.querySelectorAll('#results-cards .bucket-card').forEach(card => {
+    const e = card.dataset.exposure;
+    const r = card.dataset.risk;
+    if (counts[e] !== undefined) counts[e]++;
+    if (counts[r] !== undefined) counts[r]++;
+  });
+  const uc = s => s.charAt(0).toUpperCase() + s.slice(1);
+  document.querySelectorAll('.filter-toolbar .filter-btn').forEach(btn => {
+    const key = btn.dataset.filter;
+    btn.textContent = `${uc(key)} (${counts[key] || 0})`;
+  });
+}
+
+// Wire the toolbar clicks (only once)
+function bindFilterToolbarOnce(){
+  const toolbar = document.querySelector('.filter-toolbar');
+  if (!toolbar || toolbar._wired) return;
+  toolbar._wired = true;
+  toolbar.addEventListener('click', (e) => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    btn.classList.toggle('active');
+    btn.setAttribute('aria-pressed', btn.classList.contains('active'));
+    applyFilters();
+  });
+}
+
 
 
   // main renderer (cards)
@@ -1028,11 +1112,18 @@ function quickActionsHTML(bucket){
         ? `<div class="section files">
              <h4>Sample Files</h4>
              ${b.sample_files.map(linkHTML).join("")}
+             // Make sure toolbar clicks are wired, then update numbers and apply any active filters
+            bindFilterToolbarOnce();
+            updateCounters();
+            applyFilters();
+
            </div>`
         : "";
+       const exposure = ((expos||"").toLowerCase().startsWith("public") || b.public === true) ? "public" : "private";
+       const risk     = String(level || riskLevelFromScore(score)).toLowerCase();
 
       return `
-        <div class="bucket-card">
+        <div class="bucket-card ${exposure} ${risk}" data-exposure="${exposure}" data-risk="${risk}">
           <div class="head">
             <div class="name">${name}</div>
             <div class="badges">
@@ -1234,55 +1325,6 @@ function prettyKeyword(s) {
 
   return (prefix ? `${prefix}: ` : "") + pattern;
 }
-
-
-  // STEP 3: Filtering logic
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const filter = btn.getAttribute('data-filter');
-      const cards = document.querySelectorAll('.bucket-card');
-
-      // Toggle active state
-      btn.classList.toggle('active');
-
-      // Collect active filters
-      const activeFilters = Array.from(document.querySelectorAll('.filter-btn.active'))
-        .map(b => b.getAttribute('data-filter'));
-
-      // Show/hide cards
-      cards.forEach(card => {
-        if (activeFilters.length === 0) {
-          card.style.display = "block"; // show all
-        } else {
-          const matches = activeFilters.some(f => card.classList.contains(f));
-          card.style.display = matches ? "block" : "none";
-        }
-      });
-    });
-  });
-
-  // STEP 4: Counter update
-  function updateCounters() {
-    const counts = {
-      public: 0, private: 0,
-      critical: 0, high: 0, medium: 0,
-      low: 0, info: 0
-    };
-
-    document.querySelectorAll('.bucket-card').forEach(card => {
-      Object.keys(counts).forEach(f => {
-        if (card.classList.contains(f)) counts[f]++;
-      });
-    });
-
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-      const filter = btn.getAttribute('data-filter');
-      btn.textContent = `${filter.charAt(0).toUpperCase() + filter.slice(1)} (${counts[filter]})`;
-    });
-  }
-
-  // Call once after results are loaded
-  updateCounters();
 
 
 /* =========================
