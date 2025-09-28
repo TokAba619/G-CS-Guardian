@@ -1235,6 +1235,56 @@ function prettyKeyword(s) {
   return (prefix ? `${prefix}: ` : "") + pattern;
 }
 
+
+  // STEP 3: Filtering logic
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const filter = btn.getAttribute('data-filter');
+      const cards = document.querySelectorAll('.bucket-card');
+
+      // Toggle active state
+      btn.classList.toggle('active');
+
+      // Collect active filters
+      const activeFilters = Array.from(document.querySelectorAll('.filter-btn.active'))
+        .map(b => b.getAttribute('data-filter'));
+
+      // Show/hide cards
+      cards.forEach(card => {
+        if (activeFilters.length === 0) {
+          card.style.display = "block"; // show all
+        } else {
+          const matches = activeFilters.some(f => card.classList.contains(f));
+          card.style.display = matches ? "block" : "none";
+        }
+      });
+    });
+  });
+
+  // STEP 4: Counter update
+  function updateCounters() {
+    const counts = {
+      public: 0, private: 0,
+      critical: 0, high: 0, medium: 0,
+      low: 0, info: 0
+    };
+
+    document.querySelectorAll('.bucket-card').forEach(card => {
+      Object.keys(counts).forEach(f => {
+        if (card.classList.contains(f)) counts[f]++;
+      });
+    });
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      const filter = btn.getAttribute('data-filter');
+      btn.textContent = `${filter.charAt(0).toUpperCase() + filter.slice(1)} (${counts[filter]})`;
+    });
+  }
+
+  // Call once after results are loaded
+  updateCounters();
+
+
 /* =========================
    SCAN FLOW  — card layout
 ========================= */
@@ -2170,58 +2220,6 @@ window.addEventListener("gcs_project_selected", (ev)=>{
       setActive(location.hash);
     }
   })();
-</script>
-
-<!-- Your Results Section here -->
-
-<script>
-  // STEP 3: Filtering logic
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const filter = btn.getAttribute('data-filter');
-      const cards = document.querySelectorAll('.bucket-card');
-
-      // Toggle active state
-      btn.classList.toggle('active');
-
-      // Collect active filters
-      const activeFilters = Array.from(document.querySelectorAll('.filter-btn.active'))
-        .map(b => b.getAttribute('data-filter'));
-
-      // Show/hide cards
-      cards.forEach(card => {
-        if (activeFilters.length === 0) {
-          card.style.display = "block"; // show all
-        } else {
-          const matches = activeFilters.some(f => card.classList.contains(f));
-          card.style.display = matches ? "block" : "none";
-        }
-      });
-    });
-  });
-
-  // STEP 4: Counter update
-  function updateCounters() {
-    const counts = {
-      public: 0, private: 0,
-      critical: 0, high: 0, medium: 0,
-      low: 0, info: 0
-    };
-
-    document.querySelectorAll('.bucket-card').forEach(card => {
-      Object.keys(counts).forEach(f => {
-        if (card.classList.contains(f)) counts[f]++;
-      });
-    });
-
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-      const filter = btn.getAttribute('data-filter');
-      btn.textContent = `${filter.charAt(0).toUpperCase() + filter.slice(1)} (${counts[filter]})`;
-    });
-  }
-
-  // Call once after results are loaded
-  updateCounters();
 </script>
 
 
