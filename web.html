@@ -388,14 +388,27 @@
         type="text"
         id="results-filter"
         placeholder="Filter buckets (bucket name)…"
-        aria-label="Filter buckets"/>
+        aria-label="Filter buckets" />
 
-        <!-- NEW: Fix button -->
-<button id="fixPublicBtn" type="button" class="cta-pink" title="Open AI fix wizard in a new tab">
-  Fix Bucket with AI
-</button>
+      <!-- Fix button -->
+      <button id="fixPublicBtn" type="button" class="cta-pink" title="Open AI fix wizard in a new tab">
+        Fix Bucket with AI
+      </button>
 
       <span class="chip" id="results-count">0 buckets</span>
+
+      <!-- FILTER TOOLBAR (7 buttons) -->
+      <div class="filter-toolbar" role="group" aria-label="Filter buckets by exposure and risk" aria-controls="results-cards">
+        <button type="button" class="filter-btn" data-filter="public"  aria-pressed="false">Public (0)</button>
+        <button type="button" class="filter-btn" data-filter="private" aria-pressed="false">Private (0)</button>
+        <span class="toolbar-sep" aria-hidden="true"></span>
+        <button type="button" class="filter-btn" data-filter="critical" aria-pressed="false">Critical (0)</button>
+        <button type="button" class="filter-btn" data-filter="high"     aria-pressed="false">High (0)</button>
+        <button type="button" class="filter-btn" data-filter="medium"   aria-pressed="false">Medium (0)</button>
+        <button type="button" class="filter-btn" data-filter="low"      aria-pressed="false">Low (0)</button>
+        <button type="button" class="filter-btn" data-filter="info"     aria-pressed="false">Info (0)</button>
+      </div>
+      <!-- /FILTER TOOLBAR -->
     </div>
 
     <!-- Cards container (replaces the old table) -->
@@ -2158,6 +2171,59 @@ window.addEventListener("gcs_project_selected", (ev)=>{
     }
   })();
 </script>
+
+<!-- Your Results Section here -->
+
+<script>
+  // STEP 3: Filtering logic
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const filter = btn.getAttribute('data-filter');
+      const cards = document.querySelectorAll('.bucket-card');
+
+      // Toggle active state
+      btn.classList.toggle('active');
+
+      // Collect active filters
+      const activeFilters = Array.from(document.querySelectorAll('.filter-btn.active'))
+        .map(b => b.getAttribute('data-filter'));
+
+      // Show/hide cards
+      cards.forEach(card => {
+        if (activeFilters.length === 0) {
+          card.style.display = "block"; // show all
+        } else {
+          const matches = activeFilters.some(f => card.classList.contains(f));
+          card.style.display = matches ? "block" : "none";
+        }
+      });
+    });
+  });
+
+  // STEP 4: Counter update
+  function updateCounters() {
+    const counts = {
+      public: 0, private: 0,
+      critical: 0, high: 0, medium: 0,
+      low: 0, info: 0
+    };
+
+    document.querySelectorAll('.bucket-card').forEach(card => {
+      Object.keys(counts).forEach(f => {
+        if (card.classList.contains(f)) counts[f]++;
+      });
+    });
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      const filter = btn.getAttribute('data-filter');
+      btn.textContent = `${filter.charAt(0).toUpperCase() + filter.slice(1)} (${counts[filter]})`;
+    });
+  }
+
+  // Call once after results are loaded
+  updateCounters();
+</script>
+
 
 <script src="https://unpkg.com/feather-icons"></script>
 <script>window.feather && feather.replace();</script>
