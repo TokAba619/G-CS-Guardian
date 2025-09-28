@@ -1112,10 +1112,6 @@ function bindFilterToolbarOnce(){
         ? `<div class="section files">
              <h4>Sample Files</h4>
              ${b.sample_files.map(linkHTML).join("")}
-             // Make sure toolbar clicks are wired, then update numbers and apply any active filters
-            bindFilterToolbarOnce();
-            updateCounters();
-            applyFilters();
 
            </div>`
         : "";
@@ -1162,6 +1158,11 @@ function bindFilterToolbarOnce(){
         </div>
       `;
     }).join("");
+
+    // ✅ Run filter setup AFTER cards are painted
+    bindFilterToolbarOnce();
+    updateCounters();
+    applyFilters();
 
     // wire actions once (copy command + open AI Fix)
 if (!wrap._wiredCardActions) {
