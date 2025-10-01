@@ -510,81 +510,90 @@
 </section>
 
 
-  <!-- MY-SCAN SECTION -->
-  <section class="content-section myscan" id="myscan">
-    <div class="floating-elements">
-      <div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div>
-    </div>
-    <div class="container">
-      <h2 class="section-title">My-Scan</h2>
-      <p class="section-content">My-Scan lets you review past scans without rescanning the same project.</p>
+<!-- MY-SCAN SECTION -->
+<section class="content-section myscan" id="myscan">
+  <div class="floating-elements">
+    <div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div>
+  </div>
+  <div class="container">
+    <h2 class="section-title">My-Scan</h2>
+    <p class="section-content">My-Scan lets you review past scans without rescanning the same project.</p>
 
     <div class="myscan-feature">
-  <h3>Previous Scans</h3>
-  <p>View all your previous scans with timestamps and IDs.</p>
+      <h3>Previous Scans</h3>
+      <p>View all your previous scans with timestamps and IDs.</p>
 
-  <!-- ✅ Add scrollable wrapper here -->
-  <div class="my-scan-table-wrapper">
-    <table class="scan-table">
-      <thead>
-        <tr>
-          <th>Timestamp</th>
-          <th>Scan ID</th>
-          <th>Project ID</th>
-          <th class="download-col">Download Report</th>
-        </tr>
-      </thead>
-      <tbody id="previous-scan-table">
-        <tr>
-          <td colspan="4">Loading...</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <!-- ✅ End wrapper -->
-
-</div>
-
-      <hr class="myscan-divider">
-
-      <div class="myscan-feature">
-        <h3>Detailed Scan Results</h3>
-        <p>Enter a Scan ID to retrieve detailed scan information.</p>
-        <div class="detailed-scan-form">
-          <input type="text" id="scanIdInput" placeholder="Enter Scan ID" aria-label="Enter Scan ID">
-          <button onclick="fetchDetailedScan()" aria-label="Fetch scan details">Enter</button>
-        </div>
-
-        <!-- Anchor so we can scroll to the results -->
-        <div id="myscan-results-anchor"></div>
-
-        <div id="detailed-scan-results" class="results-container" style="margin-top:1rem;"></div>
-
-        <div class="table-tools" id="detailed-tools" style="display:none;">
-          <input type="text" id="detailed-filter" placeholder="Filter buckets (name, reason, keyword)..." aria-label="Filter buckets">
-          <span class="chip" id="detailed-count">0 buckets</span>
-        </div>
-
-        <!-- NEW: Card grid target -->
-<div id="detailed-cards" class="results-cards"></div>
-
-        <table class="dashboard-table" id="detailed-table" style="display:none;">
+      <div class="my-scan-table-wrapper">
+        <table class="scan-table">
           <thead>
             <tr>
-              <th data-key="bucket_name">Bucket Name<span class="sort-ind">↕</span></th>
-              <th data-key="public" class="nowrap">Status<span class="sort-ind">↕</span></th>
-              <th data-key="risk_score" class="nowrap">Risk Score<span class="sort-ind">↕</span></th>
-              <th data-key="risk_level" class="nowrap">Risk Level<span class="sort-ind">↕</span></th>
-              <th data-key="risk_reason" class="risk-reason-col">Risk Reason <span class="sort-ind">↕</span></th>
-              <th data-key="sensitive_keywords_detected">Sensitive Keywords<span class="sort-ind">↕</span></th>
-              <th data-key="sample_files" class="sample-col" style="display:none;">Sample Files<span class="sort-ind">↕</span></th>
+              <th>Timestamp</th>
+              <th>Scan ID</th>
+              <th>Project ID</th>
+              <th class="download-col">Download Report</th>
             </tr>
           </thead>
-          <tbody></tbody>
+          <tbody id="previous-scan-table">
+            <tr><td colspan="4">Loading...</td></tr>
+          </tbody>
         </table>
       </div>
     </div>
-  </section>
+
+    <hr class="myscan-divider">
+
+    <div class="myscan-feature">
+      <h3>Detailed Scan Results</h3>
+      <p>Enter a Scan ID to retrieve detailed scan information.</p>
+      <div class="detailed-scan-form">
+        <input type="text" id="scanIdInput" placeholder="Enter Scan ID" aria-label="Enter Scan ID">
+        <button onclick="fetchDetailedScan()" aria-label="Fetch scan details">Enter</button>
+      </div>
+
+      <!-- Anchor so we can scroll to the results -->
+      <div id="myscan-results-anchor"></div>
+
+      <div id="detailed-scan-results" class="results-container" style="margin-top:1rem;"></div>
+
+      <!-- ✅ Tools row with filter toolbar -->
+      <div class="table-tools" id="detailed-tools" style="display:none;">
+        <input type="text" id="detailed-filter" placeholder="Filter buckets (name, reason, keyword)..." aria-label="Filter buckets">
+        <span class="chip" id="detailed-count">0 buckets</span>
+
+        <div id="myscan-filter-toolbar" class="filter-toolbar" role="group"
+             aria-label="Filter buckets by exposure and risk">
+          <button type="button" class="filter-btn" data-filter="public"  aria-pressed="false">Public (0)</button>
+          <button type="button" class="filter-btn" data-filter="private" aria-pressed="false">Private (0)</button>
+          <span class="toolbar-sep" aria-hidden="true"></span>
+          <button type="button" class="filter-btn" data-filter="critical" aria-pressed="false">Critical (0)</button>
+          <button type="button" class="filter-btn" data-filter="high"     aria-pressed="false">High (0)</button>
+          <button type="button" class="filter-btn" data-filter="medium"   aria-pressed="false">Medium (0)</button>
+          <button type="button" class="filter-btn" data-filter="low"      aria-pressed="false">Low (0)</button>
+          <button type="button" class="filter-btn" data-filter="info"     aria-pressed="false">Info (0)</button>
+        </div>
+      </div>
+
+      <!-- Card grid target -->
+      <div id="detailed-cards" class="results-cards"></div>
+
+      <table class="dashboard-table" id="detailed-table" style="display:none;">
+        <thead>
+          <tr>
+            <th data-key="bucket_name">Bucket Name<span class="sort-ind">↕</span></th>
+            <th data-key="public" class="nowrap">Status<span class="sort-ind">↕</span></th>
+            <th data-key="risk_score" class="nowrap">Risk Score<span class="sort-ind">↕</span></th>
+            <th data-key="risk_level" class="nowrap">Risk Level<span class="sort-ind">↕</span></th>
+            <th data-key="risk_reason" class="risk-reason-col">Risk Reason <span class="sort-ind">↕</span></th>
+            <th data-key="sensitive_keywords_detected">Sensitive Keywords<span class="sort-ind">↕</span></th>
+            <th data-key="sample_files" class="sample-col" style="display:none;">Sample Files<span class="sort-ind">↕</span></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
 
   <!-- HISTORY SECTION (updated, owner/creator with project filter) -->
   <section class="content-section history" id="history">
@@ -1554,6 +1563,92 @@ function renderIntoDetailedCards({ buckets, ethicalMode, toolsEl, countEl, filte
     cardsEl.innerHTML = `<div class="bucket-card"><div class="name">Renderer missing.</div></div>`;
   }
 }
+// --- My-Scan scoped filtering helpers ---
+function myscanGetActiveFilters() {
+  return Array.from(document.querySelectorAll('#myscan-filter-toolbar .filter-btn.active'))
+    .map(b => b.dataset.filter);
+}
+
+function myscanApplyFilters() {
+  const active = myscanGetActiveFilters();
+  const cards  = Array.from(document.querySelectorAll('#detailed-cards .bucket-card'));
+
+  if (active.length === 0) {
+    cards.forEach(c => c.style.display = '');
+  } else {
+    cards.forEach(card => {
+      const exposure = card.dataset.exposure; // "public" | "private"
+      const risk     = card.dataset.risk;     // "critical" | "high" | ...
+      const match = active.some(f => f === exposure || f === risk);
+      card.style.display = match ? '' : 'none';
+    });
+  }
+
+  // update visible count chip
+  const visible = cards.filter(c => c.style.display !== 'none').length;
+  const chip = document.getElementById('detailed-count');
+  if (chip) chip.textContent = `${visible} buckets`;
+}
+
+function myscanUpdateCounters() {
+  const counts = { public:0, private:0, critical:0, high:0, medium:0, low:0, info:0 };
+  document.querySelectorAll('#detailed-cards .bucket-card').forEach(card => {
+    const e = card.dataset.exposure;
+    const r = card.dataset.risk;
+    if (counts[e] !== undefined) counts[e]++;
+    if (counts[r] !== undefined) counts[r]++;
+  });
+  const uc = s => s.charAt(0).toUpperCase() + s.slice(1);
+  document.querySelectorAll('#myscan-filter-toolbar .filter-btn').forEach(btn => {
+    const k = btn.dataset.filter;
+    btn.textContent = `${uc(k)} (${counts[k] || 0})`;
+  });
+}
+
+function myscanBindToolbarOnce() {
+  const tb = document.getElementById('myscan-filter-toolbar');
+  if (!tb || tb._wired) return;
+  tb._wired = true;
+  tb.addEventListener('click', (e) => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    btn.classList.toggle('active');
+    btn.setAttribute('aria-pressed', btn.classList.contains('active'));
+    myscanApplyFilters();
+  });
+}
+// Merge any missing deep fields from cached rows (saved after a live scan)
+function hydrateBucketsFromCache(buckets) {
+  try {
+    const cached = JSON.parse(localStorage.getItem('last_scan_rows') || '[]');
+    if (!Array.isArray(cached) || !cached.length) return buckets;
+
+    const byName = new Map(cached.map(r => [String(r.bucket_name || ''), r]));
+
+    return buckets.map(b => {
+      const name = String(b.bucket_name || '');
+      const extra = byName.get(name);
+      if (!extra) return b;
+
+      // Only copy if missing on the current bucket
+      const out = { ...b };
+      if (out.exposed_objects == null && extra.exposed_objects != null) out.exposed_objects = extra.exposed_objects;
+      if (out.dlp_findings   == null && extra.dlp_findings   != null) out.dlp_findings   = extra.dlp_findings;
+      if (out.iam_bindings   == null && extra.iam_bindings   != null) out.iam_bindings   = extra.iam_bindings;
+      if (out.sample_files   == null && extra.sample_files   != null) out.sample_files   = extra.sample_files;
+      if (out.sensitive_keywords_detected == null && extra.sensitive_keywords_detected != null)
+        out.sensitive_keywords_detected = extra.sensitive_keywords_detected;
+
+      // Some backends store public flags differently
+      if (out.exposure_state == null && extra.exposure_state != null) out.exposure_state = extra.exposure_state;
+      if (out.public == null && typeof extra.public === 'boolean') out.public = extra.public;
+
+      return out;
+    });
+  } catch {
+    return buckets;
+  }
+}
 
 
 /* ---------- download handlers ---------- */
@@ -1731,6 +1826,8 @@ async function fetchDetailedScan(scanIdArg){
     var data = await res.json();
     var buckets = Array.isArray(data && data.buckets) ? data.buckets : [];
     var ethicalMode = Boolean(data && data.ethical_mode);
+    // 🔄 Enrich with deep fields saved from the last live scan (if available)
+    buckets = hydrateBucketsFromCache(buckets);
 
     if (resultsContainer) {
       resultsContainer.innerHTML =
@@ -1758,6 +1855,12 @@ async function fetchDetailedScan(scanIdArg){
       cardsEl,
       scan_id: data.scan_id
     });
+
+    // ✅ Show the toolbar + wire filters
+    if (toolsEl) toolsEl.style.display = "flex";
+    myscanBindToolbarOnce();
+    myscanUpdateCounters();
+    myscanApplyFilters();
 
     // ✅ Auto-scroll so the user sees the results block
     scrollToMyScanResults();
