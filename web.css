@@ -1696,3 +1696,11 @@ bucket-card .files a:hover {
   color: #fff;
   font-weight: bold;
 }
+
+.myscan-feature input[type="text"] {
+  color: #000;        /* input text black */
+  background-color: #fff; /* optional: make background white for contrast */
+  border: 1px solid #ccc; /* optional: light grey border */
+  padding: 6px 10px;  /* optional: spacing inside */
+  border-radius: 4px; /* optional: rounded corners */
+}
