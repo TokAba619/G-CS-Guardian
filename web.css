@@ -1697,10 +1697,18 @@ bucket-card .files a:hover {
   font-weight: bold;
 }
 
+/* Input box styles */
 .myscan-feature input[type="text"] {
-  color: #000;        /* input text black */
-  background-color: #fff; /* optional: make background white for contrast */
-  border: 1px solid #ccc; /* optional: light grey border */
-  padding: 6px 10px;  /* optional: spacing inside */
-  border-radius: 4px; /* optional: rounded corners */
+  color: #000 !important;              /* typed text black */
+  background-color: #fff !important;   /* white background */
+  border: 1px solid #ccc !important;   /* light border */
+  padding: 6px 10px !important;        /* inner spacing */
+  border-radius: 4px !important;       /* rounded corners */
 }
+
+/* Placeholder text color */
+.myscan-feature input[type="text"]::placeholder {
+  color: #555 !important;              /* dark grey placeholder */
+  opacity: 1 !important;               /* ensure it's not faded */
+}
+
