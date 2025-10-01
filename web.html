@@ -555,6 +555,9 @@
           <button onclick="fetchDetailedScan()" aria-label="Fetch scan details">Enter</button>
         </div>
 
+        <!-- Anchor so we can scroll to the results -->
+        <div id="myscan-results-anchor"></div>
+
         <div id="detailed-scan-results" class="results-container" style="margin-top:1rem;"></div>
 
         <div class="table-tools" id="detailed-tools" style="display:none;">
@@ -1511,6 +1514,47 @@ function bucketsToCsv(buckets){
   });
   return header.join(",") + "\n" + rows.join("\n");
 }
+// Smooth scroll to the detailed results (offset for sticky header)
+function scrollToMyScanResults(offset = 90) {
+  const anchor = document.getElementById('myscan-results-anchor') ||
+                 document.getElementById('detailed-scan-results');
+  if (!anchor) return;
+  const y = anchor.getBoundingClientRect().top + window.pageYOffset - offset;
+  window.scrollTo({ top: y, behavior: 'smooth' });
+}
+
+/**
+ * Render the standard Results "cards" INTO #detailed-cards.
+ * We temporarily redirect document.getElementById('results-cards')
+ * to point at #detailed-cards so we can reuse your existing renderer.
+ */
+function renderIntoDetailedCards({ buckets, ethicalMode, toolsEl, countEl, filterEl, cardsEl, scan_id }) {
+  if (!cardsEl) return;
+
+  if (typeof window.renderResultsTable === 'function') {
+    const origGet = document.getElementById;
+    document.getElementById = function(id) {
+      if (id === 'results-cards') return cardsEl; // redirect target container
+      return origGet.call(document, id);
+    };
+    try {
+      window.renderResultsTable({
+        buckets,
+        ethicalMode,
+        toolsEl,
+        countEl,
+        filterInput: filterEl,
+        scan_id
+      });
+    } finally {
+      document.getElementById = origGet; // always restore
+    }
+  } else {
+    // Fallback message if the renderer isn't loaded
+    cardsEl.innerHTML = `<div class="bucket-card"><div class="name">Renderer missing.</div></div>`;
+  }
+}
+
 
 /* ---------- download handlers ---------- */
 // PDF
@@ -1617,11 +1661,13 @@ async function loadPreviousScans(){
           "</div>" +
         "</td>";
 
-      row.querySelector(".scan-id").addEventListener("click", function(){
-        var input = document.getElementById("scanIdInput");
-        if (input) input.value = scan.scan_id;
-        fetchDetailedScan();
-      });
+     row.querySelector(".scan-id").addEventListener("click", function(e){
+  e.preventDefault();
+  const input = document.getElementById("scanIdInput");
+  if (input) input.value = scan.scan_id;
+  fetchDetailedScan(scan.scan_id); // pass the id
+});
+
 
       row.querySelector(".btn-pdf")
          .addEventListener("click", function(){ downloadPdf(scan.scan_id, this); });
@@ -1640,16 +1686,18 @@ async function loadPreviousScans(){
 }
 
 /* ---------- scan details (now supports cards) ---------- */
-async function fetchDetailedScan(){
+async function fetchDetailedScan(scanIdArg){
+  // read from param first (when clicking a Scan ID row), else from input
   var scanIdEl = document.getElementById("scanIdInput");
-  var scanId = (scanIdEl ? scanIdEl.value : "").trim();
+  var scanId = (scanIdArg && String(scanIdArg).trim()) ||
+               (scanIdEl ? scanIdEl.value : "").trim();
 
   var resultsContainer = document.getElementById("detailed-scan-results");
   var toolsEl   = document.getElementById("detailed-tools");
   var filterEl  = document.getElementById("detailed-filter");
   var countEl   = document.getElementById("detailed-count");
 
-  // NEW: cards container (optional)
+  // Cards container (My-Scan target)
   var cardsEl   = document.getElementById("detailed-cards");
 
   // Legacy table (kept for fallback)
@@ -1679,6 +1727,7 @@ async function fetchDetailedScan(){
       }catch(_){}
       throw new Error(msg);
     }
+
     var data = await res.json();
     var buckets = Array.isArray(data && data.buckets) ? data.buckets : [];
     var ethicalMode = Boolean(data && data.ethical_mode);
@@ -1699,39 +1748,26 @@ async function fetchDetailedScan(){
       return;
     }
 
-    // Prefer card layout if the container is present; else fall back to table
-    if (cardsEl && typeof renderResultsCards === "function"){
-      renderResultsCards({
-        buckets: buckets,
-        ethicalMode: ethicalMode,
-        targetEl: cardsEl,
-        toolsEl: toolsEl,
-        countEl: countEl,
-        filterInput: filterEl
-      });
-    } else {
-      // fallback: old table
-      if (typeof renderResultsTable === "function"){
-        renderResultsTable({
-          buckets: buckets,
-          ethicalMode: ethicalMode,
-          tableEl: tableEl,
-          toolsEl: toolsEl,
-          countEl: countEl,
-          filterInput: filterEl,
-          defaultSortKey: "risk_score",
-          defaultSortDir: "desc"
-        });
-      } else {
-        resultsContainer?.insertAdjacentHTML("beforeend",
-          "<p style='color:#f66'>Renderer missing: add #detailed-cards or include renderResultsTable/renderResultsCards.</p>");
-      }
-    }
+    // ✅ Render the standard Results cards INTO #detailed-cards (re-using your renderer)
+    renderIntoDetailedCards({
+      buckets,
+      ethicalMode,
+      toolsEl,
+      countEl,
+      filterEl,
+      cardsEl,
+      scan_id: data.scan_id
+    });
+
+    // ✅ Auto-scroll so the user sees the results block
+    scrollToMyScanResults();
+
   }catch(error){
     console.error(error);
     if (resultsContainer) resultsContainer.innerHTML = "<p style='color:red;'>Error: "+error.message+"</p>";
   }
 }
+
 
 document.addEventListener("DOMContentLoaded", loadPreviousScans);
 </script>
