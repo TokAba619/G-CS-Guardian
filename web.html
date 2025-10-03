@@ -2123,10 +2123,25 @@ function renderRiskLevels(summary){
 
   LR_CHARTS.risk = new Chart(ctx,{
     type:"doughnut",
-    data:{ labels: order.map(s=>s.toUpperCase()), datasets:[{ data, backgroundColor: colors, borderWidth:0 }] },
+    data:{
+      labels: order.map(s=>s.toUpperCase()),
+      datasets:[{ data, backgroundColor: colors, borderWidth:0 }]
+    },
     options:{
-      cutout:"58%",
-      plugins:{ legend:{ position:"bottom", labels:{ color:"#ddd" } } }
+      cutout:"62%",
+      maintainAspectRatio:true,
+      aspectRatio:1.4,
+      plugins:{
+        legend:{ position:"bottom", labels:{ color:"#ddd", boxWidth:10, font:{size:11} } },
+        tooltip:{
+          callbacks:{
+            label:(ctx)=>{
+              const v = ctx.parsed; // numeric value
+              return `${v} bucket${v===1?"":"s"}`;
+            }
+          }
+        }
+      }
     }
   });
 }
@@ -2141,10 +2156,28 @@ function renderExposure(summary){
     type:"bar",
     data:{
       labels:["Private","Public"],
-      datasets:[{ data: vals, backgroundColor:["#00ff00","#ff0000"], borderColor:["#00cc00","#cc0000"], borderWidth:1 }]
+      datasets:[{
+        data: vals,
+        backgroundColor:["#00ff00","#ff0000"],
+        borderColor:["#00cc00","#cc0000"],
+        borderWidth:1,
+        maxBarThickness: 28
+      }]
     },
     options:{
-      plugins:{ legend:{ display:false } },
+      maintainAspectRatio:true,
+      aspectRatio:1.6,
+      plugins:{
+        legend:{ display:false },
+        tooltip:{
+          callbacks:{
+            label:(ctx)=>{
+              const v = ctx.parsed.y ?? ctx.parsed; 
+              return `${v} bucket${v===1?"":"s"}`;
+            }
+          }
+        }
+      },
       scales:{
         x:{ ticks:{ color:"#ddd" }, grid:{ display:false } },
         y:{ beginAtZero:true, suggestedMax: Math.max(10, ...vals)+1, ticks:{ color:"#aaa" }, grid:{ color:"rgba(255,255,255,.08)" } }
@@ -2152,6 +2185,7 @@ function renderExposure(summary){
     }
   });
 }
+
 
 function renderTrend(trends){
   destroyChart("trend");
