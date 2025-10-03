@@ -1712,3 +1712,37 @@ bucket-card .files a:hover {
   opacity: 1 !important;               /* ensure it's not faded */
 }
 
+/* ==== LIVE REPORTS: hard overrides ==== */
+#live-reports .lr-charts{
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+}
+
+#live-reports .card{
+  padding: 16px !important;
+}
+
+#live-reports canvas{
+  width: 100% !important;
+  height: auto !important;     /* let Chart.js respect aspectRatio */
+  max-height: 220px !important;
+}
+
+@media (min-width: 1280px){
+  #live-reports canvas{
+    max-height: 200px !important;
+  }
+}
+
+/* If any previous CSS set a fixed pixel height on canvases, kill it */
+#live-reports canvas[height]{
+  height: auto !important;
+}
+
+/* (Only applies if you use a custom HTML legend plugin)
+   Chart.js’ default legend is drawn on the canvas, so CSS can’t change it. */
+#live-reports .chart-legend{
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+}
