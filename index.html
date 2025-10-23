@@ -132,9 +132,9 @@
     height: auto;
   }
 
-  h1, p {
-    word-break: break-word;
-  }
+  /* paragraphs can wrap anywhere, headings must not split */
+p { overflow-wrap: anywhere; word-break: normal; }
+h1 { word-break: normal; overflow-wrap: normal; hyphens: manual; }
 
   /* --- HERO SECTION FIX --- */
   .hero {
