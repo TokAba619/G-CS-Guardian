@@ -199,6 +199,19 @@ header .container .content .extra-nav button:hover .icon { background: var(--bla
   z-index: 10;
 }
 
+.hero .container .content .text h1 {
+  font-size: 3.5rem;
+  font-weight: 800;                 /* bold header */
+  text-transform: uppercase;
+  font-family: "Inter", sans-serif; /* was var(--aud) */
+  animation: textGlow 2s linear forwards;
+  text-shadow:
+    -1px -1px 0 black,
+     1px -1px 0 black,
+    -1px  1px 0 black,
+     1px  1px 0 black;
+}
+
 .hero .container .content .text p {
   font-weight: 1000;
   text-align: center;
@@ -1178,77 +1191,52 @@ header .container .content .logo img{
 }
 
 
-/* ===== FINAL HERO MOBILE/TABLET OVERRIDES ===== */
-html, body { overflow-x: hidden; }
 
-.hero {
+/* ===== Mobile navbar variant ===== */
+.nav-toggle {
+  display: none; /* desktop default */
+  width: 40px; height: 40px; border: 0; background: transparent; cursor: pointer;
   position: relative;
-  min-height: 100svh;
+}
+.nav-toggle span {
+  position: absolute; left: 8px; right: 8px; height: 2px; background: #fff;
+  transition: transform .2s ease, opacity .2s ease;
+}
+.nav-toggle span:nth-child(1){ top: 12px; }
+.nav-toggle span:nth-child(2){ top: 19px; }
+.nav-toggle span:nth-child(3){ top: 26px; }
+
+/* Drawer */
+.nav-drawer[hidden] { display: none !important; }
+.nav-drawer {
+  position: fixed; inset: 0; z-index: 11000;
+  background: rgba(0,0,0,.35); backdrop-filter: blur(2px);
+  display: grid; place-items: center;
+}
+.drawer-inner {
+  width: min(92vw, 540px); max-height: 86vh; overflow: auto;
+  background: #fff; color: #111; border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.35);
+  padding: 20px; position: relative;
+}
+.drawer-close {
+  position: absolute; top: 14px; right: 16px;
+  font-size: 28px; line-height: 1; background: transparent; border: 0; cursor: pointer;
+}
+.drawer-nav { display: grid; gap: 12px; padding: 28px 16px 12px; }
+.drawer-nav a {
+  text-decoration: none; color: #111; font-weight: 600; font-size: 18px;
+  padding: 10px 6px; border-radius: 8px;
+}
+.drawer-nav a:hover { background: #f4f4f4; }
+.drawer-cta {
+  display: block; margin: 12px 16px 20px; text-align: center;
+  background: #fff; border: 2px solid #111; color: #111;
+  padding: 12px 16px; border-radius: 9999px; font-weight: 700; text-decoration: none;
 }
 
-.hero .bg-video {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  object-fit: cover; z-index: 0;
-}
-
-/* content above the video */
-.hero .container, .hero .content, .hero .text { position: relative; z-index: 1; }
-
-.hero .container .content {
-  display: flex; align-items: center; justify-content: center;
-  min-height: calc(100svh - var(--nav-h, 80px));
-  padding: 2rem 1rem !important;
-}
-
-.hero .container .content .text {
-  width: 100%;
-  max-width: min(92vw, 680px);
-  margin: 0 auto !important;
-  text-align: center !important;
-  padding: 0 6px !important;
-}
-
-/* do NOT split the heading into pieces */
-.hero .container .content .text h1 {
-  font-size: clamp(24px, 7vw, 44px) !important;
-  line-height: 1.05 !important;
-  letter-spacing: 0.4px !important;
-  margin: 0 0 12px !important;
-  word-break: normal !important;
-  overflow-wrap: normal !important;
-}
-
-/* tagline: readable, not too wide */
-.hero .container .content .text p {
-  font-size: clamp(14px, 3vw, 18px) !important;
-  line-height: 1.6 !important;
-  margin: 0 auto 16px !important;
-  max-width: 38ch !important;
-}
-
-/* buttons: stack nicely on phones */
-.hero .container .content .text button {
-  display: inline-flex; align-items: center; justify-content: center;
-  padding: 12px 16px !important;
-  border: 0 !important; border-radius: 14px !important;
-  margin: 6px 8px !important; min-height: 44px !important;
-  font-weight: 700 !important;
-  font-size: clamp(14px, 3vw, 16px) !important;
-}
-.hero .container .content .text button img {
-  width: 22px; height: 22px; margin-left: 6px; object-fit: contain;
-}
-
-/* small phones: tighten a bit more */
-@media (max-width: 380px) {
-  .hero .container .content .text h1 { font-size: clamp(22px, 8vw, 38px) !important; }
-  .hero .container .content .text p  { font-size: 14px !important; }
-}
-
-/* --- STOP HEADINGS FROM SPLITTING ON PHONES --- */
-.hero h1 {
-  word-break: normal !important;
-  overflow-wrap: normal !important;
-  white-space: normal !important;
+/* Breakpoint: use drawer on mobile */
+@media (max-width: 900px){
+  .nav-toggle { display: inline-block; }
+  .nav-links, .nav-cta { display: none !important; } /* hide desktop nav */
 }

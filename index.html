@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
@@ -119,134 +118,58 @@
         .nav-links a{ font-size:14px; }
       }
     </style>
-    <style>
-  /* --- MOBILE FIX BASE STYLES --- */
-  html, body {
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-  }
-
-  img, video {
-    max-width: 100%;
-    height: auto;
-  }
-
-  /* paragraphs can wrap anywhere, headings must not split */
-p { overflow-wrap: anywhere; word-break: normal; }
-h1 { word-break: normal; overflow-wrap: normal; hyphens: manual; }
-
-  /* --- HERO SECTION FIX --- */
-  .hero {
-    position: relative;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    overflow: hidden;
-  }
-
-  .hero .bg-video {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 0;
-  }
-
-  .hero .container {
-    position: relative;
-    z-index: 1;
-    padding: 0 1rem;
-  }
-
-  .hero .text h1 {
-    font-size: clamp(1.6rem, 5vw + 1rem, 3.8rem);
-    color: #ffffff;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
-    line-height: 1.1;
-    margin-bottom: 1rem;
-  }
-
-  .hero .text p {
-    font-size: clamp(1rem, 1.2vw + 0.8rem, 1.3rem);
-    color: #fff;
-    margin-bottom: 1.5rem;
-  }
-
-  .hero button {
-    background: #fff;
-    color: #000;
-    font-weight: 600;
-    border: none;
-    border-radius: 10px;
-    padding: 0.8rem 1.2rem;
-    margin: 0.4rem;
-    cursor: pointer;
-    font-family: "Saira", sans-serif;
-    font-size: clamp(0.9rem, 1.2vw + 0.5rem, 1rem);
-  }
-
-  .hero button img {
-    width: 24px;
-    height: 24px;
-    vertical-align: middle;
-    margin-left: 6px;
-  }
-
-  /* Stack and center on small screens */
-  @media (max-width: 768px) {
-    .hero .text {
-      width: 100%;
-    }
-  }
-
-  /* --- SCROLL INDICATOR ADJUST --- */
-  .scroll-indicator {
-    bottom: 1rem;
-    text-align: center;
-    z-index: 10;
-  }
-
-  /* --- FIX ABOUT PARAGRAPH WIDTH --- */
-  #about p {
-    width: 100%;
-    font-size: clamp(1rem, 1.2vw + 0.6rem, 1.1rem);
-    text-align: justify;
-  }
-</style>
-
   </head>
   <body>
+    
     <!-- ===== NAVBAR ===== -->
-    <header class="site-nav" data-aos="fade-down" data-aos-delay="120">
-      <div class="nav-inner">
-        <a class="brand" href="index.html">
-          <img src="logo.png" alt="G-CS Guardian logo" />
-          <span class="title">CS-GUARDIAN</span>
-        </a>
+<header class="site-nav" data-aos="fade-down" data-aos-delay="120">
+  <div class="nav-inner">
+    <!-- BRAND (left) -->
+    <a class="brand" href="index.html">
+      <img src="logo.png" alt="G-CS Guardian logo" />
+      <span class="title">CS-GUARDIAN</span>
+    </a>
 
-        <div class="nav-spacer"></div>
+    <div class="nav-spacer"></div>
 
-        <ul class="nav-links">
-          <li><a href="#hero" class="nav-link active">Home</a></li>
-          <li><a href="#about" class="nav-link">About Tool</a></li>
-          <li><a href="#destination" class="nav-link">Real Cases</a></li>
-          <li><a href="#aboutus" class="nav-link">Our Team</a></li>
-          <li><a href="#contact" class="nav-link">Contact Us</a></li>
-        </ul>
+    <!-- DESKTOP NAV -->
+    <ul class="nav-links">
+      <li><a href="#hero" class="nav-link active">Home</a></li>
+      <li><a href="#about" class="nav-link">About Tool</a></li>
+      <li><a href="#destination" class="nav-link">Real Cases</a></li>
+      <li><a href="#aboutus" class="nav-link">Our Team</a></li>
+      <li><a href="#contact" class="nav-link">Contact Us</a></li>
+    </ul>
 
-        <div class="nav-cta">
-          <button onclick="window.location.href='signup.html'">
-            Login
-            <i data-feather="aperture" class="icon"></i>
-          </button>
-        </div>
-      </div>
-    </header>
+    <div class="nav-cta">
+      <button onclick="window.location.href='signup.html'">
+        Login
+        <i data-feather="aperture" class="icon"></i>
+      </button>
+    </div>
+
+    <!-- MOBILE HAMBURGER (right side) -->
+    <button class="nav-toggle" aria-expanded="false" aria-controls="mobileMenu" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <!-- MOBILE DRAWER MENU -->
+  <div id="mobileMenu" class="nav-drawer" hidden>
+    <div class="drawer-inner">
+      <button class="drawer-close" aria-label="Close menu">×</button>
+      <nav class="drawer-nav">
+        <a href="#hero">Home</a>
+        <a href="#about">About Tool</a>
+        <a href="#destination">Real Cases</a>
+        <a href="#aboutus">Our Team</a>
+        <a href="#contact">Contact Us</a>
+      </nav>
+      <a class="drawer-cta" href="signup.html">Login</a>
+    </div>
+  </div>
+</header>
+
 
     <a href="#hero" class="to-top"><i data-feather="chevron-up"></i></a>
 
@@ -257,26 +180,26 @@ h1 { word-break: normal; overflow-wrap: normal; hyphens: manual; }
         Your browser does not support the video tag.
       </video>
       <div class="container">
-  <div class="content">
-    <div class="text">
-      <h1 data-aos="fade-up" data-aos-delay="200">DATA LEAKS ARE DANGEROUS!</h1>
-
-      <p data-aos="fade-up" data-aos-delay="300">
-        Protect your Google Cloud Storage with CS-Guardian.<br>
-        Stay secure, stay compliant.
-      </p>
+        <div class="content">
+          <div class="text">
+            <h1 data-aos="fade-up" data-aos-delay="200">
+              DATA LEAKS ARE DANGEROUS !
+            </h1>
+            <p data-aos="fade-up" data-aos-delay="300">
+              <span>Protect your Google Cloud Storage with CS-Guardian.<br>Stay secure, stay compliant.</span></p>
 
       <button onclick="window.location.href='article.html'">
-        What is Cloud Misconfigurations?
+      What is<br>Cloud Misconfigurations?
+      </button>
+<br>
+      <button onclick="window.location.href='signup.html'">
+       Start Scanning
+      <img src="logo.png" alt="G-CS Guardian Logo" class="btn-logo">
       </button>
 
-      <button onclick="window.location.href='signup.html'">
-        Start Scanning
-        <img src="logo.png" alt="G-CS Guardian Logo" class="btn-logo">
-      </button>
-    </div>
-  </div>
-</div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <div class="scroll-indicator">
@@ -294,7 +217,7 @@ h1 { word-break: normal; overflow-wrap: normal; hyphens: manual; }
           <div class="title" data-aos="fade-up" data-aos-delay="400">
             <h1>About Our Tool</h1>
             <p>
-              Accidental exposure of sensitive data in cloud storage has become a major security risk, as many organizations misconfigure their access settings without realizing that files or folders are left open to the public. Such weaknesses can lead to serious consequences including data leaks, financial loss, reputational damage, and compliance issues. To address this, our project CS-Guardian is designed to scan Google Cloud Storage using official Google Cloud Platform APIs to detect any publicly accessible folders, alert users when risks are found, and present the results through a clear and user-friendly dashboard. By combining automated detection with real-time alerts and simple visual reporting, this project not only helps prevent data leaks but also raises awareness among users about the dangers of public cloud misconfigurations, empowering both individuals and organizations to strengthen the security of their cloud environments.
+              CS-Guardian is a cloud security tool designed to scan Google Cloud Storage buckets and detect publicly accessible files (objects) caused by misconfigurations. It automatically identifies security risks, sends real-time alerts, and presents results through a clean, interactive dashboard. By combining accurate detection with clear visual reporting, CS-Guardian helps prevent data leaks, strengthens cloud security awareness, and empowers both individuals and organizations to keep their storage environments safe.
             </p>
           </div>
 
@@ -668,5 +591,29 @@ pairs.forEach(p => io.observe(p.el));
     }, true);
 
 </script>
+
+<script>
+  const toggle = document.querySelector('.nav-toggle');
+  const drawer = document.getElementById('mobileMenu');
+
+  function openDrawer(){
+    drawer.hidden = false;
+    toggle.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeDrawer(){
+    drawer.hidden = true;
+    toggle.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+  }
+
+  toggle?.addEventListener('click', openDrawer);
+  drawer?.addEventListener('click', (e)=> {
+    if (e.target.classList.contains('drawer-close') || e.target === drawer) closeDrawer();
+  });
+  drawer?.querySelectorAll('a').forEach(a => a.addEventListener('click', closeDrawer));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+</script>
+
   </body>
 </html>
