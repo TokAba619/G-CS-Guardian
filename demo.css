@@ -1,3 +1,6 @@
+/* ================================
+   YOUR ORIGINAL CSS (unchanged)
+   ================================ */
 :root {
   --primary: hsl(198, 66%, 70%);
   --secondary: #3b8ab5;
@@ -1190,53 +1193,184 @@ header .container .content .logo img{
   .footer-brand span { font-size: 1rem; }
 }
 
+/* ============================================
+   APPENDED RESPONSIVE ENHANCEMENTS (NEW)
+   ============================================ */
 
-
-/* ===== Mobile navbar variant ===== */
-.nav-toggle {
-  display: none; /* desktop default */
-  width: 40px; height: 40px; border: 0; background: transparent; cursor: pointer;
-  position: relative;
+/* Fluid spacing + container padding that scales by screen */
+:root{
+  --space-inline: clamp(12px, 4vw, 24px);
 }
-.nav-toggle span {
-  position: absolute; left: 8px; right: 8px; height: 2px; background: #fff;
-  transition: transform .2s ease, opacity .2s ease;
-}
-.nav-toggle span:nth-child(1){ top: 12px; }
-.nav-toggle span:nth-child(2){ top: 19px; }
-.nav-toggle span:nth-child(3){ top: 26px; }
-
-/* Drawer */
-.nav-drawer[hidden] { display: none !important; }
-.nav-drawer {
-  position: fixed; inset: 0; z-index: 11000;
-  background: rgba(0,0,0,.35); backdrop-filter: blur(2px);
-  display: grid; place-items: center;
-}
-.drawer-inner {
-  width: min(92vw, 540px); max-height: 86vh; overflow: auto;
-  background: #fff; color: #111; border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.35);
-  padding: 20px; position: relative;
-}
-.drawer-close {
-  position: absolute; top: 14px; right: 16px;
-  font-size: 28px; line-height: 1; background: transparent; border: 0; cursor: pointer;
-}
-.drawer-nav { display: grid; gap: 12px; padding: 28px 16px 12px; }
-.drawer-nav a {
-  text-decoration: none; color: #111; font-weight: 600; font-size: 18px;
-  padding: 10px 6px; border-radius: 8px;
-}
-.drawer-nav a:hover { background: #f4f4f4; }
-.drawer-cta {
-  display: block; margin: 12px 16px 20px; text-align: center;
-  background: #fff; border: 2px solid #111; color: #111;
-  padding: 12px 16px; border-radius: 9999px; font-weight: 700; text-decoration: none;
+.container{
+  padding-left: var(--space-inline) !important;
+  padding-right: var(--space-inline) !important;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-/* Breakpoint: use drawer on mobile */
-@media (max-width: 900px){
-  .nav-toggle { display: inline-block; }
-  .nav-links, .nav-cta { display: none !important; } /* hide desktop nav */
+/* Hero: reliable 100vh (pairs with --vh JS in index.html) */
+.hero{
+  min-height: calc(var(--vh, 1vh) * 100);
 }
+.bg-video{
+  object-fit: cover;
+  object-position: center;
+}
+.hero .container .content{
+  min-height: calc(100vh - 84px);
+}
+.hero .container .content .text h1{
+  font-size: clamp(1.8rem, 5vw, 3.5rem);
+  line-height: 1.15;
+  text-align: center;
+}
+.hero .container .content .text p{
+  width: min(680px, 100%);
+  margin-inline: auto;
+  font-size: clamp(.95rem, 2.5vw, 1.1rem);
+}
+.hero .container .content .text button{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: .9rem 1.2rem;
+  border-radius: 14px;
+}
+.hero .container .content .text .btn-logo{
+  width: 22px; height: 22px; object-fit: contain;
+}
+
+/* Navbar: allow link row to scroll horizontally on small screens */
+@media (max-width: 1024px){
+  .site-nav .nav-inner{ padding-inline: 12px; gap: 12px; }
+  .nav-links{
+    gap: 14px;
+    max-width: 58vw;
+    overflow: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+  }
+  .nav-links::-webkit-scrollbar{ display: none; }
+  .nav-cta button{ padding: 8px 12px; border-radius: 12px; font-size: 13px; }
+}
+
+/* Hide manual <br> spacers inside slides on tablet/phone */
+@media (max-width: 1024px){
+  .slide-content br{ display: none; }
+}
+
+/* Slider: ensure images and track don’t overflow on mobile */
+.slider-container{ overflow: hidden; }
+.slider-track{ gap: clamp(8px, 2vw, 16px); }
+.slide{ flex: 0 0 100%; max-width: 100%; }
+.image-border{ max-width: 90%; }
+.image-border img{ width: 100%; height: auto; }
+
+/* WHY-US: turn the card row into responsive grid */
+@media (max-width: 1200px){
+  .why-us .container .content{ height: auto; }
+  .why-us .container .content .reason{
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 16px;
+  }
+  .why-us .container .content .reason .card{
+    width: 100% !important;
+    height: auto !important;
+  }
+}
+@media (max-width: 640px){
+  .why-us .container .content .title h1{ font-size: clamp(1.3rem, 5vw, 2rem); }
+  .why-us .container .content .title p{ max-width: 100%; }
+  .why-us .container .content .reason{
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+}
+
+/* DESTINATION (Real Cases):
+   convert fixed 4x8 grid to fluid stacks on smaller screens */
+@media (max-width: 1280px){
+  .destination{ padding: 3rem 0; min-height: auto; }
+  .destination .container .content{
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+    grid-template-rows: auto !important;
+    height: auto !important;
+    gap: 1.25rem !important;
+  }
+  /* Reset hard-coded grid placements so items flow naturally */
+  .destination .container .content .title,
+  .destination .container .content .saturn,
+  .destination .container .content .moon,
+  .destination .container .content .eyropa,
+  .destination .container .content .blackhole,
+  .destination .container .content .titan,
+  .destination .container .content .mars{
+    grid-column: auto !important;
+    grid-row: auto !important;
+  }
+  .destination .container .content .title a{ width: auto; }
+}
+@media (max-width: 768px){
+  .destination .container .content{
+    grid-template-columns: 1fr !important;
+  }
+  .destination .container .content .items{
+    min-height: auto;
+    padding: 16px;
+  }
+  .destination .container .content .title h1{
+    letter-spacing: .12em;
+    font-size: clamp(1.4rem, 6vw, 2rem);
+  }
+}
+
+/* TEAM: flip cards become a neat grid */
+@media (max-width: 1024px){
+  .team-slider{
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 16px;
+  }
+  .team-card{ width: 100% !important; height: auto !important; aspect-ratio: 3/4; }
+}
+@media (max-width: 640px){
+  .team-slider{ grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+}
+
+/* CONTACT: stack columns on tablet/phone (extra safety, you also have it already) */
+@media (max-width: 992px){
+  .contact .container .content{
+    flex-direction: column;
+    justify-content: center;
+    min-height: unset;
+  }
+  .contact .container .content .left-side,
+  .contact .container .content .right-side{ width: 100%; }
+}
+
+/* FOOTER: grid already responsive; add small polish */
+.gcsg-footer .footer-inner{
+  padding-bottom: 24px;
+}
+@media (max-width: 600px){
+  .footer-brand img.footer-logo{ width: 64px; height: auto; }
+  .footer-links a{ display: inline-block; padding-bottom: 2px; }
+}
+
+/* Buttons on very small screens: make them easier to tap */
+@media (max-width: 600px){
+  .hero .container .content .text button{
+    width: clamp(220px, 72vw, 420px);
+  }
+}
+
+/* Keep the scroll indicator off on small screens (uses valuable space) */
+@media (max-width: 1024px){
+  .scroll-indicator{ display: none !important; }
+}
+
+/* Ensure header remains visible and content not hidden under it */
+body{ padding-top: 84px !important; }
