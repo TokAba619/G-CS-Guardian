@@ -130,6 +130,11 @@
 
         <div class="nav-spacer"></div>
 
+        <!-- MOBILE: hamburger (hidden on desktop) -->
+        <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
+        <span></span><span></span><span></span>
+        </button>
+
         <ul class="nav-links">
           <li><a href="#hero" class="nav-link active">Home</a></li>
           <li><a href="#about" class="nav-link">About Tool</a></li>
@@ -146,6 +151,35 @@
         </div>
       </div>
     </header>
+
+    <!-- MOBILE NAV DRAWER -->
+<aside id="mobileMenu" class="mobile-drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <a class="brand" href="index.html">
+      <img src="logo.png" alt="G-CS Guardian logo" />
+      <span class="title">CS-GUARDIAN</span>
+    </a>
+    <button class="drawer-close" aria-label="Close menu">&times;</button>
+  </div>
+
+  <nav class="drawer-nav">
+    <a class="drawer-link" href="#hero">Home</a>
+    <a class="drawer-link" href="#about">About Tool</a>
+    <a class="drawer-link" href="#destination">Real Cases</a>
+    <a class="drawer-link" href="#aboutus">Our Team</a>
+    <a class="drawer-link" href="#contact">Contact Us</a>
+  </nav>
+
+  <div class="drawer-cta">
+    <a class="drawer-btn" href="signup.html">
+      Login <i data-feather="aperture" class="icon"></i>
+    </a>
+  </div>
+</aside>
+
+<!-- Drawer backdrop -->
+<div class="drawer-backdrop" hidden></div>
+
 
     <a href="#hero" class="to-top"><i data-feather="chevron-up"></i></a>
 
@@ -531,6 +565,54 @@
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); }
     });
   })();
+</script>
+
+<script>
+  // Mobile drawer controls
+  const navToggle   = document.querySelector('.nav-toggle');
+  const drawer      = document.getElementById('mobileMenu');
+  const backdrop    = document.querySelector('.drawer-backdrop');
+  const closeBtn    = document.querySelector('.drawer-close');
+
+  function openDrawer(){
+    document.body.classList.add('drawer-open');
+    drawer.setAttribute('aria-hidden', 'false');
+    navToggle?.setAttribute('aria-expanded', 'true');
+    backdrop.removeAttribute('hidden');
+  }
+  function closeDrawer(){
+    document.body.classList.remove('drawer-open');
+    drawer.setAttribute('aria-hidden', 'true');
+    navToggle?.setAttribute('aria-expanded', 'false');
+    backdrop.setAttribute('hidden','');
+  }
+
+  navToggle?.addEventListener('click', () => {
+    const isOpen = document.body.classList.contains('drawer-open');
+    isOpen ? closeDrawer() : openDrawer();
+  });
+  closeBtn?.addEventListener('click', closeDrawer);
+  backdrop?.addEventListener('click', closeDrawer);
+
+  // Close the drawer when a mobile link is tapped (and smooth scroll)
+  document.querySelectorAll('.drawer-link').forEach(a => {
+    a.addEventListener('click', (e) => {
+      const id = a.getAttribute('href');
+      const target = document.querySelector(id);
+      if (target) {
+        e.preventDefault();
+        closeDrawer();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  // Make the round "Click to Explore" indicator jump to #about
+  const scrollIndicator = document.querySelector('.scroll-indicator');
+  scrollIndicator?.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelector('#about')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
 </script>
 
 
