@@ -415,6 +415,32 @@ button .btn-logo {
 }
 .why-us .container .content .reason .card:hover hr { top: 100%; left: 100%; transition: .3s linear; }
 
+
+/* =========================
+   ABOUT SECTION TEXT FIX
+   ========================= */
+.why-us .title p {
+  text-align: justify;              /* uniform spacing left & right */
+  text-justify: inter-word;         /* evenly distribute words */
+  line-height: 1.8;                 /* comfortable vertical spacing */
+  word-spacing: 0.02em;             /* slight balance for cleaner look */
+  letter-spacing: 0.2px;            /* smoother visual flow */
+  color: #f2f2f2;                   /* maintain your dark-theme contrast */
+  font-family: "Inter", sans-serif; /* match global typography */
+  font-weight: 400;
+  padding: 0 1.2rem;                /* soft inner margin for mobile readability */
+  margin-top: 1rem;                 /* spacing under the heading */
+}
+
+/* For smaller screens (phones/tablets) */
+@media (max-width: 640px) {
+  .why-us .title p {
+    line-height: 1.7;
+    padding: 0 1rem;
+  }
+}
+
+
 /* =========================
    DESTINATION (Real Cases)
    ========================= */
