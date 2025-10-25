@@ -1516,20 +1516,30 @@ body.drawer-open {
 }
 
 /* =========================
-   SCROLL INDICATOR POSITION FIX (Mobile/Tablet)
+   SCROLL INDICATOR (Hero Only + Mobile/Tablet Fix)
    ========================= */
+.scroll-indicator {
+  display: none; /* hide by default on all sections */
+}
+
+#hero .scroll-indicator {
+  display: block; /* show only inside the hero section */
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+  z-index: 20;
+}
+
+/* Mobile/tablet spacing */
 @media (max-width: 1024px) {
-  #scrollToAbout {
-    position: fixed;                     /* from absolute → fixed */
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 18px) !important;
-    z-index: 20;                         /* stay above the video */
+  #hero .scroll-indicator {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
   }
 }
 
 @media (max-width: 640px) {
-  #scrollToAbout {
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 14px) !important;
+  #hero .scroll-indicator {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
   }
 }
