@@ -440,6 +440,78 @@ button .btn-logo {
   }
 }
 
+/* =========================
+   CARD LAYOUT FIX (Reason Section)
+   ========================= */
+.reason {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* space between cards */
+}
+
+.card {
+  background: #0f0f0f;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 1.8rem 1.4rem;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  height: auto;               /* ✅ allow content to define height */
+  min-height: 260px;          /* consistent shape, but flexible */
+  overflow: visible;          /* ✅ prevent text from being cropped */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+/* Icon styling */
+.card .icon {
+  font-size: 2.4rem;
+  margin-bottom: 0.8rem;
+}
+
+/* Description text */
+.card .desc {
+  flex: 1;
+}
+
+.card .desc h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.6rem;
+  color: #fff;
+}
+
+.card .desc p {
+  font-size: 0.95rem;
+  color: #ccc;
+  line-height: 1.6;
+  text-align: justify;      /* ✅ better alignment */
+  text-justify: inter-word;
+  padding: 0 0.4rem;
+}
+
+/* Divider line */
+.card hr {
+  width: 100%;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .card {
+    padding: 1.4rem 1rem;
+    min-height: 240px;
+  }
+  .card .desc p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+}
+
+
 
 /* =========================
    DESTINATION (Real Cases)
