@@ -1,6 +1,3 @@
-/* ================================
-   YOUR ORIGINAL CSS (unchanged)
-   ================================ */
 :root {
   --primary: hsl(198, 66%, 70%);
   --secondary: #3b8ab5;
@@ -1193,114 +1190,100 @@ header .container .content .logo img{
   .footer-brand span { font-size: 1rem; }
 }
 
-/* ============================================
-   APPENDED RESPONSIVE ENHANCEMENTS (NEW)
-   ============================================ */
 
-/* Fluid spacing + container padding that scales by screen */
-:root{
-  --space-inline: clamp(12px, 4vw, 24px);
-}
-.container{
-  padding-left: var(--space-inline) !important;
-  padding-right: var(--space-inline) !important;
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-}
 
-/* Hero: reliable 100vh (pairs with --vh JS in index.html) */
+/* ===========================================================
+   RESPONSIVE ENHANCEMENTS (APPEND-ONLY, SAFE FOR DESKTOP)
+   =========================================================== */
+
+/* Use the mobile 100vh fix you added in HTML */
 .hero{
   min-height: calc(var(--vh, 1vh) * 100);
 }
-.bg-video{
-  object-fit: cover;
-  object-position: center;
+
+/* Fluid container padding on smaller screens */
+@media (max-width: 1200px){
+  .container{ padding-left: 3rem; padding-right: 3rem; }
 }
-.hero .container .content{
-  min-height: calc(100vh - 84px);
+@media (max-width: 992px){
+  .container{ padding-left: 2rem; padding-right: 2rem; }
 }
-.hero .container .content .text h1{
-  font-size: clamp(1.8rem, 5vw, 3.5rem);
-  line-height: 1.15;
-  text-align: center;
-}
-.hero .container .content .text p{
-  width: min(680px, 100%);
-  margin-inline: auto;
-  font-size: clamp(.95rem, 2.5vw, 1.1rem);
-}
-.hero .container .content .text button{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: .9rem 1.2rem;
-  border-radius: 14px;
-}
-.hero .container .content .text .btn-logo{
-  width: 22px; height: 22px; object-fit: contain;
+@media (max-width: 640px){
+  .container{ padding-left: 1rem; padding-right: 1rem; }
 }
 
-/* Navbar: allow link row to scroll horizontally on small screens */
+/* ---------- HERO ---------- */
 @media (max-width: 1024px){
-  .site-nav .nav-inner{ padding-inline: 12px; gap: 12px; }
-  .nav-links{
-    gap: 14px;
-    max-width: 58vw;
-    overflow: auto;
-    white-space: nowrap;
-    scrollbar-width: none;
-  }
-  .nav-links::-webkit-scrollbar{ display: none; }
-  .nav-cta button{ padding: 8px 12px; border-radius: 12px; font-size: 13px; }
+  .hero .container .content{ min-height: calc(100vh - 0px); }
+  .hero .container .content .text h1{ font-size: 3rem; }
+  .hero .container .content .text p{ width: 80%; font-size: 1rem; }
+}
+@media (max-width: 768px){
+  .hero .container .content .text h1{ font-size: 2.2rem; line-height: 1.2; text-align:center; }
+  .hero .container .content .text p{ width: 92%; font-size: .95rem; }
+  button, .btn-pill{ padding: 8px 14px; border-radius: 12px; font-size: 14px; }
+  button .btn-logo{ width: 28px; }
+}
+@media (max-width: 480px){
+  .hero .container .content .text h1{ font-size: 1.8rem; }
+  .scroll-indicator{ bottom: 24px; }
 }
 
-/* Hide manual <br> spacers inside slides on tablet/phone */
-@media (max-width: 1024px){
-  .slide-content br{ display: none; }
-}
-
-/* Slider: ensure images and track don’t overflow on mobile */
-.slider-container{ overflow: hidden; }
-.slider-track{ gap: clamp(8px, 2vw, 16px); }
-.slide{ flex: 0 0 100%; max-width: 100%; }
-.image-border{ max-width: 90%; }
-.image-border img{ width: 100%; height: auto; }
-
-/* WHY-US: turn the card row into responsive grid */
+/* ---------- WHY-US (About) ---------- */
 @media (max-width: 1200px){
   .why-us .container .content{ height: auto; }
   .why-us .container .content .reason{
-    display: grid !important;
+    display: grid;
     grid-template-columns: repeat(2, minmax(0,1fr));
     gap: 16px;
   }
   .why-us .container .content .reason .card{
-    width: 100% !important;
-    height: auto !important;
+    width: 100%; height: auto; padding: 1.25rem;
   }
 }
 @media (max-width: 640px){
-  .why-us .container .content .title h1{ font-size: clamp(1.3rem, 5vw, 2rem); }
+  .why-us .container .content .title h1{ font-size: 2rem; }
   .why-us .container .content .title p{ max-width: 100%; }
   .why-us .container .content .reason{
-    grid-template-columns: 1fr !important;
-    gap: 12px;
+    grid-template-columns: 1fr;
   }
 }
 
-/* DESTINATION (Real Cases):
-   convert fixed 4x8 grid to fluid stacks on smaller screens */
+/* ---------- SLIDER ---------- */
+@media (max-width: 1200px){
+  .image-border{ max-width: 90%; }
+  .image-border img{ max-height: 70vh; }
+  .slide-title{ font-size: 3.2rem; }
+  .slide-description{ font-size: 1.1rem; max-width: 760px; }
+}
+@media (max-width: 992px){
+  .slide-title{ font-size: 2.6rem; margin-bottom: 1.5rem; }
+  .slide-description{ font-size: 1rem; max-width: 640px; margin-bottom: 1.5rem; }
+  .nav-button{ width: 56px; height: 56px; font-size: 24px; }
+  .prev{ left: 16px; } .next{ right: 16px; }
+  .slide-indicators{ gap: 12px; bottom: 28px; }
+  .indicator{ width: 12px; height: 12px; }
+}
+@media (max-width: 640px){
+  .image-border{ max-width: 96%; padding: 6px; }
+  .image-border img{ max-height: 58vh; }
+  .slide-title{ font-size: 2rem; }
+  .slide-description{ font-size: .95rem; line-height: 1.6; padding: 0 8px; }
+  .nav-button{ width: 48px; height: 48px; font-size: 20px; }
+  .slide-indicators{ bottom: 22px; gap: 10px; }
+}
+
+/* ---------- REAL CASES (destination grid) ---------- */
+/* Collapse rigid 4x8 grid → fluid stacks without breaking desktop */
 @media (max-width: 1280px){
   .destination{ padding: 3rem 0; min-height: auto; }
   .destination .container .content{
-    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
-    grid-template-rows: auto !important;
-    height: auto !important;
-    gap: 1.25rem !important;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    grid-template-rows: auto;
+    height: auto;
+    gap: 1.25rem;
   }
-  /* Reset hard-coded grid placements so items flow naturally */
+  /* Reset hard placements so items flow naturally */
   .destination .container .content .title,
   .destination .container .content .saturn,
   .destination .container .content .moon,
@@ -1311,66 +1294,49 @@ header .container .content .logo img{
     grid-column: auto !important;
     grid-row: auto !important;
   }
+  .destination .container .content .items{ min-height: 280px; }
+  .destination .container .content .title h1{
+    font-size: 2.2rem; letter-spacing: .18em;
+  }
   .destination .container .content .title a{ width: auto; }
 }
 @media (max-width: 768px){
-  .destination .container .content{
-    grid-template-columns: 1fr !important;
-  }
-  .destination .container .content .items{
-    min-height: auto;
-    padding: 16px;
-  }
+  .destination .container .content{ grid-template-columns: 1fr; }
+  .destination .container .content .items{ min-height: 240px; padding: 16px; }
+  .destination .container .content .items h1{ font-size: 1.25rem; }
   .destination .container .content .title h1{
-    letter-spacing: .12em;
-    font-size: clamp(1.4rem, 6vw, 2rem);
+    font-size: 1.8rem; letter-spacing: .12em;
   }
 }
 
-/* TEAM: flip cards become a neat grid */
+/* ---------- TEAM (flip cards) ---------- */
+.card-inner.is-flipped{ transform: rotateY(180deg); } /* mobile click support */
+
 @media (max-width: 1024px){
-  .team-slider{
-    display: grid !important;
-    grid-template-columns: repeat(3, minmax(0,1fr));
-    gap: 16px;
-  }
-  .team-card{ width: 100% !important; height: auto !important; aspect-ratio: 3/4; }
+  .team-slider{ gap: 16px; }
+  .team-card{ width: calc(50% - 16px); height: 360px; margin: 0; }
 }
 @media (max-width: 640px){
-  .team-slider{ grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+  .team-card{ width: 100%; height: 340px; }
+  .section-title{ font-size: 2rem; }
+  .section-content{ font-size: 1rem; margin-bottom: 2rem; }
 }
 
-/* CONTACT: stack columns on tablet/phone (extra safety, you also have it already) */
-@media (max-width: 992px){
-  .contact .container .content{
-    flex-direction: column;
-    justify-content: center;
-    min-height: unset;
-  }
-  .contact .container .content .left-side,
-  .contact .container .content .right-side{ width: 100%; }
+/* ---------- CONTACT (you already had some; this adds small polish) ---------- */
+@media (max-width: 768px){
+  .contact .container .content{ gap: 2rem; }
+  .contact .contact-panel{ width: 100%; max-width: 600px; }
 }
 
-/* FOOTER: grid already responsive; add small polish */
-.gcsg-footer .footer-inner{
-  padding-bottom: 24px;
-}
-@media (max-width: 600px){
-  .footer-brand img.footer-logo{ width: 64px; height: auto; }
+/* ---------- FOOTER ---------- */
+@media (max-width: 768px){
+  .footer-inner{ gap: 24px; }
+  .footer-title{ margin-bottom: 6px; }
   .footer-links a{ display: inline-block; padding-bottom: 2px; }
 }
 
-/* Buttons on very small screens: make them easier to tap */
+/* ---------- Misc small-screen taps ---------- */
 @media (max-width: 600px){
-  .hero .container .content .text button{
-    width: clamp(220px, 72vw, 420px);
-  }
+  .nav-cta button{ padding: 8px 12px; border-radius: 12px; font-size: 13px; }
+  .scroll-indicator p{ font-size: 12px; }
 }
-
-/* Keep the scroll indicator off on small screens (uses valuable space) */
-@media (max-width: 1024px){
-  .scroll-indicator{ display: none !important; }
-}
-
-/* Ensure header remains visible and content not hidden under it */
-body{ padding-top: 84px !important; }
