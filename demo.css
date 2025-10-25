@@ -1516,7 +1516,7 @@ body.drawer-open {
 }
 
 /* =========================
-   SCROLL INDICATOR (Hero Only + Mobile/Tablet Fix)
+   SCROLL INDICATOR (Hero Only + Refined Spacing)
    ========================= */
 .scroll-indicator {
   display: none; /* hide by default on all sections */
@@ -1527,19 +1527,19 @@ body.drawer-open {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+  bottom: 90px; /* moved up from bottom edge */
   z-index: 20;
 }
 
 /* Mobile/tablet spacing */
 @media (max-width: 1024px) {
   #hero .scroll-indicator {
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+    bottom: 80px; /* a bit higher on tablets */
   }
 }
 
 @media (max-width: 640px) {
   #hero .scroll-indicator {
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
+    bottom: 70px; /* higher for smaller phones */
   }
 }
