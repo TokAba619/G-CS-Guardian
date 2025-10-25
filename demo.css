@@ -1742,68 +1742,72 @@ body.drawer-open {
   }
 }
 
-/* ---------- overlays per-slide ---------- */
-.slide.light-overlay::before{
-  /* a softer, brighter overlay so the image isn't crushed */
-  background: linear-gradient(180deg,
-    rgba(0,0,0,.20) 0%,
-    rgba(0,0,0,.45) 100%);
-}
+/* ========== PHONE LAYOUT: text below the slide image ========== */
+@media (max-width: 640px) {
+  /* let the slide grow naturally and remove the dark overlay */
+  .slide{
+    min-height: auto;
+    padding-top: 12px;
+    align-items: flex-start;
+  }
+  .slide::before{ display: none; }    /* kill the global gradient overlay */
 
-.slide.no-overlay::before{
-  /* logo slide: show the logo clean */
-  display: none;
-}
-
-/* ---------- default (desktop / tablet) tweaks ---------- */
-.slide{ min-height: 70vh; }
-.image-border img{ height: 70vh; object-fit: cover; }
-.slide.logo-slide .image-border img{
-  object-fit: contain;
-  background: #000;           /* keeps clean edges around the logo */
-}
-
-/* ---------- phone: make text super readable + keep more image visible ---------- */
-@media (max-width: 640px){
-
-  /* shrink image a bit to make room for text card */
-  .slide{ min-height: 82vh; }
-  .image-border img{ height: 56vh; }
-
-  /* logo slide: guarantee full logo */
-  .slide.logo-slide .image-border img{
-    height: 48vh;
+  /* image becomes a normal block */
+  .image-border{
+    max-width: 94%;
+    margin: 0 auto 12px;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+  }
+  .image-border img{
+    width: 100%;
+    height: auto;
     object-fit: contain;
   }
 
-  /* make the text sit in a readable “card” */
+  /* logo slide: always show full logo */
+  .slide.logo-slide .image-border img{
+    object-fit: contain;
+  }
+
+  /* text card sits under the image */
   .slide-content{
+    position: static;          /* no absolute overlay */
+    transform: none;
+    text-align: center;
+    max-width: 680px;
+    margin: 0 auto 24px;
+    padding: 14px 16px 20px;
+
+    /* optional glass card for readability on busy images */
     background: rgba(0,0,0,.55);
-    backdrop-filter: blur(2px);
-    padding: 14px 16px;
+    border: 1px solid rgba(255,255,255,.08);
     border-radius: 16px;
-    max-width: 92vw;
+    backdrop-filter: blur(2px);
   }
 
   .slide-title{
     font-size: clamp(22px, 6vw, 28px);
-    margin-bottom: 8px;
+    margin: 0 0 8px;
     line-height: 1.2;
   }
-
   .slide-description{
-    font-size: clamp(14px, 4.2vw, 18px);
-    line-height: 1.6;
-    margin-bottom: 10px;
+    font-size: clamp(14px, 4.2vw, 16px);
+    line-height: 1.65;
+    margin: 0 0 10px;
   }
-
   .legal-note{
-    font-size: 11px;
-    line-height: 1.5;
-    opacity: .9;
+    font-size: 12px;
+    opacity: .95;
   }
 
-  /* arrows a touch smaller so they don't cover text */
-  .nav-button{ width: 44px; height: 44px; font-size: 18px; }
-  .slide-indicators{ bottom: 18px; }
+  /* controls a bit smaller and lower */
+  .nav-button{
+    width: 44px; height: 44px; font-size: 18px;
+    top: 38%;
+    transform: translateY(-50%);
+  }
+  .slide-indicators{ bottom: 14px; }
 }
