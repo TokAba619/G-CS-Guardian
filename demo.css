@@ -1516,16 +1516,20 @@ body.drawer-open {
 }
 
 /* =========================
-   SCROLL INDICATOR SPACING FIX (Mobile/Tablet)
+   SCROLL INDICATOR POSITION FIX (Mobile/Tablet)
    ========================= */
 @media (max-width: 1024px) {
-  .scroll-indicator {
-    bottom: 20px; /* was 40px — lowered slightly */
+  #scrollToAbout {
+    position: fixed;                     /* from absolute → fixed */
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 18px) !important;
+    z-index: 20;                         /* stay above the video */
   }
 }
 
 @media (max-width: 640px) {
-  .scroll-indicator {
-    bottom: 15px; /* a bit lower for smaller phones */
+  #scrollToAbout {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 14px) !important;
   }
 }
