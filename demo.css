@@ -1514,3 +1514,18 @@ body.drawer-open {
     display: none !important;
   } /* Hide desktop row */
 }
+
+/* =========================
+   SCROLL INDICATOR SPACING FIX (Mobile/Tablet)
+   ========================= */
+@media (max-width: 1024px) {
+  .scroll-indicator {
+    bottom: 20px; /* was 40px — lowered slightly */
+  }
+}
+
+@media (max-width: 640px) {
+  .scroll-indicator {
+    bottom: 15px; /* a bit lower for smaller phones */
+  }
+}
