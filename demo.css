@@ -1622,3 +1622,79 @@ body.drawer-open {
     display: none;           /* hide the sweeping line on phones */
   }
 }
+
+
+/* ========== SLIDER — MOBILE/TABLET LAYOUT ONLY ========== */
+@media (max-width: 1024px) {
+  /* Let text stack under the image instead of overlaying it */
+  .slide {
+    align-items: flex-start;
+    padding-top: 20px;
+  }
+
+  .image-border {
+    max-width: 94%;
+    margin: 0 auto 16px;
+    padding: 6px;
+  }
+  .image-border img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+
+  /* Stop absolute overlay on mobile: make it natural flow content */
+  .slide-content {
+    position: static;
+    background: none;
+    padding: 0 16px 28px;
+    text-align: center;
+  }
+
+  .slide-title {
+    font-size: 1.8rem;
+    margin: 6px 0 12px;
+    letter-spacing: 1px;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  }
+
+  .slide-description {
+    font-size: 0.98rem;
+    line-height: 1.7;
+    margin: 0 auto 10px;
+    max-width: 680px;
+  }
+
+  .legal-note {
+    margin-top: 10px;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    opacity: 0.85;
+  }
+
+  /* Controls: smaller & closer to content */
+  .nav-button {
+    width: 48px; height: 48px; font-size: 20px;
+    top: 38%;                /* lower than the logo area */
+    transform: translateY(-50%);
+    background: rgba(0,0,0,.18);
+    border-color: rgba(255,255,255,.35);
+  }
+  .prev { left: 12px; }
+  .next { right: 12px; }
+
+  .slide-indicators {
+    bottom: 18px;
+    gap: 10px;
+  }
+  .indicator {
+    width: 10px; height: 10px;
+  }
+}
+
+@media (max-width: 640px) {
+  .slide-title    { font-size: 1.5rem; }
+  .slide-description { font-size: .94rem; }
+  .legal-note     { font-size: .75rem; }
+  .nav-button     { width: 44px; height: 44px; font-size: 18px; top: 40%; }
+}
