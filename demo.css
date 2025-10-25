@@ -716,69 +716,7 @@ button .btn-logo {
   overflow: hidden;
   display: flex; justify-content: center; align-items: center;
 }
-.slide img { object-fit: contain; max-width: 100%; height: auto; transition: transform 8s ease; transform: scale(1.1); }
-.slide.active img { transform: scale(1); }
 
-.image-border {
-  display: flex; justify-content: center; align-items: center;
-  padding: 10px;
-  border: 5px solid rgb(0, 0, 0);
-  border-radius: 15px;
-  background-color: #AC1754 (255, 255, 255, 0.664);
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-  max-width: 80%;
-  margin: auto;
-}
-.image-border img { display: block; max-width: 100%; max-height: 80vh; height: auto; border-radius: 10px; }
-
-.slide-content {
-  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(45deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 0%);
-  display: flex; flex-direction: column; justify-content: center; align-items: center;
-  text-align: center; color: white; z-index: 2;
-}
-
-.slide-title {
-  font-family: "Inter", sans-serif;  /* was Audiowide */
-  font-weight: 800;                  /* bold header */
-  font-size: 4rem;
-  margin-bottom: 3rem; letter-spacing: 3px;
-  transform: translateY(50px); opacity: 0; transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-}
-.slide-subtitle {
-  font-family: "Inter", sans-serif;  /* was Audiowide */
-  font-weight: 500;
-  font-size: 2rem;
-  margin-bottom: 2rem; letter-spacing: 2px;
-  transform: translateY(50px); opacity: 0; transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.3s;
-  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-}
-
-.slide-description p {
-  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-}
-.slide-description {
-  font-family: "Inter", sans-serif;  /* was Audiowide */
-  font-weight: 400;
-  font-size: 1.3rem; max-width: 700px; line-height: 1.8; margin-bottom: 3rem;
-  transform: translateY(50px); opacity: 0; transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.6s;
-  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-}
-.explore-btn {
-  background: linear-gradient(45deg, #ff6b6b, #ee5a24); color: white; padding: 18px 45px; border: none;
-  border-radius: 50px; font-size: 1.2rem; font-weight: 700; cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); text-transform: uppercase; letter-spacing: 2px;
-  box-shadow: 0 15px 35px rgba(238, 90, 36, 0.267); transform: translateY(50px); opacity: 0;
-  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-  font-family: "Inter", sans-serif;
-}
-.slide.active .slide-title,
-.slide.active .slide-subtitle,
-.slide.active .slide-description,
-.slide.active .explore-btn { transform: translateY(0); opacity: 1; }
-.slide.active .explore-btn { transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.9s; }
-.explore-btn:hover { transform: translateY(-5px); box-shadow: 0 25px 50px rgba(238, 90, 36, 0.26); background: linear-gradient(45deg, #ff4400, #ff0000); }
 
 .nav-button {
   position: absolute; top: 50%; transform: translateY(-50%);
@@ -1624,77 +1562,137 @@ body.drawer-open {
 }
 
 
-/* ========== SLIDER — MOBILE/TABLET LAYOUT ONLY ========== */
-@media (max-width: 1024px) {
-  /* Let text stack under the image instead of overlaying it */
-  .slide {
-    align-items: flex-start;
-    padding-top: 20px;
-  }
+/* =========================================================
+   SLIDER — one layout, scales down, no cropping
+   (Replace your entire previous slider CSS with this)
+   ========================================================= */
 
-  .image-border {
-    max-width: 94%;
-    margin: 0 auto 16px;
-    padding: 6px;
-  }
-  .image-border img {
-    width: 100%;
-    height: auto;
-    object-fit: contain;
-  }
-
-  /* Stop absolute overlay on mobile: make it natural flow content */
-  .slide-content {
-    position: static;
-    background: none;
-    padding: 0 16px 28px;
-    text-align: center;
-  }
-
-  .slide-title {
-    font-size: 1.8rem;
-    margin: 6px 0 12px;
-    letter-spacing: 1px;
-    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-  }
-
-  .slide-description {
-    font-size: 0.98rem;
-    line-height: 1.7;
-    margin: 0 auto 10px;
-    max-width: 680px;
-  }
-
-  .legal-note {
-    margin-top: 10px;
-    font-size: 0.78rem;
-    line-height: 1.5;
-    opacity: 0.85;
-  }
-
-  /* Controls: smaller & closer to content */
-  .nav-button {
-    width: 48px; height: 48px; font-size: 20px;
-    top: 38%;                /* lower than the logo area */
-    transform: translateY(-50%);
-    background: rgba(0,0,0,.18);
-    border-color: rgba(255,255,255,.35);
-  }
-  .prev { left: 12px; }
-  .next { right: 12px; }
-
-  .slide-indicators {
-    bottom: 18px;
-    gap: 10px;
-  }
-  .indicator {
-    width: 10px; height: 10px;
-  }
+/* Slide frame */
+.slide{
+  position: relative;
+  overflow: hidden;
+  min-height: 72vh; /* desktop */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity .6s ease, transform .6s ease;
 }
 
-@media (max-width: 640px) {
-  .slide-title    { font-size: 1.5rem; }
-  .slide-description { font-size: .94rem; }
-  .legal-note     { font-size: .75rem; }
-  .nav-button     { width: 44px; height: 44px; font-size: 18px; top: 40%; }
+/* The image box owns the height; the image fits inside */
+.image-border{
+  width: 100%;
+  height: 72vh;      /* match .slide */
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;  /* “letterbox” fill around image when needed */
+}
+.image-border img{
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;     /* ← key: show the whole image (no crop) */
+  object-position: center;
+}
+
+/* Readability gradient behind the text */
+.slide::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,.35) 0%, rgba(0,0,0,.75) 100%);
+  z-index: 0;
+}
+
+/* Centered overlay text */
+.slide-content{
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  padding: 0 20px;
+  max-width: 900px;
+  width: 100%;
+}
+
+/* Scalable typography */
+.slide-title{
+  margin: 0 0 12px;
+  font-weight: 800;
+  font-size: clamp(22px, 5.4vw, 48px);
+  line-height: 1.15;
+  text-shadow:
+    -1px -1px 0 #000, 1px -1px 0 #000,
+    -1px  1px 0 #000, 1px  1px 0 #000;
+}
+.slide-description{
+  margin: 0 auto 12px;
+  max-width: 800px;
+  font-size: clamp(14px, 3.2vw, 18px);
+  line-height: 1.7;
+  text-shadow:
+    -1px -1px 0 #000, 1px -1px 0 #000,
+    -1px  1px 0 #000, 1px  1px 0 #000;
+}
+.legal-note{
+  font-size: clamp(10px, 2.5vw, 13px);
+  opacity: .9;
+}
+
+/* Arrows & dots (unchanged) */
+.nav-button{
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 56px;
+  height: 56px;
+  font-size: 24px;
+  background: rgba(0,0,0,.18);
+  border: 2px solid rgba(255,255,255,.35);
+  color: #fff;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+}
+.prev{ left: 30px; }
+.next{ right: 30px; }
+.slide-indicators{ position: absolute; left: 50%; transform: translateX(-50%); bottom: 24px; display: flex; gap: 20px; z-index: 10; }
+
+/* ===== Phone / small tablets ===== */
+@media (max-width: 640px){
+  .slide{ min-height: 64vh; }
+  .image-border{ height: 64vh; }     /* keep heights in sync */
+  .slide-content{ padding: 0 14px; max-width: 92vw; }
+  .nav-button{ width: 44px; height: 44px; font-size: 18px; }
+  .slide-indicators{ bottom: 18px; gap: 10px; }
+}
+
+/* ===== Mid tablets ===== */
+@media (min-width: 641px) and (max-width: 1024px){
+  .slide{ min-height: 68vh; }
+  .image-border{ height: 68vh; }
+  .nav-button{ width: 50px; height: 50px; font-size: 20px; }
+}
+
+/* (Optional) If you ever want a slide to behave like a hero with crop:
+   add class="slide cover" to that slide. */
+.slide.cover .image-border img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* per-slide control */
+.slide.no-overlay::before { background: none !important; }
+.slide.light-overlay::before {
+  background: linear-gradient(180deg, rgba(0,0,0,.10) 0%, rgba(0,0,0,.25) 100%) !important;
+}
+.slide.strong-overlay::before {
+  background: linear-gradient(180deg, rgba(0,0,0,.35) 0%, rgba(0,0,0,.75) 100%) !important;
 }
