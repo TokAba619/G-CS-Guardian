@@ -1741,3 +1741,69 @@ body.drawer-open {
     background: linear-gradient(180deg, rgba(0,0,0,.2) 0%, rgba(0,0,0,.55) 100%);
   }
 }
+
+/* ---------- overlays per-slide ---------- */
+.slide.light-overlay::before{
+  /* a softer, brighter overlay so the image isn't crushed */
+  background: linear-gradient(180deg,
+    rgba(0,0,0,.20) 0%,
+    rgba(0,0,0,.45) 100%);
+}
+
+.slide.no-overlay::before{
+  /* logo slide: show the logo clean */
+  display: none;
+}
+
+/* ---------- default (desktop / tablet) tweaks ---------- */
+.slide{ min-height: 70vh; }
+.image-border img{ height: 70vh; object-fit: cover; }
+.slide.logo-slide .image-border img{
+  object-fit: contain;
+  background: #000;           /* keeps clean edges around the logo */
+}
+
+/* ---------- phone: make text super readable + keep more image visible ---------- */
+@media (max-width: 640px){
+
+  /* shrink image a bit to make room for text card */
+  .slide{ min-height: 82vh; }
+  .image-border img{ height: 56vh; }
+
+  /* logo slide: guarantee full logo */
+  .slide.logo-slide .image-border img{
+    height: 48vh;
+    object-fit: contain;
+  }
+
+  /* make the text sit in a readable “card” */
+  .slide-content{
+    background: rgba(0,0,0,.55);
+    backdrop-filter: blur(2px);
+    padding: 14px 16px;
+    border-radius: 16px;
+    max-width: 92vw;
+  }
+
+  .slide-title{
+    font-size: clamp(22px, 6vw, 28px);
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+
+  .slide-description{
+    font-size: clamp(14px, 4.2vw, 18px);
+    line-height: 1.6;
+    margin-bottom: 10px;
+  }
+
+  .legal-note{
+    font-size: 11px;
+    line-height: 1.5;
+    opacity: .9;
+  }
+
+  /* arrows a touch smaller so they don't cover text */
+  .nav-button{ width: 44px; height: 44px; font-size: 18px; }
+  .slide-indicators{ bottom: 18px; }
+}
