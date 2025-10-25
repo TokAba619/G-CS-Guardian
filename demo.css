@@ -1257,24 +1257,43 @@ header .container .content .logo img{
 }
 
 /* ---------- WHY-US (About) ---------- */
-@media (max-width: 1200px){
-  .why-us .container .content{ height: auto; }
-  .why-us .container .content .reason{
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0,1fr));
-    gap: 16px;
+@media (max-width: 1200px) {
+  .why-us .container .content {
+    height: auto; /* allow it to grow naturally */
   }
-  .why-us .container .content .reason .card{
-    width: 100%; height: auto; padding: 1.25rem;
+
+  /* keep using flex but allow wrapping instead of switching to grid */
+  .why-us .container .content .reason {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem;
+  }
+
+  .why-us .container .content .reason .card {
+    width: 45%;     /* 2 cards per row on tablets */
+    height: auto;
+    padding: 1.25rem;
+    overflow: visible;
   }
 }
-@media (max-width: 640px){
-  .why-us .container .content .title h1{ font-size: 2rem; }
-  .why-us .container .content .title p{ max-width: 100%; }
-  .why-us .container .content .reason{
-    grid-template-columns: 1fr;
+
+/* phones: stack cards vertically */
+@media (max-width: 640px) {
+  .why-us .container .content .title h1 { font-size: 2rem; }
+  .why-us .container .content .title p { max-width: 100%; }
+
+  .why-us .container .content .reason {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .why-us .container .content .reason .card {
+    width: 100%;
+    padding: 1.4rem 1rem;
   }
 }
+
 
 /* ---------- SLIDER ---------- */
 @media (max-width: 1200px){
