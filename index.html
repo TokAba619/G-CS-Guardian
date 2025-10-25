@@ -615,6 +615,32 @@
   });
 </script>
 
+<script>
+  // Click -> smooth scroll to #about
+  (function(){
+    const indicator = document.getElementById('scrollToAbout');
+    if (!indicator) return;
+
+    const goAbout = () => {
+      const target = document.querySelector('#about');
+      if (target) target.scrollIntoView({ behavior:'smooth', block:'start' });
+    };
+    indicator.addEventListener('click', goAbout);
+    indicator.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goAbout(); }
+    });
+
+    // Show only while the hero is on screen
+    const hero = document.getElementById('hero');
+    if (!hero) return;
+    const io = new IntersectionObserver(([entry]) => {
+      indicator.style.display = entry.isIntersecting ? 'block' : 'none';
+    }, { threshold: 0.1 });
+    io.observe(hero);
+  })();
+</script>
+
+
 
     <!-- Navbar behavior: smooth scroll + active link -->
     <script>
