@@ -1563,8 +1563,7 @@ body.drawer-open {
 
 
 /* =========================================================
-   SLIDER — one layout, scales down, no cropping
-   (Replace your entire previous slider CSS with this)
+        SLIDER — one layout, scales down, no cropping
    ========================================================= */
 
 /* Slide frame */
@@ -1575,7 +1574,7 @@ body.drawer-open {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity .6s ease, transform .6s ease;
+  transition: opacity .15s ease, transform .15s ease;
 }
 
 /* The image box owns the height; the image fits inside */
@@ -1695,4 +1694,50 @@ body.drawer-open {
 }
 .slide.strong-overlay::before {
   background: linear-gradient(180deg, rgba(0,0,0,.35) 0%, rgba(0,0,0,.75) 100%) !important;
+}
+
+/* === MOBILE POLISH (safe to append) === */
+@media (max-width: 640px){
+  /* keep the composition bright enough on phones */
+  .slide::before{
+    background: linear-gradient(180deg, rgba(0,0,0,.15) 0%, rgba(0,0,0,.45) 100%);
+  }
+
+  /* line-length & spacing */
+  .slide-content{ 
+    padding: 0 16px; 
+    max-width: 28ch;            /* ~2 lines shorter = easier to read */
+  }
+  .slide-title{ 
+    font-size: clamp(22px, 7vw, 28px);
+    margin-bottom: 8px;
+  }
+  .slide-description{
+    font-size: .95rem;
+    line-height: 1.65;
+    margin-bottom: 10px;
+  }
+  .legal-note{
+    font-size: .74rem; 
+    line-height: 1.45;
+    opacity: .9;
+  }
+
+  /* keep arrows off the text a bit */
+  .nav-button{
+    top: 58%;                   /* was 50%; nudges below the title/para */
+    width: 44px; height: 44px; font-size: 18px;
+    background: rgba(0,0,0,.16);
+    border-color: rgba(255,255,255,.35);
+  }
+
+  /* dots a touch closer to content */
+  .slide-indicators{ bottom: 16px; gap: 10px; }
+}
+
+/* Optional: lighten overlay on tablets too */
+@media (min-width: 641px) and (max-width: 1024px){
+  .slide::before{
+    background: linear-gradient(180deg, rgba(0,0,0,.2) 0%, rgba(0,0,0,.55) 100%);
+  }
 }
