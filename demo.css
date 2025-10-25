@@ -1742,72 +1742,87 @@ body.drawer-open {
   }
 }
 
-/* ========== PHONE LAYOUT: text below the slide image ========== */
+/* ========== FIX PHONE VIEW: text BELOW image ========== */
 @media (max-width: 640px) {
-  /* let the slide grow naturally and remove the dark overlay */
-  .slide{
+  /* make slide stack vertically */
+  .slide {
+    display: flex;
+    flex-direction: column;       /* image on top, text below */
+    align-items: center;
+    justify-content: flex-start;
     min-height: auto;
-    padding-top: 12px;
-    align-items: flex-start;
+    padding: 0 0 30px;
+    overflow: visible;
   }
-  .slide::before{ display: none; }    /* kill the global gradient overlay */
 
-  /* image becomes a normal block */
-  .image-border{
-    max-width: 94%;
-    margin: 0 auto 12px;
-    padding: 0;
-    border: 0;
-    box-shadow: none;
-    background: transparent;
+  /* remove the dark overlay layer */
+  .slide::before {
+    display: none;
   }
-  .image-border img{
+
+  /* image full width on phone */
+  .image-border {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    border: none;
+    padding: 0;
+    background: none;
+  }
+
+  .image-border img {
     width: 100%;
     height: auto;
     object-fit: contain;
   }
 
-  /* logo slide: always show full logo */
-  .slide.logo-slide .image-border img{
+  /* logo slide: always visible full logo */
+  .slide.logo-slide .image-border img {
     object-fit: contain;
+    height: auto;
   }
 
-  /* text card sits under the image */
-  .slide-content{
-    position: static;          /* no absolute overlay */
+  /* text block below the image */
+  .slide-content {
+    position: relative;
     transform: none;
+    top: auto; left: auto;
     text-align: center;
-    max-width: 680px;
-    margin: 0 auto 24px;
-    padding: 14px 16px 20px;
-
-    /* optional glass card for readability on busy images */
-    background: rgba(0,0,0,.55);
-    border: 1px solid rgba(255,255,255,.08);
+    max-width: 92%;
+    margin-top: 15px;
+    padding: 14px 16px;
+    background: rgba(0, 0, 0, 0.55);
     border-radius: 16px;
     backdrop-filter: blur(2px);
   }
 
-  .slide-title{
+  .slide-title {
     font-size: clamp(22px, 6vw, 28px);
-    margin: 0 0 8px;
-    line-height: 1.2;
-  }
-  .slide-description{
-    font-size: clamp(14px, 4.2vw, 16px);
-    line-height: 1.65;
-    margin: 0 0 10px;
-  }
-  .legal-note{
-    font-size: 12px;
-    opacity: .95;
+    margin-bottom: 8px;
+    line-height: 1.25;
   }
 
-  /* controls a bit smaller and lower */
-  .nav-button{
-    width: 44px; height: 44px; font-size: 18px;
-    top: 38%;
-    transform: translateY(-50%);
+  .slide-description {
+    font-size: clamp(14px, 4vw, 16px);
+    line-height: 1.65;
+    margin-bottom: 10px;
   }
-  .slide-indicators{ bottom: 14px; }
+
+  .legal-note {
+    font-size: 12px;
+    opacity: 0.9;
+  }
+
+  /* reposition arrows to center vertically relative to image */
+  .nav-button {
+    top: 40%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+
+  .slide-indicators {
+    bottom: 14px;
+  }
 }
