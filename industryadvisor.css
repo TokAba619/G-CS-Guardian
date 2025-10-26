@@ -355,11 +355,6 @@ body{
   width: 72px;
 }
 
-/* give the page a little more top room under the sticky header */
-.page{
-  padding-top: 40px;
-}
-
 /* --- mobile/WebKit 3D & flip hardening --- */
 .card { perspective: 1200px; -webkit-perspective: 1200px; }
 .card-inner{
@@ -375,4 +370,37 @@ body{
 /* Only enable hover flip on devices that actually have hover */
 @media (hover: hover) and (pointer: fine){
   .card:hover .card-inner{ transform: rotateY(180deg); }
+}
+
+/* --- final mobile fixes (append at end) --- */
+@media (max-width: 640px){
+  /* free the fixed desktop height so the card can size naturally */
+  .card-inner{
+    height: auto;              /* overrides the 520px */
+    aspect-ratio: 3 / 4;       /* keep a nice proportion */
+    border-radius: 16px;
+  }
+
+  /* make sure the back side can scroll if content is long */
+  .card-face.back{
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    max-height: 100%;
+  }
+
+  /* keep the bottom readability fade on the photo */
+  .card-face.front{
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #000; /* fallback while image loads */
+  }
+  .card-face.front::after{
+    content:"";
+    position:absolute; inset:auto 0 0 0;
+    height:52%;
+    background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.75) 100%);
+    pointer-events:none;
+  }
 }
