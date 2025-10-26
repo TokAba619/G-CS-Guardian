@@ -93,3 +93,87 @@ a:hover { text-decoration: none; }
 /* Optional wrappers to mirror your structure */
 .main { width: 100%; }
 .content { max-width: 1200px; margin: 0 auto; }
+
+/* === Mobile polish (keeps desktop exactly the same) === */
+@media (max-width: 640px){
+
+  /* tighter brand row */
+  .navbar{
+    padding: 14px 16px;
+  }
+  .group-logo{
+    height: 56px;
+  }
+  .logo-text{
+    font-size: 22px;
+  }
+
+  /* comfy reading container */
+  .pp-container{
+    margin: 16px auto;
+    padding: 18px;
+    border-radius: 10px;
+    line-height: 1.7;               /* easier to read blocks */
+  }
+
+  /* type scale */
+  h1{
+    font-size: clamp(20px, 7vw, 28px);
+    margin-bottom: 12px;
+  }
+  h2{
+    font-size: clamp(16px, 5.2vw, 20px);
+    margin: 18px 0 8px;
+  }
+  p,
+  li{
+    font-size: 15.5px;
+  }
+
+  /* lists: better spacing and bullets alignment */
+  ul{
+    margin: 0 0 14px 1.1rem;
+  }
+  li{
+    margin: 6px 0;
+  }
+
+  /* helpful in-page TOC for small screens (hidden on desktop by default) */
+  .toc{
+    display: block;
+    margin: 8px 0 16px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 10px;
+    background: rgba(255,255,255,.04);
+  }
+  .toc ul{
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* compact two-column list */
+    gap: 8px 12px;
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
+  }
+  .toc a{
+    display: inline-block;
+    font-size: 13.5px;
+    line-height: 1.35;
+    color: #fff;
+    text-decoration: none;
+    border-bottom: 1px dashed rgba(255,255,255,.25);
+  }
+
+  /* links are more obvious on dark bg */
+  a{ text-decoration: underline; }
+
+  /* footer spacing */
+  .footer{
+    margin-top: 24px;
+    padding: 16px;
+    font-size: 12.5px;
+  }
+}
+
+/* hide the TOC by default so desktop layout is unchanged */
+.toc{ display:none; }
