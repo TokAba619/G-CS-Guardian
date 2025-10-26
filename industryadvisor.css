@@ -443,3 +443,101 @@ body{
   .advisor-header .brand-text{ font-size: 22px; }
   .advisor-header img{ width: 72px; }
 }
+
+/* --- Mobile/WebKit 3D + layout hardening (append at end) --- */
+
+/* WebKit 3D: make sure the flip works consistently */
+.card{ perspective:1200px; -webkit-perspective:1200px; }
+.card-inner{
+  transform-style:preserve-3d;
+  -webkit-transform-style:preserve-3d;
+  will-change:transform;
+}
+.card-face{
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+}
+
+/* Hover flip only on real-hover devices */
+@media (hover:hover) and (pointer:fine){
+  .card:hover .card-inner{ transform:rotateY(180deg); }
+}
+
+/* PHONE LAYOUT RESCUE */
+@media (max-width:640px){
+
+  /* keep content clearly below the sticky header */
+  .advisor-header{
+    position:sticky;
+    top:0;
+    z-index:50;
+    background:rgba(0,0,0,.6);
+    backdrop-filter:blur(6px);
+  }
+  .page{ padding-top:72px; } /* give extra headroom on phones */
+
+  /* tighten title & subtitle and align left */
+  .title{
+    font-size:clamp(28px,8vw,40px);
+    letter-spacing:.06em;
+    line-height:1.15;
+    margin:18px 16px 6px;
+    text-align:left;
+  }
+  .subtitle{
+    margin:0 16px 12px;
+    max-width:30ch;
+    text-align:left;
+  }
+
+  /* one column grid and remove weird gap under subtitle */
+  .advisor-grid{
+    grid-template-columns:1fr;
+    gap:16px;
+    padding:0 16px;
+    margin-top:8px;
+  }
+
+  /* give the card a reliable height on small screens */
+  .card{ min-height:72vw; }              /* ensures space for the card */
+  .card-inner{
+    height:100%;                          /* fill the card’s height */
+    aspect-ratio:auto;                    /* override desktop fixed ratio */
+    border-radius:16px;
+  }
+
+  /* FRONT face: force the background image + a bottom readability fade */
+  .card-face.front{
+    position:relative;
+    background: var(--img) center/cover no-repeat;
+  }
+  .card-face.front::after{
+    content:"";
+    position:absolute; inset:auto 0 0 0;
+    height:52%;
+    background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.75) 100%);
+    pointer-events:none;
+  }
+
+  /* meta block pinned to the bottom of the image */
+  .meta{
+    position:absolute;
+    inset:auto 0 0 0;
+    padding:14px 14px 16px;
+    z-index:1;
+  }
+
+  /* BACK face scrolls if content is long (prevents overflow) */
+  .card-face.back{
+    padding:16px;
+    overflow:auto;
+    border-radius:16px;
+  }
+
+  /* scale brand */
+  .advisor-header .brand-text{ font-size:22px; }
+  .advisor-header img{ width:72px; }
+
+  /* (optional) kill any accidental 1px separators under headings on phones */
+  .title, .subtitle { border:0; box-shadow:none; }
+}
