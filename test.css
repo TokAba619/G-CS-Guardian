@@ -164,3 +164,53 @@ input[type="email"]:focus, input[type="password"]:focus{
   .card{ border-radius:16px; }
   .card-title{ font-size:24px; }
 }
+
+/* --- a11y polish --- */
+:where(input, .btn):focus-visible{
+  outline: 2px solid var(--pink);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.01ms !important; animation-iteration-count:1 !important; transition:none !important}
+}
+
+/* --- mobile polish (keeps laptop unchanged) --- */
+@media (max-width:520px){
+  /* brand bar a bit tighter + safe area */
+  .brandbar{
+    height:64px;
+    padding:0 14px;
+    padding-top: max(env(safe-area-inset-top), 0px);
+  }
+  .brandbar .brand img{ width:72px; }
+  .brandbar .brand .title{ font-size:20px; }
+
+  /* ensure content starts below brand bar and respects notches */
+  .wrap{
+    min-height:100svh; /* better on mobile than 100dvh */
+    padding-top: calc(64px + 12px + max(env(safe-area-inset-top), 0px));
+    padding-left:16px;
+    padding-right:16px;
+  }
+
+  /* compact card spacing */
+  .card{ border-radius:16px; max-width:420px; }
+  .card-head{ padding:20px 20px 6px; }
+  .card-logo{ width:120px; height:120px; }
+  .card-title{ font-size:24px; }
+  .card-body{ padding:16px 20px 20px; }
+
+  /* prevent iOS zoom on focus + bigger tap targets */
+  input[type="email"], input[type="password"]{
+    font-size:16px;     /* >=16px avoids iOS zoom */
+    padding:14px;
+  }
+  .btn{ padding:14px 16px; }
+}
+
+/* clarify disabled state for screen readers + visuals */
+.btn-google.disabled{
+  pointer-events:none;
+  opacity:.55;
+  filter: grayscale(0.2);
+}
