@@ -663,7 +663,6 @@ button .btn-logo {
   font-weight: 700;
   color: var(--cyan, #E91E63);
   text-decoration: none;
-  word-break: break-all;
 }
 .contact-email:hover { text-decoration: underline; }
 
