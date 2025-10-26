@@ -527,6 +527,19 @@ button .btn-logo {
   border: 2px solid var(--white); border-radius: 32px;
 }
 
+/* Fix for phone description text alignment under REAL CASES section */
+@media (max-width: 640px) {
+  .real-cases p,
+  .real-cases .description {
+    text-align: justify;        /* smooth left & right edges */
+    text-justify: inter-word;   /* even word spacing */
+    line-height: 1.7;           /* better readability */
+    margin: 0 auto 15px;
+    max-width: 90%;
+  }
+}
+
+
 /* =========================
    CONTACT
    ========================= */
