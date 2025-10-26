@@ -2,111 +2,157 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Privacy Policy | CS-Guardian</title>
+  <link rel="icon" type="image/png" href="/logo.png" />
+  <!-- Move all styles to privacy.css -->
   <link rel="stylesheet" href="privacy.css" />
 </head>
 <body>
 
-  <!-- Navbar (matches your other pages) -->
+  <!-- Navbar (matches other pages) -->
   <div class="main">
     <div class="content">
       <div class="navbar">
         <a href="signup.html" class="logo-link">
-          <img src="logo.png" alt="Group Logo" class="group-logo" />
+          <img src="logo.png" alt="CS-Guardian logo" class="group-logo" />
           <span class="logo-text">CS-Guardian</span>
         </a>
       </div>
     </div>
   </div>
 
-  <!-- Privacy content -->
-  <div class="pp-container">
+  <main class="pp-container">
     <h1>Privacy Policy</h1>
-    <p><strong>Effective Date:</strong> 2/9/2025<br>
-    </p>
+    <p class="effective-date"><strong>Effective Date:</strong> 2/9/2025</p>
 
-    <h2>1. Introduction</h2>
-    <p>
-      This Privacy Policy explains how <strong>CS-Guardian</strong> (System, we, our, or us) collects, uses,
-      stores, and protects personal information when you (“User”) access or use the System. By using the System,
-      you consent to the practices described in this Policy. We are committed to safeguarding your data in
-      compliance with the <strong>Personal Data Protection Act 2010 (PDPA)</strong> of Malaysia.
-    </p>
+    <section id="intro">
+      <h2>1. Introduction</h2>
+      <p>
+        This Privacy Policy explains how <strong>CS-Guardian</strong> (System, we, our, or us) collects, uses,
+        stores, and protects personal information when you (“User”) access or use the System. By using the System,
+        you consent to the practices described in this Policy. We are committed to safeguarding your data in
+        compliance with the <strong>Personal Data Protection Act 2010 (PDPA)</strong> of Malaysia.
+      </p>
+    </section>
 
-    <h2>2. Information We Collect</h2>
-    <ul>
-      <li><strong>User Information:</strong> Name, email address, Google account details.</li>
-      <li><strong>Authentication Data:</strong> Google OAuth tokens or access credentials (used only for System functions).</li>
-      <li><strong>System Data:</strong> Scan results such as bucket configurations, permissions, risk scores, sensitive keywords, and exposure states.</li>
-      <li><strong>Optional Data (Ethical Mode):</strong> File metadata, sample files, or listings, if you explicitly enable this mode.</li>
-      <li><strong>Technical Data:</strong> IP address, browser type, login timestamps, and activity logs for auditing and security.</li>
-    </ul>
+    <section id="info">
+      <h2>2. Information We Collect</h2>
+      <ul>
+        <li><strong>User Information:</strong> Name, email address, and Google account details collected through Google OAuth for authentication.</li>
+        <li><strong>Authentication Data:</strong> OAuth tokens (encrypted and temporary) used only to perform authorized scans of your Google Cloud Storage environment.</li>
+        <li><strong>System Data:</strong> Project IDs, bucket names, metadata, configurations, permissions, risk scores, sensitive keywords, and exposure states.</li>
+        <li><strong>My-Scans &amp; History Data:</strong> Records of your previous scans (My-Scans) and, if you are a Project Owner, audit logs for your project (History).</li>
+        <li><strong>Email Notification Data:</strong> Your email is used to send transactional notifications such as scan completion summaries or security alerts.</li>
+        <li><strong>AI Assistance Data:</strong> If you use “Fix Bucket with AI,” your selected findings and context are processed to generate automated recommendations via Google Vertex AI.</li>
+        <li><strong>Optional Data (Ethical Mode):</strong> File metadata, sample files, or listings, if you explicitly enable this mode.</li>
+        <li><strong>Technical Data:</strong> IP address, browser type, login timestamps, and activity logs for auditing and security purposes.</li>
+      </ul>
+    </section>
 
-    <h2>3. How We Use Your Information</h2>
-    <ul>
-      <li>Enable authentication and user login.</li>
-      <li>Perform requested storage bucket scans.</li>
-      <li>Generate risk scores, alerts, and reports.</li>
-      <li>Maintain audit trails for transparency.</li>
-      <li>Improve performance, reliability, and security.</li>
-      <li>Comply with legal and regulatory requirements.</li>
-    </ul>
+    <section id="use">
+      <h2>3. How We Use Your Information</h2>
+      <ul>
+        <li>Authenticate and sign you in securely through Google OAuth.</li>
+        <li>Perform authorized storage bucket scans within your Google Cloud project.</li>
+        <li>Generate and display risk reports, alerts, and AI-guided remediation steps.</li>
+        <li>Maintain My-Scans and History records for reference and audit purposes.</li>
+        <li>Send email notifications about completed scans or important updates.</li>
+        <li>Enhance performance, reliability, and user experience.</li>
+        <li>Comply with applicable laws and data protection requirements.</li>
+      </ul>
+    </section>
 
-    <h2>4. Data Sharing and Disclosure</h2>
-    <p>
-      We do <strong>not</strong> sell, rent, or trade your personal data. Your information may be shared only:
-    </p>
-    <ul>
-      <li><strong>With your consent,</strong> for features like Ethical Mode.</li>
-      <li><strong>With service providers</strong> that support hosting, storage, or security (under confidentiality obligations).</li>
-      <li><strong>When required by law</strong> or court order in Malaysia.</li>
-    </ul>
+    <section id="sharing">
+      <h2>4. Data Sharing and Disclosure</h2>
+      <p>We do <strong>not</strong> sell, rent, or trade your personal data. Your information may be shared only:</p>
+      <ul>
+        <li><strong>With your consent,</strong> for features such as Ethical Mode or AI recommendations.</li>
+        <li><strong>With service providers</strong> that support hosting, email delivery, or security under confidentiality agreements.</li>
+        <li><strong>When required by law</strong> or court order within Malaysia.</li>
+      </ul>
+    </section>
 
-    <h2>5. Data Storage and Retention</h2>
-    <p>
-      Personal data and scan results are stored securely in our database. We retain data only as long as necessary
-      for security scanning, auditing, or compliance. You may request deletion of your data by revoking consent or contacting us.
-    </p>
+    <section id="storage">
+      <h2>5. Data Storage and Retention</h2>
+      <p>
+        Personal data and scan results are stored securely in our database and protected by encryption and access controls.
+        We retain data only as long as necessary for scanning, reporting, or auditing. OAuth tokens expire automatically
+        in line with Google’s security policies. You may revoke access or request data deletion by contacting us.
+      </p>
+    </section>
 
-    <h2>6. Your Rights (PDPA 2010)</h2>
-    <ul>
-      <li>Request access to personal data we hold about you.</li>
-      <li>Request correction of inaccurate or incomplete data.</li>
-      <li>Withdraw consent and stop using the System at any time.</li>
-      <li>Request deletion of your personal data, subject to legal obligations.</li>
-    </ul>
+    <section id="rights">
+      <h2>6. Your Rights (PDPA 2010)</h2>
+      <ul>
+        <li>Request access to personal data we hold about you.</li>
+        <li>Request correction of inaccurate or incomplete information.</li>
+        <li>Withdraw consent and disconnect your Google account at any time.</li>
+        <li>Request deletion of your data, subject to legal obligations.</li>
+      </ul>
+    </section>
 
-    <h2>7. Security Measures</h2>
-    <p>
-      We implement appropriate technical and organizational safeguards (e.g., encryption, access controls, activity monitoring).
-      However, no system is entirely secure and we cannot guarantee absolute protection.
-    </p>
+    <section id="security">
+      <h2>7. Security Measures</h2>
+      <p>
+        We implement appropriate technical and organizational safeguards including HTTPS encryption, secure authentication,
+        role-based access control, and activity monitoring. However, no system is entirely secure, and we cannot guarantee
+        absolute protection against unauthorized access or disclosure.
+      </p>
+    </section>
 
-    <h2>8. Third-Party Services</h2>
-    <p>
-      The System integrates with <strong>Google Cloud Platform APIs</strong>. Your use of these services is also subject
-      to Google’s Privacy Policy and terms.
-    </p>
+    <section id="third">
+      <h2>8. Third-Party Services</h2>
+      <p>
+        The System integrates with <strong>Google OAuth</strong> and <strong>Google Cloud Platform APIs</strong> for authentication
+        and scanning. We also use <strong>Google Vertex AI</strong> to provide “Fix Bucket with AI” recommendations.
+        Your use of these services is subject to Google’s
+        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacy Policy</a>.
+      </p>
+    </section>
 
-    <h2>9. Changes to this Policy</h2>
-    <p>
-      We may update this Policy from time to time. Updates will be reflected with a new “Effective Date” at the top of this page.
-    </p>
+    <section id="alignment">
+      <h2>8A. Security and Compliance Alignment</h2>
+      <p>
+        We follow recognized cybersecurity and privacy frameworks to protect user data, although CS-Guardian is not currently certified.
+        Our practices are guided by the following standards and frameworks:
+      </p>
+      <ul>
+        <li><strong>Personal Data Protection Act 2010 (PDPA)</strong> — We handle all personal data according to Malaysian privacy requirements.</li>
+        <li><strong>ISO/IEC 27001 and 27002 (Guidance)</strong> — We apply best practices in access control, encryption, and incident management.</li>
+        <li><strong>NIST Cybersecurity Framework (CSF)</strong> — Our operations align with the Identify–Protect–Detect–Respond–Recover model.</li>
+        <li><strong>OWASP Application Security Practices</strong> — We follow secure coding and testing methods to reduce common vulnerabilities.</li>
+        <li><strong>Google API Services User Data Policy (Limited Use)</strong> — OAuth data is used only for the purpose of performing authorized scans and is never sold or shared.</li>
+      </ul>
+      <p>
+        Key measures include encryption in transit and at rest, least-privilege access control, audit logging, vulnerability
+        management, and an internal incident response plan. If we obtain formal certifications in the future (ISO/IEC 27001),
+        we will update this Policy accordingly.
+      </p>
+    </section>
 
-    <h2>10. Contact Us</h2>
-    <p>
-      <strong>CS-Guardian Team</strong><br>
-      📧 Email: support@gcsguardian.com
-    </p>
+    <section id="changes">
+      <h2>9. Changes to this Policy</h2>
+      <p>
+        We may update this Policy from time to time. Updates will be reflected with a new “Effective Date” at the top of this page.
+      </p>
+    </section>
 
-    <p class="legal-links">
-      See also our <a href="TnC.html">Terms &amp; Conditions</a>.
-    </p>
-  </div>
+    <section id="contact">
+      <h2>10. Contact Us</h2>
+      <p>
+        <strong>CS-Guardian Team</strong><br />
+        📧 Email: <a href="mailto:support@csguardian.com">support@csguardian.com</a>
+      </p>
+      <p class="legal-links">
+        See also our <a href="TnC.html">Terms &amp; Conditions</a>.
+      </p>
+    </section>
+  </main>
 
-  <div class="footer">
+  <footer class="footer">
     © 2025 CS-Guardian. All rights reserved.
-  </div>
+  </footer>
 
 </body>
 </html>
