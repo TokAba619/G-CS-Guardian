@@ -1847,3 +1847,32 @@ body.drawer-open {
     bottom: 14px;
   }
 }
+
+/* ==== REAL CASES: clean mobile alignment ==== */
+@media (max-width: 640px) {
+  /* make the title block left-aligned */
+  .destination .container .content .title {
+    align-items: flex-start;
+  }
+
+  .destination .container .content .title h1 {
+    letter-spacing: .06em;   /* your earlier tweak is fine */
+    line-height: 1.2;
+    margin-left: 0;          /* ensure no extra indent */
+  }
+
+  /* paragraph: align with title, no weird gaps */
+  .destination .container .content .title p {
+    max-width: 100%;         /* stop narrowing the block */
+    margin: 8px 0 16px 0;    /* no auto-centering */
+    text-align: left;        /* remove justify */
+    text-justify: auto;
+    line-height: 1.6;
+  }
+}
+@media (max-width: 640px) {
+  .destination .container .content .title p {
+    overflow-wrap: anywhere;
+    hyphens: auto;
+  }
+}
