@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>CS-Guardian Login</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/png" href="/logo.png" />
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Saira:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-  <!-- Styles -->
   <link rel="stylesheet" href="test.css" />
 </head>
 <body>
@@ -32,14 +32,32 @@
       </div>
 
       <form id="loginForm" class="card-body" novalidate>
-        <label class="field">
+        <label class="field" for="email">
           <span class="field-label">Admin Email address<span class="req">*</span></span>
-          <input type="email" id="email" name="username" placeholder="name@gmail.com" required />
+          <input
+            type="email"
+            id="email"
+            name="username"
+            placeholder="name@gmail.com"
+            required
+            autocomplete="email"
+            inputmode="email"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
+          />
         </label>
 
-        <label class="field">
+        <label class="field" for="password">
           <span class="field-label">Admin Password<span class="req">*</span></span>
-          <input type="password" id="password" name="password" placeholder="••••••••" required />
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="••••••••"
+            required
+            autocomplete="current-password"
+          />
         </label>
 
         <button type="submit" class="btn btn-primary">Login</button>
@@ -51,36 +69,43 @@
         <!-- Consent + inline message -->
         <div class="consent">
           <label class="checkbox" for="tncCheck">
-            <input type="checkbox" id="tncCheck" />
+            <input type="checkbox" id="tncCheck" aria-describedby="tncError" />
             <span>I agree to the
               <a href="TnC.html" target="_self" rel="noopener">Terms &amp; Conditions</a>
               and
               <a href="privacy.html" target="_self" rel="noopener">Privacy Policy</a>.
             </span>
           </label>
-          <div id="tncError" class="error" style="display:none;">Please agree to the Terms &amp; Conditions to continue.</div>
+          <div id="tncError" class="error" style="display:none;" role="status" aria-live="polite">
+            Please agree to the Terms &amp; Conditions to continue.
+          </div>
         </div>
 
         <!-- Google OAuth button (disabled until user ticks consent) -->
         <a
           id="googleLogin"
           class="btn btn-google disabled"
-          href="https://gcp-bucket-detector-backend-661175673686.us-central1.run.app/auth/login"
+          href="https://api.csguardian.com/auth/login?return_to=https://csguardian.com"
           aria-disabled="true"
+          role="button"
         >
           <img src="https://developers.google.com/identity/images/g-logo.png" alt="" />
           <span>Login with Google</span>
         </a>
 
         <!-- Admin login error -->
-        <div id="error" class="error" role="alert" style="display:none;"></div>
+        <div id="error" class="error" role="alert" aria-live="assertive" style="display:none;"></div>
+
+        <noscript>
+          <p class="error" style="margin-top:12px;">JavaScript is required to log in.</p>
+        </noscript>
       </form>
     </section>
   </div>
 
   <script>
   // ===== Config =====
-  const API_BASE                = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app";
+  const API_BASE                = "https://api.csguardian.com";
   const CONSENT_ENDPOINT        = API_BASE + "/consent";
   const CONSENT_REVOKE_ENDPOINT = API_BASE + "/consent/revoke";
   const CONSENT_ME_ENDPOINT     = API_BASE + "/consent/me";
@@ -295,6 +320,5 @@
     });
   }
   </script>
-
 </body>
 </html>
