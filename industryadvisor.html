@@ -1,24 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta charset="utf-8" />
-  <title>Industry Advisors G-CS Guardian</title>
- <link rel="icon" type="image/png" href="/logo.png" />
- 
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Industry Advisors • G-CS Guardian</title>
+  <link rel="icon" type="image/png" href="/logo.png" />
+
   <!-- Inter font -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
   <!-- Styles -->
   <link rel="stylesheet" href="industryadvisor.css">
 </head>
 <body>
 
-    <header class="advisor-header">
-  <a href="index.html" class="brand">
-    <img src="logo.png" alt="G-CS Guardian logo">
-    <span class="brand-text">G-CS Guardian</span>
-  </a>
-</header>
+  <!-- Header / brand -->
+  <header class="advisor-header">
+    <a href="index.html" class="brand">
+      <img src="logo.png" alt="G-CS Guardian logo" decoding="async">
+      <span class="brand-text">G-CS Guardian</span>
+    </a>
+  </header>
 
   <main class="page">
     <h1 class="title">Our Industry Advisors</h1>
@@ -29,7 +32,11 @@
       <article class="card" aria-label="Advisor Card 1">
         <div class="card-inner" tabindex="0">
           <!-- FRONT -->
-          <div class="card-face front" style="background-image:url('msadani.jpg')">
+          <div
+            class="card-face front"
+            role="img"
+            aria-label="Portrait of Ms. Adani"
+            style="background-image:url('msadani.jpg')">
             <span class="badge">Industry Advisor</span>
             <div class="meta">
               <h2 class="name">Ms. Adani</h2>
@@ -38,22 +45,24 @@
                 <span class="chip">Cloud Engineer</span>
                 <span class="chip">AWS</span>
                 <span class="chip">Microsoft Azure</span>
-                <span class="chip">Senior Cloud PenTest & DevSecOps</span>
+                <span class="chip">Senior Cloud PenTest &amp; DevSecOps</span>
                 <span class="chip">Senior CyberSecurity</span>
               </div>
             </div>
           </div>
+
           <!-- BACK -->
           <div class="card-face back">
             <h3>About</h3>
             <p>
               Ms. Adani guided the team in understanding and applying Google Cloud Storage effectively. She provided direction on where to begin, explained how the technology is used in real-world contexts, and consistently reviewed our progress during meetings. Her mentorship also extended to advising us on technical priorities for both the front-end and back-end, as well as recommendations on FYP purchases. Along with Sir Amir, she regularly suggested improvements after each project update to keep us moving forward.
-            </p><br>
+            </p>
+            <br>
             <h3>Key Contributions</h3>
             <ul class="list">
               <li>Guided study approach for Google Cloud Storage</li>
               <li>Explained real-world use cases and best practices</li>
-              <li>Advised on front-end and back-end priorities</li>            
+              <li>Advised on front-end and back-end priorities</li>
               <li>Recommended FYP purchase priorities</li>
               <li>Suggested continuous improvements after progress updates</li>
             </ul>
@@ -64,7 +73,12 @@
       <!-- Advisor 2 -->
       <article class="card" aria-label="Advisor Card 2">
         <div class="card-inner" tabindex="0">
-          <div class="card-face front" style="background-image:url('mrhaslan.jpg')">
+          <!-- FRONT -->
+          <div
+            class="card-face front"
+            role="img"
+            aria-label="Portrait of Mr. Haslan"
+            style="background-image:url('mrhaslan.jpg')">
             <span class="badge">Industry Advisor</span>
             <div class="meta">
               <h2 class="name">Mr. Haslan</h2>
@@ -79,17 +93,20 @@
               </div>
             </div>
           </div>
+
+          <!-- BACK -->
           <div class="card-face back">
             <h3>About</h3>
             <p>
               Mr. Haslan provided valuable insights after the system reached full functionality. He encouraged the team to go beyond the regular level, suggesting improvements that would enhance the system’s overall impact and ensure it delivers greater value. His guidance helped us look at the project from a broader perspective and focus on long-term usability and effectiveness.
-            </p><br>
+            </p>
+            <br>
             <h3>Key Contributions</h3>
             <ul class="list">
               <li>Encouraged improvements beyond basic functionality</li>
               <li>Suggested ways to increase project impact</li>
               <li>Guided enhancement strategies for system performance and value</li>
-              <li>Proposed a live dashboard for real-time scan results and Key Performance Indicators (KPIs)</li>
+              <li>Proposed a live dashboard for real-time scan results and KPIs</li>
               <li>Recommended using AI to generate step-by-step remediation guidance</li>
             </ul>
           </div>
@@ -97,7 +114,7 @@
       </article>
     </section>
 
-    <p class="tap-hint">Hover to flip (desktop) Tap once to flip, tap outside to reset (mobile)</p>
+    <p class="tap-hint">Hover to flip (desktop). Tap once to flip, tap outside to reset (mobile).</p>
 
     <div class="cta">
       <a class="btn" href="index.html#aboutus">Back to Homepage</a>
