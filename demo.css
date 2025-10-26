@@ -680,6 +680,26 @@ button .btn-logo {
 .copy-btn:hover { background: #E91E63; }
 .copy-btn:active { transform: scale(0.98); }
 
+/* === CONTACT SECTION FIX (Prevent email breaking on phone) === */
+@media (max-width: 640px) {
+  .contact-email-box,
+  .contact-email {
+    white-space: nowrap;      /* keep email on one line */
+    overflow-x: auto;         /* allow horizontal scroll if needed */
+    text-align: center;       /* center nicely */
+    word-break: keep-all;     /* don’t break between letters */
+    font-size: clamp(14px, 4vw, 16px);
+  }
+
+  /* ensure text inside spans or p stays in one line too */
+  .contact-email span,
+  .contact-email p {
+    white-space: nowrap;
+  }
+}
+
+
+
 /* ---------- RESPONSIVE ---------- */
 @media (max-width: 992px) {
   .contact .container .content {
