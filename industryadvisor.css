@@ -358,3 +358,88 @@ body{
 .page{
   padding-top: 40px;
 }
+
+/* --- mobile/WebKit 3D & flip hardening --- */
+.card { perspective: 1200px; -webkit-perspective: 1200px; }
+.card-inner{
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  will-change: transform;
+}
+.card-face{
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Only enable hover flip on devices that actually have hover */
+@media (hover: hover) and (pointer: fine){
+  .card:hover .card-inner{ transform: rotateY(180deg); }
+}
+
+/* --- phone polish & spacing --- */
+@media (max-width: 640px){
+  /* tighten heading block, keep it left-aligned */
+  .title{
+    font-size: clamp(28px, 8vw, 40px);
+    letter-spacing: .06em;
+    line-height: 1.15;
+    margin: 18px 16px 6px;
+    text-align: left;
+  }
+  .subtitle{
+    margin: 0 16px 12px;
+    max-width: 30ch;
+    text-align: left;
+  }
+
+  /* make sure the grid sits right under the subtitle */
+  .advisor-grid{
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 0 16px;
+    margin-top: 8px;            /* removes the big “mystery gap” */
+  }
+
+  /* consistent tall cards on phones */
+  .card-inner{
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    height: auto;               /* don’t keep the desktop fixed height */
+    border-radius: 16px;
+  }
+
+  /* readable text on photos (overlay at the bottom of the image) */
+  .card-face.front{ position: relative; }
+  .card-face.front::after{
+    content:"";
+    position:absolute; inset:auto 0 0 0;
+    height: 52%;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.75) 100%);
+    pointer-events: none;
+  }
+  .meta{
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 14px 14px 16px;
+    z-index: 1;
+  }
+
+  /* back face scrolls if content is long (prevents overflow off-screen) */
+  .card-face.back{
+    padding: 16px;
+    overflow: auto;
+    border-radius: 16px;
+  }
+
+  /* sticky header, but don’t overlap content */
+  .advisor-header{
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(0,0,0,.6);
+    backdrop-filter: blur(6px);
+  }
+  .page{ padding-top: 40px; }
+
+  /* scale the brand a touch on phones */
+  .advisor-header .brand-text{ font-size: 22px; }
+  .advisor-header img{ width: 72px; }
+}
