@@ -405,3 +405,23 @@ body{
   /* a little extra space so the sticky header never overlaps */
   .page{ padding-top: 48px; }
 }
+
+
+
+/* --- Phone fix: back side should start at the top and be scrollable --- */
+@media (max-width: 640px){
+  /* Let the back face lay out from the top, not bottom */
+  .card-face.back{
+    display: block;                 /* stop flex-bottom packing */
+    justify-content: flex-start;    /* override the base rule */
+    align-items: initial;
+    padding: 16px;
+    overflow: auto;                 /* if content is long, it scrolls */
+    -webkit-overflow-scrolling: touch;
+    max-height: calc(100vh - 180px);/* fit under sticky header + margins */
+    border-radius: 16px;
+  }
+
+  /* Remove the negative margin that was pulling titles up */
+  .back h3{ margin-top: 0; }
+}
