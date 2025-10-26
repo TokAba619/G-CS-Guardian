@@ -527,10 +527,9 @@ button .btn-logo {
   border: 2px solid var(--white); border-radius: 32px;
 }
 
-/* Fix for phone description text alignment under REAL CASES section */
+/* Fix for phone description text alignment in REAL CASES section */
 @media (max-width: 640px) {
-  .real-cases p,
-  .real-cases .description {
+  .destination .container .content .title p {
     text-align: justify;        /* smooth left & right edges */
     text-justify: inter-word;   /* even word spacing */
     line-height: 1.7;           /* better readability */
@@ -538,6 +537,14 @@ button .btn-logo {
     max-width: 90%;
   }
 }
+@media (max-width: 640px) {
+  /* tighten big title spacing on small screens */
+  .destination .container .content .title h1 {
+    letter-spacing: .06em;   /* was .12em in your other rule */
+    line-height: 1.2;
+  }
+}
+
 
 
 /* =========================
