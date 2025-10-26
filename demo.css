@@ -543,6 +543,13 @@ button .btn-logo {
   }
 }
 
+@media (max-width: 640px) {
+  .destination .container .content .title p {
+    line-height: 1.75;     /* softer vertical spacing */
+    font-size: 0.98rem;    /* slightly smaller, smoother text */
+    color: #ddd;           /* gentle contrast for long reading */
+  }
+}
 
 
 
