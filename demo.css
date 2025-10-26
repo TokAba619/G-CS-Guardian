@@ -1789,8 +1789,9 @@ body.drawer-open {
     top: auto; left: auto;
     text-align: center;
     max-width: 92%;
-    margin-top: 15px;
-    padding: 14px 16px;
+    margin-top: 5px;       /* was 15px — tighter spacing */
+    margin-bottom: 18px;   /* optional, adds a bit of bottom gap */
+    padding: 12px 14px 16px;
     background: rgba(0, 0, 0, 0.55);
     border-radius: 16px;
     backdrop-filter: blur(2px);
