@@ -2,10 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>CS-Guardian Tool</title>
+
+  <link rel="icon" type="image/png" href="/logo.png" />
+  <link rel="stylesheet" href="https://unpkg.com/intro.js/minified/introjs.min.css">
+  <script src="https://unpkg.com/intro.js/minified/intro.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="stylesheet" href="web.css">
+
   <style>
     :root { --cyan: #E91E63; --accent:#E91E63; }
 
@@ -219,12 +224,6 @@
 }
   </style>
 </head>
-<body>
-  <nav class="navbar" id="navbar">
-    <a href="#" class="navbar-brand" id="logoutLogo" aria-label="Log out">
-  <img src="logo.png" alt="G-CS Guardian Logo" class="brand-logo">
-  <span>CS-Guardian</span>
-</a>
 
 <script>
   // Centralized logout
@@ -251,110 +250,138 @@
       window.location.replace(redirectTo);
     }
   }
-
-  // Make the logo perform logout
-  document.getElementById("logoutLogo")?.addEventListener("click", (e) => {
-    e.preventDefault();
-    logoutUser();
-  });
-
-  // (Optional) also support keyboard users if the link is focused and Enter is pressed
-  document.getElementById("logoutLogo")?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      logoutUser();
-    }
-  });
 </script>
 
+<body>
+  <a class="skip-link" href="#scanner">Skip to Scanner</a>
+    <nav class="navbar" id="navbar">
+    <a href="#" class="navbar-brand" id="logoutLogo" aria-label="Log out">
+      <img src="logo.png" alt="CS-Guardian logo" class="brand-logo" loading="lazy" decoding="async">
+      <span>CS-Guardian</span>
+    </a>
 
-    <div class="hamburger-menu" id="hamburgerMenu" aria-label="Open menu" role="button" tabindex="0">
-      <i class="fas fa-bars"></i>
-    </div>
-    <ul class="nav-links" id="navLinks" aria-label="Primary">
-      <li><a href="#demo" onclick="closeMenu()">Demo</a></li>
+    <!-- hamburger is a real button for a11y; CSS can still style it as an icon -->
+    <button class="hamburger-menu" id="hamburgerMenu"
+            aria-label="Open menu"
+            aria-controls="navLinks"
+            aria-expanded="false">
+      <i class="fas fa-bars" aria-hidden="true"></i>
+    </button>
+
+    <ul class="nav-links" id="navLinks" aria-label="Primary navigation">
       <li><a href="#scanner" onclick="closeMenu()">Scanner</a></li>
       <li><a href="#results" onclick="closeMenu()">Results</a></li>
       <li><a href="#live-reports" onclick="closeMenu()">Live Reports</a></li>
       <li><a href="#myscan" onclick="closeMenu()">My-Scan</a></li>
       <li><a href="#history" onclick="closeMenu()">History</a></li>
+      <li>
+        <button id="logoutBtn" class="logout-btn" aria-label="Logout">
+          <img src="logout.svg" alt="" class="logout-icon" aria-hidden="true">
+          <span>Logout</span>
+        </button>
+      </li>
     </ul>
   </nav>
 
+  <!-- ===== TOOL PAGE MOBILE NAV DRAWER ===== -->
+<aside id="mobileMenu" class="mobile-drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <a class="brand" href="index.html">
+      <img src="logo.png" alt="CS-Guardian logo" />
+      <span class="title">CS-GUARDIAN</span>
+    </a>
+    <button class="drawer-close" aria-label="Close menu">&times;</button>
+  </div>
 
-  <!-- DEMO SECTION -->
-  <section class="content-section demo" id="demo">
-    <div class="container">
-      <h2 class="section-title">Watch the Demo</h2>
-      <p class="section-content">See how our tool scans your Google Cloud Storage buckets...</p>
-      <div class="video-wrapper">
-        <video controls>
-          <source src="vid3.mp4" type="video/mp4">
-        </video>
-      </div>
-    </div>
-  </section>
+  <nav class="drawer-nav">
+    <a class="drawer-link" href="#scanner">Scanner</a>
+    <a class="drawer-link" href="#results">Results</a>
+    <a class="drawer-link" href="#live-reports">Live Reports</a>
+    <a class="drawer-link" href="#myscan">My-Scan</a>
+    <a class="drawer-link" href="#history">History</a>
+  </nav>
 
-  <!-- SCAN SECTION -->
-  <section class="content-section scan" id="scanner">
-    <div class="floating-elements">
-      <div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div>
-    </div>
-    <div class="container">
-      <h2 class="section-title">Welcome to CS-Guardian Scanner</h2>
-      <p class="section-content">Need a Quick Scan of Your Cloud Storage Bucket? I’m ready!</p>
+  <div class="drawer-cta">
+    <button id="logoutDrawerBtn" class="drawer-btn">
+      Logout <i class="fas fa-sign-out-alt icon"></i>
+    </button>
+  </div>
+</aside>
 
-      <div class="form">
-        <form id="scanForm" class="input-slab">
-          <label class="toggle" id="ethicalModeLabel">
-            <input type="checkbox" id="ethicalModeToggle" aria-label="Ethical Mode (Project Owner Only)">
-            <span class="slider"></span>
-            <span class="toggle-label">Full Access Scan (Project Owner)</span>
-          </label>
+<!-- Drawer backdrop -->
+<div class="drawer-backdrop" hidden></div>
 
-          <!-- PROJECT PICKER -->
-          <section class="card project-picker-card" aria-labelledby="pickerTitle">
-            <div class="picker-header">
-              <h3 id="pickerTitle">Select a GCP Project</h3>
-              <div class="picker-actions">
-                <input id="projectSearch" type="text" placeholder="Search by Name or ID" />
-                <button id="refreshProjectsBtn" type="button">Refresh</button>
-              </div>
+
+
+<!-- SCAN SECTION -->
+<section class="content-section scan" id="scanner"
+         data-intro="Welcome to CS-GUARDIAN! Let’s walk through your first scan."
+         data-step="1">
+  <div class="floating-elements">
+    <div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div>
+  </div>
+  <div class="container">
+    <h2 class="section-title">Welcome to CS-Guardian Scanner</h2>
+    <p class="section-content">Need a Quick Scan of Your Cloud Storage Bucket? I’m ready!</p>
+
+    <div class="form">
+      <form id="scanForm" class="input-slab">
+        <label class="toggle" id="ethicalModeLabel"
+               data-intro="By enabling Full Access Scan (available only to Project Owners), you will see 5 sample files exposed from your bucket."
+               data-step="2">
+          <input type="checkbox" id="ethicalModeToggle" aria-label="Ethical Mode (Project Owner Only)">
+          <span class="slider"></span>
+          <span class="toggle-label">Full Access Scan (Project Owner)</span>
+        </label>
+
+        <!-- PROJECT PICKER -->
+        <section class="card project-picker-card" aria-labelledby="pickerTitle"
+                 data-intro="Pick your GCP Project here (search or click a row)."
+                 data-step="3">
+          <div class="picker-header">
+            <h3 id="pickerTitle">Select a GCP Project</h3>
+            <div class="picker-actions">
+              <input id="projectSearch" type="text" placeholder="Search by Name or ID" />
+              <button id="refreshProjectsBtn" type="button">Refresh</button>
             </div>
-
-            <div id="projectsLoading" class="muted">Loading your projects…</div>
-            <div id="projectsError" class="error" style="display:none"></div>
-            <div id="scopeCallout" class="callout">Your login session is missing Google Cloud permissions (cloud-platform). Please log out and sign in again, and accept the permissions prompt.</div>
-
-            <div class="project-table-wrap" aria-live="polite">
-              <table id="projectTable" class="project-table" aria-label="GCP projects">
-                <thead>
-                  <tr>
-                    <th style="width:38%">Name</th>
-                    <th style="width:38%;">ID</th>
-                    <th style="width:14%">Access level</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
-            </div>
-
-            <div class="picker-footer">
-              <span class="muted">Selected:</span>
-              <strong id="selectedProjectLabel">—</strong>
-            </div>
-          </section>
-
-<br><br>
-            <button id="learn-more" type="button" class="cta-pink" aria-label="Scan">Scan</button>
           </div>
-        </form>
-      </div>
+
+          <div id="projectsLoading" class="muted">Loading your projects…</div>
+          <div id="projectsError" class="error" aria-live="assertive" style="display:none"></div>
+          <div id="scopeCallout" class="callout">Your login session is missing Google Cloud permissions (cloud-platform). Please log out and sign in again, and accept the permissions prompt.</div>
+
+          <div class="project-table-wrap" aria-live="polite">
+            <table id="projectTable" class="project-table" aria-label="GCP projects">
+              <thead>
+                <tr>
+                  <th style="width:38%">Name</th>
+                  <th style="width:38%;">ID</th>
+                  <th style="width:14%">Access level</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="picker-footer">
+            <span class="muted">Selected:</span>
+            <strong id="selectedProjectLabel">—</strong>
+          </div>
+        </section>
+
+        <br><br>
+        <button id="learn-more" type="button" class="cta-pink" aria-label="Scan"
+                data-intro="Ready? Click here to start the scan."
+                data-step="4">Scan</button>
+      </form>
     </div>
-  </section>
+  </div>
+</section>
 
 <!-- RESULTS SECTION -->
-<section class="content-section results" id="results">
+<section class="content-section results" id="results"
+         data-intro="The scan results displayed here include Exposure details, Bucket Name, Risk Levels, DLP Findings, Sample Files, and suggested remediation actions generated using Vertex AI."
+         data-step="5">
   <div class="container">
     <h2 class="section-title">Your Scan is Complete!</h2>
     <p class="section-content">
@@ -380,7 +407,7 @@
     </div>
 
     <!-- Summary (scan id, role, bucket count, etc.) -->
-    <div id="results-summary" class="results-container"></div>
+    <div id="results-summary" class="results-container" aria-live="polite"></div>
 
     <!-- Tools -->
     <div class="table-tools" id="results-tools" style="display:none;">
@@ -421,7 +448,9 @@
 
 
 <!-- LIVE REPORTS -->
-<section class="content-section live-reports" id="live-reports">
+<section class="content-section live-reports" id="live-reports"
+         data-intro="Live Reports shows KPIs, charts, and top risks for the latest scan of the selected project."
+         data-step="6">
   <div class="container">
     <h2 class="section-title">Live Reports</h2>
     <p class="section-content">
@@ -429,28 +458,31 @@
     </p>
 
     <!-- Header controls -->
-    <div class="lr-header">
+    <div class="lr-header"
+         data-intro="Use Refresh or quick ranges to update the dashboard for your project."
+         data-step="7">
       <div class="lr-project">
         <span>Project:</span>
         <strong id="lr-project-label">—</strong>
       </div>
 
-     <!-- put this right under the header controls in your Live Reports section -->
-     <input type="date" id="lr-from" hidden>
-     <input type="date" id="lr-to"   hidden>
-
+      <!-- put this right under the header controls in your Live Reports section -->
+      <input type="date" id="lr-from" hidden>
+      <input type="date" id="lr-to"   hidden>
 
       <button id="lr-refresh" class="cta-pink">Refresh</button>
     </div>
 
-<div class="lr-quick">
+    <div class="lr-quick">
       <button class="chip" data-range="latest">Latest</button>
       <button class="chip" data-range="today">Today</button>
       <button class="chip" data-range="all">All</button>
-</div>
+    </div>
 
     <!-- KPI tiles -->
-    <div class="lr-kpis">
+    <div class="lr-kpis"
+         data-intro="High-level KPIs: total scans, buckets scanned, risky buckets, and risk percentage."
+         data-step="8">
       <div class="card">
         <div class="card-title">Total Scans</div>
         <div id="kpi-total-scans" class="kpi-val">—</div>
@@ -470,7 +502,9 @@
     </div>
 
     <!-- Charts -->
-    <div class="lr-charts">
+    <div class="lr-charts"
+         data-intro="Visual breakdowns: Risk Levels and Public vs Private exposure."
+         data-step="9">
       <div class="card">
         <div class="card-title">Risk Levels</div>
         <canvas id="chart-risk-levels" height="260"></canvas>
@@ -481,23 +515,23 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card" data-intro="Risk trend over time helps you see improvement or regressions." data-step="10">
       <div class="card-title">Risk Trend of this Project</div>
       <canvas id="chart-trend" height="220"></canvas>
     </div>
 
     <!-- Top risks table -->
-    <div class="card">
+    <div class="card" data-intro="Top Risks list: the most critical buckets to fix first." data-step="11">
       <div class="card-title">Top Risks</div>
       <div class="table-wrap">
         <table class="scan-table">
           <thead>
             <tr>
-              <th>Bucket</th>
-              <th>Risk</th>
-              <th>Exposure</th>
-              <th>Keywords</th>
-              <th>Last Seen</th>
+               <th data-col="bucket">Bucket</th>
+               <th data-col="risk">Risk</th>
+               <th data-col="exposure">Exposure</th>
+               <th data-col="keywords">Keywords</th>
+               <th data-col="seen">Last Seen</th>
             </tr>
           </thead>
           <tbody id="lr-toprisks-body">
@@ -510,8 +544,11 @@
 </section>
 
 
+
 <!-- MY-SCAN SECTION -->
-<section class="content-section myscan" id="myscan">
+<section class="content-section myscan" id="myscan"
+         data-intro="The My-Scan feature allows you to review past scans without initiating a new one. Reports are available for download in PDF, CSV, and JSON formats."
+         data-step="12">
   <div class="floating-elements">
     <div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div><div class="floating-element"></div>
   </div>
@@ -519,7 +556,7 @@
     <h2 class="section-title">My-Scan</h2>
     <p class="section-content">My-Scan lets you review past scans without rescanning the same project.</p>
 
-    <div class="myscan-feature">
+    <div class="myscan-feature" data-intro="Your previous scans with timestamps and IDs." data-step="13">
       <h3>Previous Scans</h3>
       <p>View all your previous scans with timestamps and IDs.</p>
 
@@ -527,10 +564,10 @@
         <table class="scan-table">
           <thead>
             <tr>
-              <th>Timestamp</th>
-              <th>Scan ID</th>
-              <th>Project ID</th>
-              <th class="download-col">Download Report</th>
+              <th data-col="ts">Timestamp</th>
+              <th data-col="id">Scan ID</th>
+              <th data-col="project">Project ID</th>
+              <th class="download-col" data-col="dl">Download Report</th>
             </tr>
           </thead>
           <tbody id="previous-scan-table">
@@ -542,7 +579,7 @@
 
     <hr class="myscan-divider">
 
-    <div class="myscan-feature">
+    <div class="myscan-feature" data-intro="Open a specific scan ID to see detailed bucket results." data-step="14">
       <h3>Detailed Scan Results</h3>
       <p>Enter a Scan ID to retrieve detailed scan information.</p>
       <div class="detailed-scan-form">
@@ -556,7 +593,9 @@
       <div id="detailed-scan-results" class="results-container" style="margin-top:1rem;"></div>
 
       <!-- ✅ Tools row with filter toolbar -->
-      <div class="table-tools" id="detailed-tools" style="display:none;">
+      <div class="table-tools" id="detailed-tools" style="display:none;"
+           data-intro="Filter and count tools for the detailed results."
+           data-step="15">
         <input type="text" id="detailed-filter" placeholder="Filter buckets (name, reason, keyword)..." aria-label="Filter buckets">
         <span class="chip" id="detailed-count">0 buckets</span>
 
@@ -579,13 +618,13 @@
       <table class="dashboard-table" id="detailed-table" style="display:none;">
         <thead>
           <tr>
-            <th data-key="bucket_name">Bucket Name<span class="sort-ind">↕</span></th>
-            <th data-key="public" class="nowrap">Status<span class="sort-ind">↕</span></th>
-            <th data-key="risk_score" class="nowrap">Risk Score<span class="sort-ind">↕</span></th>
-            <th data-key="risk_level" class="nowrap">Risk Level<span class="sort-ind">↕</span></th>
-            <th data-key="risk_reason" class="risk-reason-col">Risk Reason <span class="sort-ind">↕</span></th>
-            <th data-key="sensitive_keywords_detected">Sensitive Keywords<span class="sort-ind">↕</span></th>
-            <th data-key="sample_files" class="sample-col" style="display:none;">Sample Files<span class="sort-ind">↕</span></th>
+            <th data-col="bucket" data-key="bucket_name">Bucket Name<span class="sort-ind">↕</span></th>
+            <th data-col="status" data-key="public" class="nowrap">Status<span class="sort-ind">↕</span></th>
+            <th data-col="score" data-key="risk_score" class="nowrap">Risk Score<span class="sort-ind">↕</span></th>
+            <th data-col="level" data-key="risk_level" class="nowrap">Risk Level<span class="sort-ind">↕</span></th>
+            <th data-col="reason" data-key="risk_reason" class="risk-reason-col">Risk Reason <span class="sort-ind">↕</span></th>
+            <th data-col="kw" data-key="sensitive_keywords_detected">Sensitive Keywords<span class="sort-ind">↕</span></th>
+            <th data-col="files" data-key="sample_files" class="sample-col" style="display:none;">Sample Files<span class="sort-ind">↕</span></th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -595,51 +634,141 @@
 </section>
 
 
-  <!-- HISTORY SECTION (updated, owner/creator with project filter) -->
-  <section class="content-section history" id="history">
-    <div class="floating-elements">
-      <div class="floating-element"></div><div class="floating-element"></div>
-      <div class="floating-element"></div><div class="floating-element"></div>
-      <div class="floating-element"></div>
+
+<!-- HISTORY SECTION (updated, owner/creator with project filter) -->
+<section class="content-section history" id="history"
+         data-intro="History provides an audit trail of scans. You can filter by Project ID if needed. Only Project Owners can access History."
+         data-step="16">
+  <div class="floating-elements">
+    <div class="floating-element"></div><div class="floating-element"></div>
+    <div class="floating-element"></div><div class="floating-element"></div>
+    <div class="floating-element"></div>
+  </div>
+  <div class="container">
+    <h2 class="section-title">History</h2>
+    <p class="section-content">
+      Project Owners can view history for their project (enter your Project ID). Creators can view all scans or filter by Project ID.
+    </p>
+
+    <div class="inline-form" style="max-width:720px;margin-top:10px;">
+      <input type="text" class="pill-input" id="historyProjectId"
+             placeholder="Enter Project ID (required for Project Owner)"
+             aria-label="Project ID for history">
+      <button id="historyFetchBtn" type="button" class="cta-pink">Filter</button>
+      <!-- next to Filter -->
+      <span id="historyAccessBadge" class="badge" style="margin-left:10px;">—</span>
     </div>
-    <div class="container">
-      <h2 class="section-title">History</h2>
-      <p class="section-content">
-        Project Owners can view history for their project (enter your Project ID). Creators can view all scans or filter by Project ID.
-      </p>
+    <p id="historyHint" class="muted" style="text-align:center;margin-top:8px;"></p>
 
-      <div class="inline-form" style="max-width:720px;margin-top:10px;">
-        <input type="text" class="pill-input" id="historyProjectId"
-               placeholder="Enter Project ID (required for Project Owner)"
-               aria-label="Project ID for history">
-        <button id="historyFetchBtn" type="button" class="cta-pink">Filter</button>
-        <!-- next to Filter -->
-<span id="historyAccessBadge" class="badge" style="margin-left:10px;">—</span>
-
-      </div>
-      <p id="historyHint" class="muted" style="text-align:center;margin-top:8px;"></p>
-
-      <div class="table-container" style="margin-top:18px;">
-        <table id="historyTable">
-          <thead>
-            <tr><th>Scan ID</th><th>Project ID</th><th>User Email</th><th>Timestamp</th><th>Result Summary</th></tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="5" style="text-align:center;">Waiting…</td></tr>
-          </tbody>
-        </table>
-      </div>
+    <div class="table-container" style="margin-top:18px;">
+      <table id="historyTable">
+        <thead>
+          <tr>
+            <th data-col="scan">Scan ID</th>
+            <th data-col="project">Project ID</th>
+            <th data-col="user">User Email</th>
+            <th data-col="time">Timestamp</th>
+            <th data-col="summary">Result Summary</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="5" style="text-align:center;">Waiting…</td></tr>
+        </tbody>
+      </table>
     </div>
-  </section>
+  </div>
+</section>
 
-  <a href="#demo" class="scroll-top" aria-label="Back to top">
+
+
+  <a href="#scanner" class="scroll-top" aria-label="Back to top">
   <i data-feather="chevron-up"></i></a>
 
+  <script>
+/* One source of truth; safe if called multiple times */
+window.isPublicExposure = window.isPublicExposure || function isPublicExposure(b){
+  const s = String(b?.exposure_state || "").toLowerCase();
+  return b?.public === true || s.startsWith("public") || s === "object_public" || b?.iam_public === true;
+};
+</script>
+
+<script>
+/* Badge helper + legacy shim */
+window.exposureBadgeFromBucket = window.exposureBadgeFromBucket || function(b){
+  const pub = window.isPublicExposure(b);
+  return `<span class="badge ${pub ? "badge-public" : "badge-private"}">${pub ? "Public" : "Private"}</span>`;
+};
+
+// Legacy signature used in older renderers
+window.exposureBadge = window.exposureBadge || function(state, isPublicFlag){
+  return window.exposureBadgeFromBucket({ exposure_state: state, public: isPublicFlag === true });
+};
+</script>
+
+<script>
+  function startTour() {
+    introJs()
+      .setOptions({
+        nextLabel: 'Next →',
+        prevLabel: '← Back',
+        skipLabel: 'Skip',
+        doneLabel: 'Done!',
+        overlayOpacity: 0.6,
+        tooltipClass: 'cg-tour',
+        highlightClass: 'cg-highlight'
+      })
+      .oncomplete(() => {
+        sessionStorage.setItem('cgTourShownThisLogin', '1');
+        // Wait briefly before scrolling
+        setTimeout(() => {
+          const scanner = document.getElementById('scanner');
+          if (scanner) {
+            scanner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 200);
+      })
+      .onexit(() => sessionStorage.setItem('cgTourShownThisLogin', '1'))
+      .start();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!sessionStorage.getItem('cgTourShownThisLogin')) {
+      setTimeout(startTour, 500);
+    }
+  });
+
+  document.addEventListener('click', e => {
+    if (e.target.id === 'helpTourBtn') startTour();
+  });
+
+  // Make the logo perform logout
+  document.getElementById("logoutLogo")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    logoutUser();
+  });
+
+  // (Optional) also support keyboard users if the link is focused and Enter is pressed
+  document.getElementById("logoutLogo")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      logoutUser();
+    }
+  });
+
+  // Also make the drawer Logout button use the same centralized logout
+  document.getElementById("logoutDrawerBtn")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    logoutUser();
+  });
+</script>
+
+
+  
 <script>
 /* =========================
    CONFIG
 ========================= */
-var API_BASE = "https://gcp-bucket-detector-backend-661175673686.us-central1.run.app";
+var API_BASE = "https://api.csguardian.com";
 var CONSENT_ENDPOINT   = API_BASE + "/consent";
 var CONSENT_ME_ENDPOINT= API_BASE + "/consent/me";
 var CONSENT_VERSION    = "pp-v1.0";
@@ -663,19 +792,61 @@ function formatDate(ts){
   var fmt=new Intl.DateTimeFormat(undefined,{year:"numeric",month:"numeric",day:"numeric",hour:"numeric",minute:"2-digit",second:"2-digit",timeZone:Intl.DateTimeFormat().resolvedOptions().timeZone,timeZoneName:"short"});
   return fmt.format(d);
 }
-function riskLevelFromScore(score){var s=Number(score||0);if(s>=10)return"Critical";if(s>=7)return"High";if(s>=4)return"Medium";return"Low";}
-function riskClass(level){switch((level||"").toLowerCase()){case"critical":return"risk-critical";case"high":return"risk-high";case"medium":return"risk-medium";default:return"risk-low";}}
 
+/* Mobile nav + Drawer (Tools page) */
+var navLinks = document.getElementById("navLinks");        // desktop UL
+var hamburgerMenu = document.getElementById("hamburgerMenu");
+var drawer = document.getElementById("mobileMenu");
+var drawerBackdrop = document.querySelector(".drawer-backdrop");
+var drawerCloseBtn = drawer ? drawer.querySelector(".drawer-close") : null;
 
-
-/* Mobile nav */
-var navLinks=document.getElementById("navLinks");
-var hamburgerMenu=document.getElementById("hamburgerMenu");
-function closeMenu(){if(navLinks)navLinks.classList.remove("open");}
-if(hamburgerMenu){
-  hamburgerMenu.addEventListener("click",function(){if(navLinks)navLinks.classList.toggle("open");});
-  hamburgerMenu.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){if(navLinks)navLinks.classList.toggle("open");}});
+function openDrawer(){
+  if(!drawer) return;
+  drawer.classList.add("open");
+  drawer.setAttribute("aria-hidden","false");
+  if(drawerBackdrop) drawerBackdrop.hidden = false;
+  if(hamburgerMenu) hamburgerMenu.setAttribute("aria-expanded","true");
 }
+
+function closeDrawer(){
+  if(!drawer) return;
+  drawer.classList.remove("open");
+  drawer.setAttribute("aria-hidden","true");
+  if(drawerBackdrop) drawerBackdrop.hidden = true;
+  if(hamburgerMenu) hamburgerMenu.setAttribute("aria-expanded","false");
+}
+
+function closeMenu(){
+  // close desktop collapsed list (if any) + drawer
+  if(navLinks) navLinks.classList.remove("open");
+  closeDrawer();
+}
+
+// Click hamburger → open drawer on small screens
+if (hamburgerMenu){
+  hamburgerMenu.addEventListener("click", function(){
+    // On phone, use drawer; on wide screens you might still toggle navLinks via CSS
+    if (drawer) openDrawer();
+  });
+  hamburgerMenu.addEventListener("keydown", function(e){
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (drawer) openDrawer();
+    }
+  });
+}
+
+// Close actions
+drawerBackdrop && drawerBackdrop.addEventListener("click", closeDrawer);
+drawerCloseBtn && drawerCloseBtn.addEventListener("click", closeDrawer);
+document.addEventListener("keydown", (e)=>{ if(e.key === "Escape") closeDrawer(); });
+
+// Close drawer when a drawer link is clicked
+drawer && drawer.addEventListener("click", (e)=>{
+  const a = e.target.closest(".drawer-link");
+  if (a) closeDrawer();
+});
+
 
 /* Auth guard */
 (function(){var t=getToken();if(!t)window.location.href="signup.html";})();
@@ -789,12 +960,6 @@ tr.addEventListener("click", function(){
     window.dispatchEvent(new CustomEvent("gcs_project_selected",{detail:state.selected}));
   }
 
-  els.tbody.addEventListener("click", function(e){
-    var btn = e.target.closest("button.select-btn");
-    if(!btn) return;
-    selectProject({ id:btn.dataset.id, name:btn.dataset.name, access:btn.dataset.access });
-  });
-
   function filterRows(){
     var q=(els.search.value||"").toLowerCase().trim();
     state.filtered = !q ? state.projects.slice() : state.projects.filter(function(p){
@@ -838,6 +1003,7 @@ tr.addEventListener("click", function(){
 (function(){
   // --- helpers ---
   function esc(s){
+
     return String(s==null?"":s)
       .replace(/&/g,"&amp;")
       .replace(/</g,"&lt;")
@@ -984,7 +1150,7 @@ function gcloudEnablePAP(bucket){
 function quickActionsHTML(bucket){
   const name = esc(bucket.bucket_name || bucket.bucket || "");
   const actions = [];
-  if (isPublicBucket(bucket)) {
+  if (window.isPublicExposure(bucket)) {
     actions.push(`<button class="btn copy-cmd" data-cmd="${esc(gcloudRemoveAllUsers(name))}">Remove allUsers</button>`);
     actions.push(`<button class="btn secondary copy-cmd" data-cmd="${esc(gcloudEnablePAP(name))}">Enable PAP</button>`);
   }
@@ -995,7 +1161,7 @@ function quickActionsHTML(bucket){
 // ===== FILTER + UTIL HELPERS (ADD THIS BLOCK) =====
 
 // If you DON'T already have this helper, add it.
-function riskLevelFromScore(score){
+window.riskLevelFromScore = window.riskLevelFromScore || function(score){
   const s = Number(score || 0);
   if (s >= 9) return 'critical';
   if (s >= 7) return 'high';
@@ -1015,6 +1181,7 @@ function riskClass(level){
     info:'risk-info'
   }[k] || 'risk-info';
 }
+
 
 // Collect currently active filter buttons
 function getActiveFilters(){
@@ -1115,7 +1282,6 @@ function bindFilterToolbarOnce(){
 
     wrap.innerHTML = filtered.map(b => {
       const name  = esc(b.bucket_name || "—");
-      const expos = b.exposure_state || (b.public ? "public" : "private");
       const level = b.risk_level || riskLevelFromScore(b.risk_score); // fallback from score
       const score = b.risk_score;
 
@@ -1127,7 +1293,7 @@ function bindFilterToolbarOnce(){
 
            </div>`
         : "";
-       const exposure = ((expos||"").toLowerCase().startsWith("public") || b.public === true) ? "public" : "private";
+       const exposure = window.isPublicExposure(b) ? "public" : "private";
        const risk     = String(level || riskLevelFromScore(score)).toLowerCase();
 
       return `
@@ -1135,9 +1301,9 @@ function bindFilterToolbarOnce(){
           <div class="head">
             <div class="name">${name}</div>
             <div class="badges">
-              ${((expos||"").toLowerCase().startsWith("public") || b.public === true)
-                  ? `<span class="badge badge-public">Public</span>`
-                  : `<span class="badge badge-private">Private</span>`}
+              ${window.isPublicExposure(b)
+              ? `<span class="badge badge-public">Public</span>`
+              : `<span class="badge badge-private">Private</span>`}
               <span class="badge ${riskClass(level)}">${esc(level)}</span>
               <span class="badge" style="background:#fff;color:#000;font-weight:900;">
                 Risk Score: ${ (score==null ? "—" : Number(score).toFixed(0)) }
@@ -1977,7 +2143,7 @@ document.addEventListener("DOMContentLoaded", function(){
     // Guard: if not owner and not creator, disable the Filter to avoid guaranteed 403
     const isOwner   = access === "owner";
     const isCreator = appRole === "creator";
-    fetchBtn.disabled = (!isOwner && !isCreator);
+    fetchBtn.disabled = false; // always allow click; server enforces auth
 
     if (!isOwner && !isCreator) {
       hint.textContent = "History requires Project Owner (selected project shows: " +
@@ -2269,16 +2435,17 @@ async function loadLiveReports(){
 
     buckets.forEach(b=>{
       const score = Number(b.risk_score||0);
-      let level = "low";
-      if(score>=10) level="critical";
-      else if(score>=7) level="high";
-      else if(score>=4) level="medium";
+      let level = "info";
+      if (score >= 9)      level = "critical";
+      else if (score >= 7) level = "high";
+      else if (score >= 4) level = "medium";
+      else if (score >  0) level = "low";
       levelCounts[level]++;
       if(level==="critical"||level==="high"||level==="medium") riskyBuckets++;
 
-      const exposure = (b.exposure_state || (b.public ? "public" : "private")).toLowerCase();
-      if(exposure==="private") expPrivate++; else expPublic++;
-    });
+      const pub = window.isPublicExposure(b);
+      if (pub) expPublic++; else expPrivate++;
+     });
 
     const totalBuckets = buckets.length;
     const riskyPct = totalBuckets ? Math.round((riskyBuckets/totalBuckets)*1000)/10 : null;
@@ -2438,6 +2605,13 @@ window.addEventListener("gcs_project_selected", (ev)=>{
   })();
 </script>
 
+<script>
+document.getElementById("logoutBtn")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  logoutUser(); // uses access_token + optional Google revoke already
+  closeDrawer();
+});
+</script>
 
 <script src="https://unpkg.com/feather-icons"></script>
 <script>window.feather && feather.replace();</script>
