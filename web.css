@@ -1746,3 +1746,248 @@ bucket-card .files a:hover {
   font-size: 11px !important;
   line-height: 1.2 !important;
 }
+
+/* ===== CS-GUARDIAN Guided Tutorial Styling ===== */
+
+/* Tooltip bubble */
+.introjs-tooltip {
+  background:#111;
+  color:#fff;
+  border:1px solid #E91E63;
+  border-radius:16px;
+  box-shadow:0 0 15px rgba(233,30,99,0.4);
+}
+
+/* Progress + active bullet */
+.introjs-progressbar,
+.introjs-bullets ul li a.active {
+  background:#E91E63 !important;
+}
+
+/* Highlight glow around elements */
+.cg-highlight {
+  box-shadow:0 0 0 2px rgba(233,30,99,0.8),
+             0 0 24px rgba(233,30,99,0.4) !important;
+  border-radius:10px !important;
+}
+
+/* Keep buttons visible and interactive */
+.introjs-nextbutton,
+.introjs-prevbutton { opacity:1 !important; }
+.introjs-disabled { opacity:1 !important; cursor:pointer !important; }
+
+/* Make Skip button smaller and lighter */
+.introjs-skipbutton {
+  font-size:12px !important;
+  opacity:0.7 !important;
+  padding:4px 8px !important;
+}
+
+/* Focus ring */
+.introjs-button:focus {
+  outline:none;
+  box-shadow:0 0 0 2px rgba(233,30,99,0.4);
+}
+
+/* Remove outlined/duplicated text & slightly reduce weight */
+.introjs-button,
+.introjs-nextbutton,
+.introjs-prevbutton {
+  text-shadow:none !important;
+  -webkit-text-stroke:0 !important;
+  font-weight:600 !important;
+}
+
+/* Layout for the button row: compact, wrapped if needed */
+.introjs-tooltipbuttons {
+  display:flex;
+  gap:8px;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+  padding-top:8px;
+}
+
+/* ===== Base button style (smaller, compact) ===== */
+.introjs-button {
+  background:#000 !important;                 /* black fill */
+  border:2px solid #E91E63 !important;        /* single crisp pink border */
+  color:#fff !important;                      /* white text */
+  border-radius:999px !important;
+  padding:5px 12px !important;                /* ↓ smaller */
+  font-size:13px !important;                  /* ↓ smaller */
+  line-height:1.1 !important;
+  min-width:auto !important;                  /* no forced wide min-width */
+  max-width:42%;                              /* avoid overflow in tight tooltips */
+  letter-spacing:.25px;
+  transition:all .2s ease, box-shadow .25s ease;
+  box-shadow:none !important;                 /* no base glow (prevents double ring) */
+  white-space:nowrap;
+  text-align:center;
+}
+
+/* Specific Next / Back (same default look) */
+.introjs-nextbutton,
+.introjs-prevbutton {
+  background:#000 !important;
+  color:#fff !important;
+  border:2px solid #E91E63 !important;
+}
+
+/* Hover: invert fill/text, keep pink border, add soft glow */
+.introjs-nextbutton:hover,
+.introjs-prevbutton:hover {
+  background:#fff !important;
+  color:#000 !important;
+  border:2px solid #E91E63 !important;
+  box-shadow:0 0 10px rgba(233,30,99,0.45);
+}
+
+/* Even tighter on narrow screens / cramped tooltips */
+@media (max-width: 600px) {
+  .introjs-button {
+    padding:4px 10px !important;
+    font-size:12px !important;
+    max-width:100%;
+  }
+}
+
+/* ===== Logout button (unchanged except kept compact) ===== */
+.logout-btn {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:transparent;
+  color:#fff;
+  border:2px solid #E91E63;
+  border-radius:999px;
+  padding:6px 14px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .3s ease;
+}
+.logout-btn:hover {
+  background:#E91E63;
+  color:#000;
+  box-shadow:0 0 12px rgba(233,30,99,0.6);
+  transform:scale(1.05);
+}
+.logout-icon {
+  width:18px;
+  height:18px;
+  filter:invert(1);
+  transition:transform .3s ease;
+}
+.logout-btn:hover .logout-icon { transform:rotate(-90deg) translateX(2px); }
+
+/* ===== CS-GUARDIAN FIXPACK (append at end) ===== */
+
+/* 1) Single source of truth: color + spacing tokens */
+:root {
+  --accent: #E91E63;          /* unify to brand pink */
+  --accent-rgb: 233, 30, 99;
+  --table-nudge: 0px;         /* center tools/table by default */
+}
+
+/* 2) Video should never block clicks */
+#bg-video { pointer-events: none; }
+
+/* 3) Make the global “white text everywhere” safer:
+      - let form controls default to readable colors
+      - then explicitly restyle the dark pill input again */
+input, textarea, select, button {
+  color: #000 !important;
+  background-color: #fff !important;
+  border-color: #ccc !important;
+}
+.pill-input {
+  color: #fff !important;
+  background: rgba(0,0,0,.45) !important;
+  border: 1.5px solid rgba(255,255,255,.25) !important;
+}
+.pill-input::placeholder { color: rgba(255,255,255,.70) !important; }
+
+/* Keep links inside light surfaces readable */
+.results-table a,
+.bucket-card .files a,
+.sample-link { color: #cfe8ff !important; }
+
+/* 4) Mobile nav always on top and reliably opens */
+.navbar { z-index: 1000; }
+.nav-links {
+  z-index: 1001;              /* above navbar & video */
+  will-change: transform, max-height;
+}
+@media (max-width: 768px){
+  .nav-links.open,
+  .nav-links.active {
+    display:flex !important;
+    transform: translateY(0) !important;
+    max-height: calc(100vh - var(--navbar-h)) !important;
+  }
+}
+
+/* 5) Results cards — collapse duplicates & set one responsive layout */
+.results-cards{
+  display:grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)) !important;
+  gap: 16px !important;
+  margin-top: 16px !important;
+}
+@media (max-width: 420px){
+  .results-cards{ grid-template-columns: 1fr !important; }
+}
+.bucket-card{
+  background:#111 !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+  border-radius:14px !important;
+  padding:16px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,.4) !important;
+}
+
+/* 6) Badges — single, consistent palette */
+.badge{ 
+  display:inline-block; padding:.28rem .6rem; border-radius:999px;
+  font-size:.85rem; font-weight:800; line-height:1; border:1px solid rgba(0,0,0,.2);
+}
+.badge-public  { background:#ef4444 !important; color:#fff !important; }
+.badge-private { background:#22c55e !important; color:#000 !important; }
+.risk-critical { background:#ff1744 !important; color:#fff !important; }
+.risk-high     { background:#d32f2f !important; color:#fff !important; }
+.risk-medium   { background:#fbc02d !important; color:#000 !important; }
+.risk-low      { background:#22c55e !important; color:#000 !important; }
+
+/* 7) Tools/table alignment — honor final token */
+#results-tools, #detailed-tools, .dashboard-table{
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100% !important;
+}
+
+/* 8) Buttons — remove duplicate variants, keep one behavior */
+.btn-chip{
+  padding:.4rem .8rem !important;
+  border-radius:999px !important;
+  border:1px solid rgba(255,255,255,.14) !important;
+  background:#fff !important;
+  color:#000 !important;
+  font-weight:800 !important;
+}
+.btn-chip:hover{ background:#000 !important; color:#fff !important; }
+.cta-pink{
+  background:#fff !important; color:#000 !important;
+  border-radius:15px !important; font-weight:700 !important;
+}
+.cta-pink:hover{
+  background: var(--accent) !important; color:#000 !important;
+}
+
+/* 9) Intro.js: ensure tooltip/buttons stay above everything */
+.introjs-tooltip,
+.introjs-helperLayer,
+.introjs-overlay { z-index: 2000 !important; }
+
+/* 10) Tables — sticky header contrast on dark */
+.dashboard-table thead th{
+  background: linear-gradient(180deg, var(--accent), #c51654) !important;
+  color: #000 !important;
+}
