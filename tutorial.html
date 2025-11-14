@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CS-Guardian · Create a Google Cloud Storage Bucket</title>
+  <link rel="stylesheet" href="tutorial.css" />
+  <meta name="description" content="Video demo and step-by-step guide to create a Google Cloud Storage bucket (GCS) by the CS-Guardian team." />
+</head>
+<body>
+
+  <!-- 🔹 Updated Header (black + pink with clickable logo) -->
+  <header class="topbar">
+    <div class="wrap brand">
+      <a href="index.html" class="brand-link">
+        <img class="logo" src="logo.png" alt="CS-Guardian Logo">
+        <span class="brand-name">CS-Guardian</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <!-- Video card (border fits the video size, whole card is slightly narrower) -->
+    <section class="card video">
+      <div class="card-body">
+        <!-- Branding -->
+        <div class="branding">
+          <img src="logo.png" alt="CS-Guardian Logo" />
+          <h2>CS-GUARDIAN TEAM</h2>
+        </div>
+
+        <!-- Video -->
+        <div class="media">
+          <!-- NOTE: MKV may not play on all browsers. Prefer MP4/H.264 if possible. -->
+          <video controls preload="metadata" aria-label="How to create a Google Cloud Storage bucket">
+            <source src="bucket.mkv" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        <p class="hint">Video tutorial: How to create a Google Cloud Storage bucket.</p>
+      </div>
+    </section>
+
+    <!-- Checklist -->
+    <aside class="card side">
+      <div class="card-body">
+        <h2 class="h-sm">Pre-flight Checklist</h2>
+        <ul class="list">
+          <li>Google account with access to the target <strong>GCP project</strong>.</li>
+          <li>Role: <code>roles/storage.admin</code> (or equivalent least-privilege for bucket creation).</li>
+          <li>Billing enabled (required for some features).</li>
+          <li>Decide <strong>bucket name</strong>, <strong>region</strong>, and <strong>access model</strong> (Uniform vs Fine-grained).</li>
+        </ul>
+        <h3 class="h-xs">Naming Tip</h3>
+        <p class="muted">Format idea: <code>csg-<em>env</em>-<em>project</em>-<em>region</em></code> e.g. <code>csg-dev-csguardian-asia-southeast1</code></p>
+      </div>
+    </aside>
+
+    <!-- Steps -->
+    <section class="wrap">
+      <article class="card">
+        <div class="card-body">
+          <h2 class="h-md">Step-by-Step: Create a GCS Bucket (Console)</h2>
+          <ol class="steps">
+            <li><strong>Open Cloud Storage.</strong> In Google Cloud Console, open the menu → <em>Storage</em> → <em>Buckets</em> → <strong>Create</strong>.</li>
+            <li><strong>Name the bucket.</strong> Use a globally unique name (3–63 chars, lowercase, numbers, hyphens). Avoid PII.</li>
+            <li><strong>Choose location.</strong> Pick a region close to users (e.g., <code>asia-southeast1</code> for Malaysia). For resilience, consider Dual-region/Multi-region.</li>
+            <li><strong>Select storage class.</strong> <em>Standard</em> for hot data; <em>Nearline</em>/<em>Coldline</em>/<em>Archive</em> for infrequent access.</li>
+            <li><strong>Access control.</strong> Prefer <strong>Uniform</strong> bucket-level access. Keep <strong>Public access</strong> blocked. Set <em>Public access prevention</em> to <strong>Enforced</strong>.</li>
+            <li><strong>Protection (optional).</strong> Enable <em>Object versioning</em> for rollbacks, add a <em>Retention policy</em> if needed, choose encryption (Google-managed or CMEK).</li>
+            <li><strong>Create.</strong> Click <strong>Create</strong>. The bucket appears in the list.</li>
+            <li><strong>Upload a test object.</strong> Open the bucket → <strong>Upload files</strong> and add a sample file.</li>
+            <li><strong>Verify security.</strong> In <em>Permissions</em>, ensure no <em>allUsers</em>/<em>allAuthenticatedUsers</em>. Confirm <em>Public access: Blocked</em> and <em>PAP: Enforced</em>.</li>
+            <li><strong>(Optional) Grant IAM.</strong> Give least-privilege roles to service accounts (e.g., <code>roles/storage.objectViewer</code> for read-only access).</li>
+          </ol>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="foot wrap">
+    <small>© 2025 CS-Guardian Team</small>
+  </footer>
+</body>
+</html>

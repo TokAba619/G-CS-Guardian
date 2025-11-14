@@ -1,0 +1,263 @@
+:root{
+  --bg1:#000000;    /* black */
+  --bg2:#000000;    /* black */
+  --card:#0b0b0b;   /* near-black card fill for depth */
+  --stroke:#c51654; /* pink border */
+  --text:#e5e7eb;   /* light text */
+  --muted:#ffffff;  /* white */
+  --accent:#c51654; /* pink accent */
+  --shadow:0 10px 30px rgba(0,0,0,.35);
+  --radius:20px;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  color:var(--text);
+  background:
+    radial-gradient(1200px 600px at 20% -10%, rgba(0,0,0,0.15), transparent 50%),
+    radial-gradient(800px 400px at 100% 0, rgba(0,0,0,0.12), transparent 55%),
+    linear-gradient(180deg, var(--bg1), var(--bg2));
+}
+
+/* ===== Header (black & pink theme) ===== */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+  background: #000;
+  border-bottom: 1px solid rgba(197, 22, 84, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  padding: 8px 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.brand-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.logo {
+  width: 90px;
+  height: auto;
+  object-fit: contain;
+  border-radius: 6px;
+  transition: transform 0.2s ease;
+}
+
+.logo:hover {
+  transform: scale(1.1);
+}
+
+.brand-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+  transition: color 0.2s ease;
+}
+
+.brand-link:hover .brand-name {
+  color: #ffffff; /* pink hover */
+}
+
+
+/* Cards */
+.card{
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.00));
+  border:1px solid var(--stroke);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  margin-bottom:20px;
+}
+.card-body{padding:20px}
+
+/******** Branding above the video ********/
+.branding{
+  text-align:center;
+  margin:16px 16px 8px;
+}
+.branding img{
+  width:70px;height:70px;object-fit:contain;margin-bottom:8px;
+  border-radius:50%;
+  background:rgba(197,22,84,0.12);
+  padding:6px;
+  box-shadow:0 0 12px rgba(197,22,84,0.45);
+}
+.branding h2{
+  font-size:20px;font-weight:800;letter-spacing:1px;margin:0;
+  color:var(--accent);
+  text-transform:uppercase;
+}
+
+/******** Video (card border hugs the video; page controls video size) ********/
+.card.video{
+  max-width:1100px;          /* make the whole card (and video) a bit smaller */
+  margin:0 auto 20px;       /* center the card */
+}
+.card.video .card-body{padding:0}
+
+.media{
+  border-radius:16px;
+  overflow:hidden;
+  background:#000;
+}
+.media video{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;          /* crops any baked-in bars if aspect mismatch */
+  border-radius:16px;
+}
+
+.hint{
+  margin:10px auto 16px;
+  color:var(--muted);
+  font-size:14px;
+  text-align:center;
+}
+
+/******** Sidebar ********/
+.side h2{margin:0 0 10px}
+.list{margin:0;padding-left:20px}
+.list li{margin:6px 0}
+.h-xs{font-size:14px;margin-top:18px;margin-bottom:6px}
+.muted{color:var(--muted)}
+
+/******** Steps ********/
+.h-md{margin:0 0 12px;font-size:22px}
+.h-sm{font-size:18px}
+.steps{counter-reset:step;list-style:none;padding:0;margin:0}
+.steps > li{position:relative;margin:14px 0;padding-left:44px;line-height:1.6}
+.steps > li::before{
+  counter-increment:step; content:counter(step);
+  position:absolute; left:0; top:0; width:30px; height:30px;
+  display:grid; place-items:center;
+  border-radius:10px;
+  background:rgba(197,22,84,.15);    /* pink tint */
+  color:#fff;
+  border:1px solid rgba(197,22,84,.6);/* pink border */
+  font-weight:800; font-size:14px;
+}
+.steps code{
+  background:rgba(255,255,255,.06);
+  padding:.1rem .35rem;
+  border-radius:8px;
+  border:1px solid var(--stroke);
+}
+.steps em{opacity:.95}
+
+/******** Footer ********/
+.foot{opacity:.8; padding-top:8px; padding-bottom:28px; text-align:center}
+.foot small{color:var(--muted)}
+
+/* ===========================
+   PHONE LAYOUT (max-width: 640px)
+   =========================== */
+@media (max-width: 640px) {
+
+  /* Overall spacing */
+  .wrap {
+    padding: 12px 14px;
+  }
+
+  /* Header: logo + text a bit smaller */
+  .topbar {
+    padding: 6px 0;
+  }
+
+  .brand {
+    justify-content: flex-start;
+  }
+
+  .brand-link {
+    gap: 6px;
+  }
+
+  .logo {
+    width: 30px;
+    height: 30px;
+  }
+
+  .brand-name {
+    font-size: 16px;
+  }
+
+  /* Video card: use full width on phone */
+  .card.video {
+    max-width: 100%;
+    margin: 10px 0 18px;
+  }
+
+  .branding {
+    margin: 10px 10px 6px;
+  }
+
+  .branding img {
+    width: 54px;
+    height: 54px;
+  }
+
+  .branding h2 {
+    font-size: 16px;
+  }
+
+  .media {
+    padding: 8px; /* slightly less padding around video */
+  }
+
+  .media video {
+    width: 100%;
+    height: auto;
+  }
+
+  .hint {
+    font-size: 12px;
+    padding: 0 4px;
+  }
+
+  /* Checklist card: tighter spacing */
+  .side .card-body {
+    padding: 14px;
+  }
+
+  .h-sm {
+    font-size: 16px;
+  }
+
+  .list li {
+    font-size: 13px;
+  }
+
+  /* Steps: smaller numbers & left padding */
+  .h-md {
+    font-size: 18px;
+  }
+
+  .steps > li {
+    padding-left: 34px;
+    font-size: 13px;
+  }
+
+  .steps > li::before {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  /* Footer text size */
+  .foot small {
+    font-size: 12px;
+  }
+}
